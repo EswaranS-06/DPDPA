@@ -24,6 +24,7 @@ export default async function ClientLayout({ children, params }: Props) {
       <ClientTabs
         tabs={[
           { href: base, label: 'Overview' },
+          { href: `${base}/assessments`, label: 'Assessments' },
           { href: `${base}/departments`, label: `Departments (${client.departmentCount})` },
           { href: `${base}/people`, label: 'People' },
         ]}

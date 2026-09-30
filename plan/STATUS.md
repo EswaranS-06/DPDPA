@@ -14,7 +14,7 @@ Gate: **passing**
 | C3 | Identity and access | R0 | IN PROGRESS | security pending |
 | C4 | Knowledge base and question bank | R1 | TESTS PASSING | legal_sme pending |
 | C5 | Clients and organisation | R1 | TESTS PASSING | lead_auditor pending |
-| C6 | Assessment execution | R1 | PLANNED | lead_auditor pending |
+| C6 | Assessment execution | R1 | TESTS PASSING | lead_auditor pending |
 | C7 | Evidence | R1 | PLANNED | lead_auditor pending |
 | C8 | Findings, gaps and risks | R1 | PLANNED | legal_sme pending, lead_auditor pending |
 | C9 | Remediation and re-assessment | R2 | PLANNED | lead_auditor pending |
@@ -71,5 +71,9 @@ Gate: **passing**
 | TC-C5.2-01 | C5.2 | Department codes are unique within a client | duplicate refused | literal | PASS |
 | TC-C5.3-01 | C5.3 | Inviting creates one app user with a role scoped to the client; a repeat invite does not duplicate | 1 user, 1 role | literal | PASS |
 | TC-C5.4-01 | C5.4 | Firm admin sees all clients; auditor sees assigned clients only | filtered lists | literal | PASS |
+| TC-C6.1-01 | C6.1 | A new assessment pins the release and creates one item per question | items = questions | oracle | PASS |
+| TC-C6.2-01 | C6.2 | A department owner can answer only their department's items | refused elsewhere | literal | PASS |
+| TC-C6.3-01 | C6.3 | Not applicable needs a reason; answers map to compliance states | mapping holds | literal | PASS |
+| TC-C6.4-01 | C6.4 | Progress and compliance percentages equal the fixture | fixture values | golden | PASS |
 
-27 further tests are planned in later sub-phases.
+23 further tests are planned in later sub-phases.
