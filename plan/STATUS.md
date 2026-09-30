@@ -8,7 +8,7 @@ Gate: **passing**
 
 | Phase | Title | Release | Status | Reviews |
 |---|---|---|---|---|
-| C0 | Repository and tooling | R0 | IN PROGRESS | tech_lead pending |
+| C0 | Repository and tooling | R0 | TESTS PASSING | tech_lead pending |
 | C1 | Infrastructure and database core | R0 | TESTS PASSING | architect pending |
 | C2 | Framework in the database | R0 | TESTS PASSING | legal_sme pending, tech_lead pending |
 | C3 | Authentication, tenancy, audit | R0 | PLANNED | security pending |
@@ -30,7 +30,7 @@ Gate: **passing**
 | TC-C0.2-01 | C0.2 | A core-* package importing a feature-* package fails lint | no-restricted-imports error | literal | PASS |
 | TC-C0.4-01 | C0.4 | Missing result, unknown ID and failure are reported and block the gate | MISSING, UNTRACED, FAIL; gate blocked | literal | PASS |
 | TC-C0.4-02 | C0.4 | Drift, deferred and planned tests are reported without blocking | DRIFT, DEFERRED, PLANNED; gate passing | literal | PASS |
-| TC-C0.5-01 | C0.5 | pnpm verify on a clean clone exits 0 | exit code 0 | manual | MANUAL-PENDING |
+| TC-C0.5-01 | C0.5 | pnpm verify on a clean clone exits 0 | exit code 0 | manual | PASS |
 | TC-C1.1-01 | C1.1 | A missing or invalid env var stops startup with a named error | EnvError naming each bad variable | literal | PASS |
 | TC-C1.2-01 | C1.2 | Migrating an empty database twice gives the same schema and the second run is a no-op | identical schema fingerprint; 0 migrations applied on re-run | literal | PASS |
 | TC-C1.2-02 | C1.2 | A tenant-A session cannot read tenant-B rows | 0 rows (RLS as the non-owner app role) | literal | PASS |
