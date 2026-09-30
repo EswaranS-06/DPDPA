@@ -34,3 +34,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# DUATF
+.env
+infra/.env
+node_modules/
+.turbo/
+dist/
+.next/
+coverage/
+*.tar
