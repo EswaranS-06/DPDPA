@@ -13,7 +13,7 @@ export default async function ClientLayout({ children, params }: Props) {
   const base = `/clients/${client.code}`
   return (
     <div className={styles.page}>
-      <header className={styles.header}>
+      <header className={`${styles.header} no-print`}>
         <span className={styles.code}>{client.code}</span>
         <h1 className={styles.title}>{client.name}</h1>
         <div className={styles.chips}>
@@ -21,18 +21,21 @@ export default async function ClientLayout({ children, params }: Props) {
           <ApplicabilityChip applicability={client.applicability} />
         </div>
       </header>
-      <ClientTabs
-        tabs={[
-          { href: base, label: 'Overview' },
-          { href: `${base}/assessments`, label: 'Assessments' },
-          { href: `${base}/evidence`, label: 'Evidence' },
-          { href: `${base}/findings`, label: 'Findings' },
-          { href: `${base}/risks`, label: 'Risks' },
-          { href: `${base}/actions`, label: 'Remediation' },
-          { href: `${base}/departments`, label: `Departments (${client.departmentCount})` },
-          { href: `${base}/people`, label: 'People' },
-        ]}
-      />
+      <div className="no-print">
+        <ClientTabs
+          tabs={[
+            { href: base, label: 'Overview' },
+            { href: `${base}/assessments`, label: 'Assessments' },
+            { href: `${base}/evidence`, label: 'Evidence' },
+            { href: `${base}/findings`, label: 'Findings' },
+            { href: `${base}/risks`, label: 'Risks' },
+            { href: `${base}/actions`, label: 'Remediation' },
+            { href: `${base}/reports`, label: 'Reports' },
+            { href: `${base}/departments`, label: `Departments (${client.departmentCount})` },
+            { href: `${base}/people`, label: 'People' },
+          ]}
+        />
+      </div>
       {children}
     </div>
   )

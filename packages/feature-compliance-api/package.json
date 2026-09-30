@@ -15,6 +15,7 @@
     "@duatf/platform-db": "workspace:*",
     "@duatf/platform-identity": "workspace:*",
     "@duatf/platform-storage": "workspace:*",
+    "exceljs": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

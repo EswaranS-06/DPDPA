@@ -501,7 +501,7 @@ phases:
     subphases:
       - id: C11.1
         title: 'Excel exports'
-        state: planned
+        state: active
         tests:
           - id: TC-C11.1-01
             title: 'Risk-register workbook has one row per risk with every column'
@@ -509,7 +509,7 @@ phases:
             source: oracle
       - id: C11.2
         title: 'Printable reports'
-        state: planned
+        state: active
         tests:
           - id: TC-C11.2-01
             title: 'Executive report shows required sections, release and date'

@@ -136,3 +136,10 @@ export {
   type PortfolioRow,
   type ClientFigures,
 } from './dashboard'
+export {
+  buildComplianceWorkbook,
+  executiveReport,
+  RISK_REGISTER_COLUMNS,
+  EXECUTIVE_SECTIONS,
+  type ExecutiveReport,
+} from './reports'

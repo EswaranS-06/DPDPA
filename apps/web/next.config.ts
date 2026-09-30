@@ -22,7 +22,7 @@ const config: NextConfig = {
     '@duatf/platform-storage',
     '@duatf/platform-trpc',
   ],
-  serverExternalPackages: ['postgres', 'openid-client', 'minio'],
+  serverExternalPackages: ['postgres', 'openid-client', 'minio', 'exceljs'],
   // Evidence files up to 20 MB are sent through server actions (and the proxy in front of them).
   experimental: {
     serverActions: { bodySizeLimit: '21mb' },

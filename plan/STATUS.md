@@ -19,7 +19,7 @@ Gate: **passing**
 | C8 | Findings, gaps and risks | R1 | TESTS PASSING | legal_sme pending, lead_auditor pending |
 | C9 | Remediation and re-assessment | R2 | TESTS PASSING | lead_auditor pending |
 | C10 | Dashboards and client sharing | R2 | TESTS PASSING | lead_auditor pending |
-| C11 | Reports | R2 | PLANNED | legal_sme pending |
+| C11 | Reports | R2 | TESTS PASSING | legal_sme pending |
 | C12 | Hardening | R3 | PLANNED | security pending |
 | C13 | Pilots and production | R3 | PLANNED | leadership pending |
 | C14 | ROPA, data inventory and DIA (V2) | R3 | PLANNED | legal_sme pending |
@@ -87,5 +87,7 @@ Gate: **passing**
 | TC-C9.3-01 | C9.3 | A re-assessment copies scope and links to the previous cycle | copied and linked | literal | PASS |
 | TC-C10.1-01 | C10.1 | Dashboard figures equal direct counts | equal | oracle | PASS |
 | TC-C10.2-01 | C10.2 | A client user is sent to their own client and cannot open another | redirected; refused | literal | PASS |
+| TC-C11.1-01 | C11.1 | Risk-register workbook has one row per risk with every column | rows = risks | oracle | PASS |
+| TC-C11.2-01 | C11.2 | Executive report shows required sections, release and date | present | literal | PASS |
 
-12 further tests are planned in later sub-phases.
+10 further tests are planned in later sub-phases.
