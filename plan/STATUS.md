@@ -16,7 +16,7 @@ Gate: **passing**
 | C5 | Clients and organisation | R1 | TESTS PASSING | lead_auditor pending |
 | C6 | Assessment execution | R1 | TESTS PASSING | lead_auditor pending |
 | C7 | Evidence | R1 | TESTS PASSING | lead_auditor pending |
-| C8 | Findings, gaps and risks | R1 | PLANNED | legal_sme pending, lead_auditor pending |
+| C8 | Findings, gaps and risks | R1 | TESTS PASSING | legal_sme pending, lead_auditor pending |
 | C9 | Remediation and re-assessment | R2 | PLANNED | lead_auditor pending |
 | C10 | Dashboards and client sharing | R2 | PLANNED | lead_auditor pending |
 | C11 | Reports | R2 | PLANNED | legal_sme pending |
@@ -79,5 +79,8 @@ Gate: **passing**
 | TC-C7.2-01 | C7.2 | One evidence item links to several questions | shown on each | literal | PASS |
 | TC-C7.3-01 | C7.3 | Accept or reject needs a reviewer other than the uploader | uploader refused | literal | PASS |
 | TC-C7.4-01 | C7.4 | The repository filters by status and flags evidence past its valid-until date | filtered; expired flagged | literal | PASS |
+| TC-C8.1-01 | C8.1 | No opens exactly one finding; Yes closes it with history | 1 open, then closed | literal | PASS |
+| TC-C8.2-01 | C8.2 | Score = L x I with configurable bands | 4 Low, 5 Medium, 9 Medium, 10 High, 16 High, 17 Critical, 25 Critical | literal | PASS |
+| TC-C8.3-01 | C8.3 | A finding carries its question's recommendation and references | present | oracle | PASS |
 
-20 further tests are planned in later sub-phases.
+17 further tests are planned in later sub-phases.

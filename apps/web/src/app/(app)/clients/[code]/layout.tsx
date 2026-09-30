@@ -26,6 +26,8 @@ export default async function ClientLayout({ children, params }: Props) {
           { href: base, label: 'Overview' },
           { href: `${base}/assessments`, label: 'Assessments' },
           { href: `${base}/evidence`, label: 'Evidence' },
+          { href: `${base}/findings`, label: 'Findings' },
+          { href: `${base}/risks`, label: 'Risks' },
           { href: `${base}/departments`, label: `Departments (${client.departmentCount})` },
           { href: `${base}/people`, label: 'People' },
         ]}

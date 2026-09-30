@@ -36,6 +36,7 @@ import {
   RuleError,
   ValidationError,
 } from './errors'
+import { syncFinding } from './findings'
 import { COMPLIANCE_OF, summariseProgress } from './progress'
 
 const blankToUndefined = (value: unknown) =>
@@ -439,6 +440,12 @@ export const answerItem = async (
         reviewedAt: null,
       })
       .where(eq(assessmentItem.id, itemId))
+    await syncFinding(tx, ctx, {
+      clientId,
+      itemId,
+      answer: input.answer,
+      comment: input.comment ?? null,
+    })
     await audit(tx, ctx, {
       tenantId: clientId,
       action: 'item.answer',

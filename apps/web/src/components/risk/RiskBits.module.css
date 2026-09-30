@@ -1,0 +1,55 @@
+.figure {
+  margin: 0;
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.heatmap {
+  border-collapse: separate;
+  border-spacing: 3px;
+  font-variant-numeric: tabular-nums;
+}
+
+.heatmap th {
+  width: 1.6rem;
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--color-pencil);
+  text-align: center;
+}
+
+.cell {
+  width: 2.8rem;
+  height: 2.4rem;
+  text-align: center;
+  font-weight: 700;
+  border-radius: 4px;
+  color: var(--color-ink);
+}
+
+.live {
+  background: var(--color-live-soft);
+}
+
+.pending {
+  background: var(--color-pending-soft);
+}
+
+.severe {
+  background: var(--color-severe-soft);
+}
+
+.accent {
+  background: var(--color-accent-soft);
+}
+
+.neutral {
+  background: var(--color-folio);
+}
+
+.caption {
+  font-size: var(--text-xs);
+  color: var(--color-pencil);
+  max-width: 20rem;
+}
