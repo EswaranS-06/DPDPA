@@ -1,0 +1,33 @@
+{
+  "name": "@duatf/feature-framework-library",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@duatf/core-ui": "workspace:*",
+    "@duatf/core-utils": "workspace:*",
+    "@duatf/feature-framework-library-api": "workspace:*",
+    "@duatf/platform-trpc": "workspace:*",
+    "react-markdown": "catalog:",
+    "remark-gfm": "catalog:"
+  },
+  "peerDependencies": {
+    "next": "catalog:",
+    "react": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "next": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
