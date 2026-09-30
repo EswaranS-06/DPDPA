@@ -1,0 +1,9 @@
+id: TC-C0.5-01
+result: pass
+by: claude (for EswaranS-06)
+date: '2026-09-30'
+evidence: >-
+  Fresh clone of git@github.com:EswaranS-06/DPDPA.git at bf4e17c into /root/duatf-clean-clone,
+  pnpm install --frozen-lockfile (exit 0), then pnpm verify (exit 0): Prettier clean, ESLint
+  clean, typecheck 14/14, 49/49 tests, web and API builds succeeded, traceability gate passing.
+notes: Only the generated .env was copied in; it holds service credentials and is never committed.
