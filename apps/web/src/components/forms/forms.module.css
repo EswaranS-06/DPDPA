@@ -1,0 +1,71 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  max-width: 60rem;
+}
+
+.inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3) var(--space-4);
+}
+
+.inline > div {
+  flex: 1 1 12rem;
+}
+
+.secret {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.secretValue {
+  display: inline-block;
+  padding: var(--space-2) var(--space-3);
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: var(--text-md);
+  letter-spacing: 0.04em;
+  color: var(--color-ink);
+  background: var(--color-sheet);
+  border: 1px dashed var(--color-rule-strong);
+  border-radius: var(--radius-control);
+  user-select: all;
+}
+
+.small {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--color-pencil);
+}
+
+.rowActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.linkish {
+  padding: 0.2rem 0.55rem;
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--color-accent);
+  background: none;
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-control);
+  cursor: pointer;
+}
+
+.linkish:hover {
+  border-color: var(--color-accent);
+}
+
+.danger {
+  color: var(--color-severe);
+}
+
+.danger:hover {
+  border-color: var(--color-severe);
+}

@@ -305,7 +305,7 @@ phases:
     subphases:
       - id: C5.1
         title: 'Client onboarding'
-        state: planned
+        state: active
         tests:
           - id: TC-C5.1-01
             title: 'Onboarding validates required fields and gives a unique client code'
@@ -313,7 +313,7 @@ phases:
             source: literal
       - id: C5.2
         title: 'Departments'
-        state: planned
+        state: active
         tests:
           - id: TC-C5.2-01
             title: 'Department codes are unique within a client'
@@ -321,7 +321,7 @@ phases:
             source: literal
       - id: C5.3
         title: 'Client users and invitations'
-        state: planned
+        state: active
         tests:
           - id: TC-C5.3-01
             title: 'Inviting creates one app user with a role scoped to the client; a repeat invite does not duplicate'
@@ -329,7 +329,7 @@ phases:
             source: literal
       - id: C5.4
         title: 'Firm staff assignment'
-        state: planned
+        state: active
         tests:
           - id: TC-C5.4-01
             title: 'Firm admin sees all clients; auditor sees assigned clients only'

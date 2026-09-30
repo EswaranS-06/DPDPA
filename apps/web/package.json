@@ -14,6 +14,7 @@
     "@duatf/core-config": "workspace:*",
     "@duatf/core-ui": "workspace:*",
     "@duatf/core-utils": "workspace:*",
+    "@duatf/feature-compliance-api": "workspace:*",
     "@duatf/feature-framework-library": "workspace:*",
     "@duatf/feature-framework-library-api": "workspace:*",
     "@duatf/platform-db": "workspace:*",

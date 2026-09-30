@@ -14,6 +14,7 @@ const config: NextConfig = {
     '@duatf/core-config',
     '@duatf/core-ui',
     '@duatf/core-utils',
+    '@duatf/feature-compliance-api',
     '@duatf/feature-framework-library',
     '@duatf/feature-framework-library-api',
     '@duatf/platform-db',

@@ -36,6 +36,20 @@
       "when": 1790765949106,
       "tag": "0004_questions",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790766937814,
+      "tag": "0005_clients",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790766938302,
+      "tag": "0006_clients_rls",
+      "breakpoints": true
     }
   ]
 }

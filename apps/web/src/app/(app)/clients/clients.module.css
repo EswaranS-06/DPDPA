@@ -1,0 +1,126 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.clientCell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.clientName {
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.clientName:hover {
+  text-decoration: underline;
+}
+
+.muted {
+  color: var(--color-pencil);
+  font-size: var(--text-sm);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.headerTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.code {
+  font-size: var(--text-sm);
+  color: var(--color-pencil);
+  letter-spacing: 0.04em;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-xl);
+  font-stretch: var(--width-wide);
+  line-height: 1.15;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-stretch: var(--width-wide);
+  font-weight: 600;
+}
+
+.sectionIntro {
+  margin: 0;
+  color: var(--color-pencil);
+  max-width: 70ch;
+}
+
+.profile {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  gap: var(--space-4) var(--space-6);
+  margin: 0;
+}
+
+.profile div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.profile dt {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-pencil);
+}
+
+.profile dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.wide {
+  grid-column: 1 / -1;
+}
+
+.panel {
+  padding: var(--space-5);
+  background: var(--color-sheet);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-sheet);
+}
+
+.personCell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}

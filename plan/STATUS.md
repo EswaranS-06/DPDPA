@@ -13,7 +13,7 @@ Gate: **passing**
 | C2 | Framework in the database | R0 | TESTS PASSING | legal_sme pending, tech_lead pending |
 | C3 | Identity and access | R0 | IN PROGRESS | security pending |
 | C4 | Knowledge base and question bank | R1 | TESTS PASSING | legal_sme pending |
-| C5 | Clients and organisation | R1 | PLANNED | lead_auditor pending |
+| C5 | Clients and organisation | R1 | TESTS PASSING | lead_auditor pending |
 | C6 | Assessment execution | R1 | PLANNED | lead_auditor pending |
 | C7 | Evidence | R1 | PLANNED | lead_auditor pending |
 | C8 | Findings, gaps and risks | R1 | PLANNED | legal_sme pending, lead_auditor pending |
@@ -67,5 +67,9 @@ Gate: **passing**
 | TC-C4.2-02 | C4.2 | One question per control, each with references, evidence and a recommendation | questions = controls, all complete | oracle | PASS |
 | TC-C4.2-03 | C4.2 | LNK-SPDI-01 live on 12 May 2027, not on 13 May 2027 | true, false | literal | PASS |
 | TC-C4.3-01 | C4.3 | Suggestions are split into required, recommended and supporting with no duplicates | three disjoint lists | literal | PASS |
+| TC-C5.1-01 | C5.1 | Onboarding validates required fields and gives a unique client code | field errors; unique code | literal | PASS |
+| TC-C5.2-01 | C5.2 | Department codes are unique within a client | duplicate refused | literal | PASS |
+| TC-C5.3-01 | C5.3 | Inviting creates one app user with a role scoped to the client; a repeat invite does not duplicate | 1 user, 1 role | literal | PASS |
+| TC-C5.4-01 | C5.4 | Firm admin sees all clients; auditor sees assigned clients only | filtered lists | literal | PASS |
 
-31 further tests are planned in later sub-phases.
+27 further tests are planned in later sub-phases.

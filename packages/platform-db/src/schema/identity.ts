@@ -1,4 +1,5 @@
 import { bigserial, jsonb, pgTable, text, timestamp, unique, uuid } from 'drizzle-orm/pg-core'
+import { department } from './compliance'
 import { tenant } from './platform'
 
 export type UserKind = 'firm' | 'client'
@@ -27,7 +28,7 @@ export const roleAssignment = pgTable(
       .references(() => appUser.id, { onDelete: 'cascade' }),
     role: text('role').notNull(),
     tenantId: uuid('tenant_id').references(() => tenant.id, { onDelete: 'cascade' }),
-    departmentId: uuid('department_id'),
+    departmentId: uuid('department_id').references(() => department.id, { onDelete: 'cascade' }),
     createdBy: uuid('created_by'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
