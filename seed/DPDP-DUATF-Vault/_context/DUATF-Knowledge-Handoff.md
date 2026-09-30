@@ -16,7 +16,7 @@ This file carries everything established so far about the **DPDP Unified Assessm
 
 - The user works with a team to build a **universal DPDPA framework**: structure, workflow, mapping and mind map, for use across sectors and domains.
 - **Obsidian** is the working tool. Tags and properties drive the structured mind map and graph.
-- The user's company is **Xyberu Cybersecurity Services**. It acts as DPDPA auditor/assessor for clients and has its own logo and cover-page branding for client deliverables.
+- The user's company is **ComplyX Cybersecurity Services**. It acts as DPDPA auditor/assessor for clients and has its own logo and cover-page branding for client deliverables.
 - The user has done **real DPDPA client assessments** and got stuck because real processing is a **graph, not a linear flow**. The framework must work in real client fieldwork.
 - The current client engagement is as DPDPA assessor for a Data Fiduciary entity called **"Mallard"**.
 - The framework must cover **all sectors**, not only healthcare. Healthcare was the first template-set focus and the original worked example (hospital).
@@ -293,9 +293,9 @@ LEGAL ENTITY (role track: Fiduciary / Processor / CM / State)
 
 ## 5. Open questions for the user (to continue the brainstorm)
 
-1. Who runs DUATF: Xyberu consultants assessing clients, or client staff self-assessing? This decides how much judgement goes into rules versus the assessor.
+1. Who runs DUATF: ComplyX consultants assessing clients, or client staff self-assessing? This decides how much judgement goes into rules versus the assessor.
 2. The exact moments the user got stuck in the real engagement (2-3 examples). These are the first validation cases for v0.2.
-3. What the client receives at the end: gap report, Board-level compliance opinion, roadmap, or ongoing tracking. This shapes roll-up and scoring. (Xyberu-branded deliverables with logo/cover page exist.)
+3. What the client receives at the end: gap report, Board-level compliance opinion, roadmap, or ongoing tracking. This shapes roll-up and scoring. (ComplyX-branded deliverables with logo/cover page exist.)
 
 ---
 

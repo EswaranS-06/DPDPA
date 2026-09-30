@@ -1,7 +1,7 @@
 # DUATF design system (v1, 30 Sep 2026)
 
 ## Brief
-- **Subject:** the working tool Xyberu's DPDP assessors use to read India's DPDP Act and Rules, map a client's processing, test controls and track gaps. The first screens are the Framework Library: the law broken into cross-linked obligations and controls.
+- **Subject:** the working tool ComplyX's DPDP assessors use to read India's DPDP Act and Rules, map a client's processing, test controls and track gaps. The first screens are the Framework Library: the law broken into cross-linked obligations and controls.
 - **Audience:** privacy assessors and client DPOs who cite provisions daily ("s.8(6)", "R7(2)(b)") and move between statute text, controls and evidence.
 - **Primary job:** find the exact obligation, and see what it requires, when it applies, when it commences, the penalty, and which controls satisfy it. It has to be fast, precise and citation-first.
 

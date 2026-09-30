@@ -4,7 +4,7 @@ Date: 2026-09-30. Status: accepted.
 
 ## Context
 
-DUATF is used by Xyberu staff and by the staff of each client. A client must never see another
+DUATF is used by ComplyX staff and by the staff of each client. A client must never see another
 client's records, and a department owner should only answer for their own department.
 
 ## Decisions

@@ -29,7 +29,7 @@ export default async function Page() {
   return (
     <div className={styles.page}>
       <PageHeader
-        title="Xyberu staff"
+        title="ComplyX staff"
         lede="Firm administrators manage staff and every client. Lead auditors run engagements; auditors work on the clients they are assigned to, or on all clients when given a firm-wide role."
       />
       {staff.length === 0 ? (

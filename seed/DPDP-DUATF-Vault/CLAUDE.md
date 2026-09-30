@@ -1,6 +1,6 @@
 # CLAUDE.md - DUATF Obsidian Vault
 
-This is the Obsidian vault for **DUATF (DPDP Unified Assessment & Tracking Framework)**. It is a universal, process-first assessment framework for India's DPDP Act 2023 + DPDP Rules 2025. It is built by Xyberu Cybersecurity Services for real client assessments across all sectors.
+This is the Obsidian vault for **DUATF (DPDP Unified Assessment & Tracking Framework)**. It is a universal, process-first assessment framework for India's DPDP Act 2023 + DPDP Rules 2025. It is built by ComplyX Cybersecurity Services for real client assessments across all sectors.
 
 **Read `_context/DUATF-Knowledge-Handoff.md` first.** It holds the verified legal knowledge, the v1 design, the validation gaps (G1-G10), the agreed v0.2 direction and the open questions.
 

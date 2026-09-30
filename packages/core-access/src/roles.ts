@@ -14,7 +14,7 @@ export const ROLE_LABEL: Record<Role, string> = {
 }
 
 export const ROLE_DESCRIPTION: Record<Role, string> = {
-  firm_admin: 'Manages Xyberu staff, all clients and the knowledge base.',
+  firm_admin: 'Manages ComplyX staff, all clients and the knowledge base.',
   lead_auditor: 'Runs engagements: onboards clients, opens assessments, signs off findings.',
   auditor: 'Assesses assigned clients: answers, reviews evidence, records findings and risks.',
   client_dpo: 'The client’s privacy lead: manages their people, responds, accepts risks.',

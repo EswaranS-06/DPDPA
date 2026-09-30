@@ -139,7 +139,7 @@ export default async function Page({ params }: { params: Promise<{ code: string 
 
       <section className={styles.section} aria-labelledby="firm-team">
         <h2 id="firm-team" className={styles.sectionTitle}>
-          Xyberu team
+          ComplyX team
         </h2>
         {people.firmTeam.length === 0 ? (
           <EmptyState title="No auditor is assigned to this client yet.">

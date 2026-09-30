@@ -7,7 +7,7 @@ import { preload } from 'react-dom'
 
 export const metadata: Metadata = {
   title: { default: 'DUATF', template: '%s | DUATF' },
-  description: 'DPDP compliance assessment and tracking by Xyberu Cybersecurity Services.',
+  description: 'DPDP compliance assessment and tracking by ComplyX Cybersecurity Services.',
 }
 
 export const viewport: Viewport = { themeColor: '#f4f5f2' }

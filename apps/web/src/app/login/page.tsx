@@ -31,7 +31,7 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
         <p className={styles.mark}>DUATF</p>
         <h1 className={styles.title}>DPDP compliance tracking</h1>
         <p className={styles.lede}>
-          Assessments, evidence, findings and remediation for Xyberu clients. Sign in with your
+          Assessments, evidence, findings and remediation for ComplyX clients. Sign in with your
           DUATF account; you will be asked for your authenticator code.
         </p>
         {message ? (
@@ -43,7 +43,7 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
           Sign in
         </a>
         <p className={styles.small}>
-          Xyberu Cybersecurity Services. A working compliance framework, not legal advice.
+          ComplyX Cybersecurity Services. A working compliance framework, not legal advice.
         </p>
       </div>
     </main>

@@ -157,7 +157,7 @@ export const AssignStaffForm = ({ action, staff }: { action: Action; staff: Sele
       <Feedback state={state} />
       <div className={styles.inline}>
         <SelectField
-          label="Xyberu staff member"
+          label="ComplyX staff member"
           name="userId"
           required
           placeholder="Choose…"

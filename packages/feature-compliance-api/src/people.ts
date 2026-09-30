@@ -84,8 +84,8 @@ const grant = async (
     throw new ValidationError({
       email:
         existing.kind === 'firm'
-          ? 'This person is Xyberu staff. Assign them to the client from Staff instead.'
-          : 'This person is a client user and cannot be given a Xyberu staff role.',
+          ? 'This person is ComplyX staff. Assign them to the client from Staff instead.'
+          : 'This person is a client user and cannot be given a ComplyX staff role.',
     })
   }
   if (existing?.status === 'disabled') {
@@ -166,7 +166,7 @@ export const inviteClientUser = async (
   return grant(ctx, { ...input, kind: 'client', clientId, departmentId })
 }
 
-/** Invites Xyberu staff, firm-wide or for one client. Firm administrators only. */
+/** Invites ComplyX staff, firm-wide or for one client. Firm administrators only. */
 export const inviteFirmStaff = async (ctx: ServiceContext, raw: unknown): Promise<InviteResult> => {
   authorize(ctx.principal, 'platform.admin')
   const input = parseInput(staffInviteSchema, raw)
@@ -181,7 +181,7 @@ export const inviteFirmStaff = async (ctx: ServiceContext, raw: unknown): Promis
   })
 }
 
-/** Puts a member of Xyberu staff on a client's team. */
+/** Puts a member of ComplyX staff on a client's team. */
 export const assignStaff = async (
   ctx: ServiceContext,
   clientId: string,
@@ -191,7 +191,7 @@ export const assignStaff = async (
   const input = parseInput(staffAssignSchema, raw)
   const [user] = await ctx.db.select().from(appUser).where(eq(appUser.id, input.userId))
   if (!user || user.kind !== 'firm' || user.status === 'disabled') {
-    throw new ValidationError({ userId: 'Choose an active member of Xyberu staff.' })
+    throw new ValidationError({ userId: 'Choose an active member of ComplyX staff.' })
   }
   await ctx.db.transaction(async (tx) => {
     await tx
@@ -328,7 +328,7 @@ const groupPeople = (
   return [...people.values()].sort((a, b) => a.displayName.localeCompare(b.displayName))
 }
 
-/** Everyone with a role on this client: the client's own people and the Xyberu team. */
+/** Everyone with a role on this client: the client's own people and the ComplyX team. */
 export const listClientPeople = async (ctx: ServiceContext, clientId: string) => {
   authorize(ctx.principal, 'client.view', { clientId })
   const rows = await ctx.db
@@ -347,7 +347,7 @@ export const listClientPeople = async (ctx: ServiceContext, clientId: string) =>
   }
 }
 
-/** All Xyberu staff with their firm-wide and per-client roles. Firm administrators only. */
+/** All ComplyX staff with their firm-wide and per-client roles. Firm administrators only. */
 export const listFirmStaff = async (ctx: ServiceContext) => {
   authorize(ctx.principal, 'platform.admin')
   const rows = await ctx.db

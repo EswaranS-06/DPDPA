@@ -93,7 +93,7 @@ export const actionPlanOptions = async (ctx: ServiceContext, clientId: string) =
       .filter((person) => person.status !== 'disabled')
       .map((person) => ({
         value: person.userId,
-        label: `${person.displayName} (${person.kind === 'firm' ? 'Xyberu' : 'client'})`,
+        label: `${person.displayName} (${person.kind === 'firm' ? 'ComplyX' : 'client'})`,
       })),
     departments: departments
       .filter((row) => row.active)

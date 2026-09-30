@@ -51,7 +51,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
       <aside className={`${styles.rail} no-print`}>
         <AppNav items={navigationFor(principal)} />
         <p className={styles.railNote}>
-          Xyberu Cybersecurity Services. A working compliance framework, not legal advice.
+          ComplyX Cybersecurity Services. A working compliance framework, not legal advice.
         </p>
       </aside>
       <main id="main" className={styles.main}>

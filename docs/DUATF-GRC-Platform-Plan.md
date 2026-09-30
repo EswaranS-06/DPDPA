@@ -4,7 +4,7 @@ title: DUATF GRC Platform - Application Plan
 version: 0.1
 date: 2026-09-29
 status: draft for review
-owner: Xyberu Cybersecurity Services
+owner: ComplyX Cybersecurity Services
 builds_on: "[[DUATF-Knowledge-Handoff]]"
 tags:
 - dpdp/context
@@ -96,7 +96,7 @@ These numbers are the first golden fixtures. Section 13 explains how tests compa
 | PG-4 | Time-aware: phase dates, readiness vs compliance mode, re-assessment triggers (fixes G8) | Status labels switch automatically on commencement |
 | PG-5 | Continuous after the assessment: BAU registers feed control tests | Rights/breach SLAs create exceptions automatically |
 | PG-6 | Every result explainable and auditable | Every applicable/N/A row has a reason trace; audit log hash-verified |
-| PG-7 | Xyberu-branded deliverables in one click, reproducible from a locked snapshot | Same snapshot gives the same report hash |
+| PG-7 | ComplyX-branded deliverables in one click, reproducible from a locked snapshot | Same snapshot gives the same report hash |
 | PG-8 | The platform is itself DPDP-compliant (it stores client personal data) | Platform tenant assessed with DUATF before go-live |
 
 ### 2.2 The six jobs mapped to modules
@@ -119,16 +119,16 @@ These numbers are the first golden fixtures. Section 13 explains how tests compa
 
 ## 3. Users, roles and access
 
-**Operating-model assumption (confirm in section 15):** Xyberu consultants lead the assessment. Client staff take part through a client portal: they answer questions, upload evidence, own findings and remediation, and run BAU registers. A self-assessment mode (client staff act as assessors, with an independent reviewer) is a configuration of the same roles, not a separate product.
+**Operating-model assumption (confirm in section 15):** ComplyX consultants lead the assessment. Client staff take part through a client portal: they answer questions, upload evidence, own findings and remediation, and run BAU registers. A self-assessment mode (client staff act as assessors, with an independent reviewer) is a configuration of the same roles, not a separate product.
 
 ### 3.1 Roles
 | Side | Role | Main capabilities |
 |---|---|---|
-| Xyberu | Platform Admin | Tenants, SSO, platform settings (no client data access by default) |
-| Xyberu | Framework Curator | Import and publish framework releases, maintain Interpretation Log defaults, regulatory change |
-| Xyberu | Engagement Lead | Create engagements and cycles, approve overrides, approve findings for release, sign reports |
-| Xyberu | Assessor | Discovery, run the engine, execute tests, draft findings |
-| Xyberu | Reviewer (QA) | Approve or return tests, findings and overrides. Must not be the preparer (SoD) |
+| ComplyX | Platform Admin | Tenants, SSO, platform settings (no client data access by default) |
+| ComplyX | Framework Curator | Import and publish framework releases, maintain Interpretation Log defaults, regulatory change |
+| ComplyX | Engagement Lead | Create engagements and cycles, approve overrides, approve findings for release, sign reports |
+| ComplyX | Assessor | Discovery, run the engine, execute tests, draft findings |
+| ComplyX | Reviewer (QA) | Approve or return tests, findings and overrides. Must not be the preparer (SoD) |
 | Client | Client DPO / Privacy Lead | Manage client users, approve entity profile, accept findings, risk acceptance up to threshold, run registers |
 | Client | Department SPOC | Answer discovery questions, validate mapping for the department |
 | Client | Control / Evidence Owner | Respond to PBC requests, upload evidence |
@@ -624,7 +624,7 @@ Source-Code/
     platform-auth/         OIDC, sessions, permission checks, SoD guard
     platform-jobs/         BullMQ queues, outbox relay, scheduler, clock jobs
     platform-storage/      S3 client, SHA-256, AV scan, signed URLs
-    platform-reporting/    DOCX / PDF / XLSX renderers, Xyberu brand kit
+    platform-reporting/    DOCX / PDF / XLSX renderers, ComplyX brand kit
     feature-framework-library
     feature-engagement          feature-engagement-scoping
     feature-discovery           feature-discovery-graph  feature-discovery-workshop  feature-discovery-import
@@ -651,7 +651,7 @@ Source-Code/
 ### 10.2 Runtime view
 ```mermaid
 flowchart LR
-  U[Browser<br/>Xyberu + client users] -->|HTTPS| W[apps/web<br/>Next.js]
+  U[Browser<br/>ComplyX + client users] -->|HTTPS| W[apps/web<br/>Next.js]
   W -->|tRPC| API[apps/backend API]
   API --> PG[(PostgreSQL 16<br/>RLS per tenant)]
   API --> OB[(Outbox)]
@@ -694,8 +694,8 @@ flowchart LR
 `framework.*` (releases, library, search, diff) · `engagement.*` (tenants, entities, cycles, RACI) · `scoping.*` (questionnaire, profile, exemptions, approval) · `graph.*` (CRUD per object, traverse, completeness, import/export) · `evidence.*` (PBC, upload, review, links) · `applicability.*` (run, rows, trace, overrides, diff) · `testing.*` (plan, execute, submit, review, derive) · `findings.*` (gaps, compose, risk, lifecycle, roadmap) · `remediation.*` · `ops.rights.*` · `ops.breach.*` · `ops.dpia.*` · `ops.vendors.*` · `ops.authority.*` · `ops.regchange.*` · `reports.*` (snapshot, generate, download) · `audit.*` · `admin.*`.
 
 ### 10.5 Security and privacy of the platform itself
-The platform stores client personal data (rights logs, breach records, evidence). That makes Xyberu a **Data Processor** for each client, so the platform must pass its own framework.
-- **Hosting and contracts:** India-only hosting and backups; a DPA template between Xyberu and each client, with R6 security clauses and a breach SLA.
+The platform stores client personal data (rights logs, breach records, evidence). That makes ComplyX a **Data Processor** for each client, so the platform must pass its own framework.
+- **Hosting and contracts:** India-only hosting and backups; a DPA template between ComplyX and each client, with R6 security clauses and a breach SLA.
 - **Isolation and encryption:** tenant isolation through RLS plus API scope checks; TLS 1.2+; encryption at rest with a KMS; per-tenant storage prefixes.
 - **Authentication:** MFA is mandatory for all users.
 - **Audit:** an append-only audit log with a hash chain, exported daily to WORM storage.
@@ -715,7 +715,7 @@ The platform stores client personal data (rights logs, breach records, evidence)
 
 ## 11. Roadmap and releases
 
-**Team assumption:** 1 tech lead, 3 full-stack developers, 1 QA/automation engineer, 1 framework/legal SME (Xyberu), a part-time designer, and a product owner. A smaller team stretches the timeline proportionally. Week 1 starts Monday 5 Oct 2026.
+**Team assumption:** 1 tech lead, 3 full-stack developers, 1 QA/automation engineer, 1 framework/legal SME (ComplyX), a part-time designer, and a product owner. A smaller team stretches the timeline proportionally. Week 1 starts Monday 5 Oct 2026.
 
 | Release | Phases | Target | Why this date |
 |---|---|---|---|
@@ -1025,7 +1025,7 @@ P5 starts early. The v1 port and the differential harness need only the framewor
 | Sub-phase | Deliverables |
 |---|---|
 | 10.1 Dashboards | Executive (readiness index, domain x entity heatmap, top risks, trend), DPO (open items, clocks, SLAs), assessor (my tests and reviews), engagement (stage progress) |
-| 10.2 Report engine | Gap Assessment Report, Obligation Compliance Matrix, Readiness Roadmap, RoPA, Board pack, audit pack (zip + hash manifest), quarterly KPI pack; Xyberu logo, cover page and disclaimer; DOCX/PDF/XLSX |
+| 10.2 Report engine | Gap Assessment Report, Obligation Compliance Matrix, Readiness Roadmap, RoPA, Board pack, audit pack (zip + hash manifest), quarterly KPI pack; ComplyX logo, cover page and disclaimer; DOCX/PDF/XLSX |
 | 10.3 Snapshots & sign-off | Locked cycle snapshot with hash; sign-off by the Engagement Lead and client sponsor; snapshot diff |
 | 10.4 Exports | Vault export, Master Register XLSX export, read-only BI API |
 | 10.5 Audit trail viewer | Who, what, when, before/after; filter; export |
@@ -1039,7 +1039,7 @@ P5 starts early. The v1 port and the differential harness need only the framewor
 | TC-10.3-01 | Snapshot isolation | Edits after a snapshot don't change its report; the next snapshot shows the diff | literal |
 | TC-10.4-01 | Vault round trip | Exported DemoPay notes parse, and the Python v1 engine run on the export reproduces the golden counts | oracle |
 
-**Review gate:** Xyberu brand review, legal review of report language, client-sponsor review of a sample. **Exit = R2:** the full lifecycle including BAU runs; deliverables are signed off.
+**Review gate:** ComplyX brand review, legal review of report language, client-sponsor review of a sample. **Exit = R2:** the full lifecycle including BAU runs; deliverables are signed off.
 
 ### P11 - Hardening, security and platform compliance
 **Goal:** go-live readiness. **Depends on:** R2 (runs partly in parallel).
@@ -1083,7 +1083,7 @@ P5 starts early. The v1 port and the differential harness need only the framewor
 | TC-12.4-04 | Effort | Hours per activity <= the Obsidian-method baseline from 12.1 | golden (baseline) |
 | TC-12.5-01 | UAT | Signed by 2 assessors + 1 client DPO; 0 open Sev-1/Sev-2 defects | manual |
 
-**Review gate:** Xyberu leadership go/no-go. **Exit:** 1.0 live before 13 May 2027.
+**Review gate:** ComplyX leadership go/no-go. **Exit:** 1.0 live before 13 May 2027.
 
 ---
 
@@ -1219,7 +1219,7 @@ The team builds the tool the same way it expects assessors to use it.
 
 | # | Decision | Recommendation |
 |---|---|---|
-| DQ-1 | Who runs DUATF: Xyberu consultants, client self-assessment, or both? | Both, consultant-led first. Build roles so self-assessment is configuration (section 3). |
+| DQ-1 | Who runs DUATF: ComplyX consultants, client self-assessment, or both? | Both, consultant-led first. Build roles so self-assessment is configuration (section 3). |
 | DQ-2 | What the client receives | R1: gap report + compliance matrix + roadmap. R2: board pack, RoPA, audit pack, ongoing tracking. |
 | DQ-3 | Pilot client name and access | Confirm "Nadall" (vault folder) vs "Mallard" (handoff); get anonymised data rights. |
 | DQ-4 | Hosting | AWS Mumbai + Hyderabad DR (or the Azure India pair if clients are on Microsoft). |
