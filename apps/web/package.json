@@ -19,6 +19,7 @@
     "@duatf/feature-framework-library-api": "workspace:*",
     "@duatf/platform-db": "workspace:*",
     "@duatf/platform-identity": "workspace:*",
+    "@duatf/platform-storage": "workspace:*",
     "@duatf/platform-trpc": "workspace:*",
     "@trpc/server": "catalog:",
     "next": "catalog:",

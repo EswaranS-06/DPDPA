@@ -177,3 +177,55 @@ export const assessmentItem = pgTable(
     ),
   ],
 )
+
+export const EVIDENCE_STATUSES = ['pending_review', 'accepted', 'rejected'] as const
+export type EvidenceStatus = (typeof EVIDENCE_STATUSES)[number]
+
+/** A file the client or auditor supplied, stored in object storage with its SHA-256. */
+export const evidence = pgTable(
+  'evidence',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenant.id, { onDelete: 'cascade' }),
+    code: text('code').notNull(),
+    title: text('title').notNull(),
+    description: text('description'),
+    fileName: text('file_name').notNull(),
+    contentType: text('content_type').notNull(),
+    sizeBytes: integer('size_bytes').notNull(),
+    sha256: text('sha256').notNull(),
+    storageKey: text('storage_key').notNull().unique(),
+    departmentId: uuid('department_id').references(() => department.id, { onDelete: 'set null' }),
+    validUntil: date('valid_until', { mode: 'string' }),
+    status: text('status').$type<EvidenceStatus>().notNull().default('pending_review'),
+    uploadedBy: uuid('uploaded_by').notNull(),
+    uploadedAt: timestamp('uploaded_at', { withTimezone: true }).notNull().defaultNow(),
+    reviewedBy: uuid('reviewed_by'),
+    reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+    reviewNote: text('review_note'),
+  },
+  (table) => [unique('evidence_tenant_code').on(table.tenantId, table.code)],
+)
+
+/** Where a piece of evidence is used: assessment items now, findings and actions later. */
+export const evidenceLink = pgTable(
+  'evidence_link',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenant.id, { onDelete: 'cascade' }),
+    evidenceId: uuid('evidence_id')
+      .notNull()
+      .references(() => evidence.id, { onDelete: 'cascade' }),
+    itemId: uuid('item_id').references(() => assessmentItem.id, { onDelete: 'cascade' }),
+    createdBy: uuid('created_by'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    unique('evidence_link_item').on(table.evidenceId, table.itemId),
+    index('evidence_link_item_idx').on(table.itemId),
+  ],
+)

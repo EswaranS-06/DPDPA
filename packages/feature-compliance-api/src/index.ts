@@ -4,6 +4,7 @@ export {
   firmWide,
   type ServiceContext,
   type UserProvisioner,
+  type EvidenceStorage,
 } from './context'
 export { ValidationError, NotFoundError, RuleError, parseInput } from './errors'
 export {
@@ -39,7 +40,7 @@ export {
   type Person,
   type PersonAssignment,
 } from './people'
-export { keycloakProvisioner } from './provisioner'
+export { keycloakProvisioner, objectEvidenceStorage } from './provisioner'
 export {
   ORGANISATION_TYPE_LABEL,
   CLIENT_STATUS_LABEL,
@@ -68,3 +69,22 @@ export {
   type ItemDetail,
 } from './assessments'
 export { summariseProgress, COMPLIANCE_OF, type Progress, type StateCount } from './progress'
+export {
+  uploadEvidence,
+  linkEvidence,
+  unlinkEvidence,
+  listEvidence,
+  listItemEvidence,
+  getEvidence,
+  reviewEvidence,
+  evidenceDownloadUrl,
+  evidenceStatusCounts,
+  checkEvidenceFile,
+  canUploadFor,
+  MAX_EVIDENCE_BYTES,
+  ALLOWED_EVIDENCE_EXTENSIONS,
+  DOWNLOAD_LINK_SECONDS,
+  type EvidenceFilters,
+  type EvidenceRow,
+  type EvidenceDetail,
+} from './evidence'

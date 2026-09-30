@@ -19,9 +19,15 @@ const config: NextConfig = {
     '@duatf/feature-framework-library-api',
     '@duatf/platform-db',
     '@duatf/platform-identity',
+    '@duatf/platform-storage',
     '@duatf/platform-trpc',
   ],
-  serverExternalPackages: ['postgres', 'openid-client'],
+  serverExternalPackages: ['postgres', 'openid-client', 'minio'],
+  // Evidence files up to 20 MB are sent through server actions (and the proxy in front of them).
+  experimental: {
+    serverActions: { bodySizeLimit: '21mb' },
+    proxyClientMaxBodySize: '21mb',
+  },
   // The framework library became one knowledge-base page; old links keep working.
   redirects: () =>
     Promise.resolve([

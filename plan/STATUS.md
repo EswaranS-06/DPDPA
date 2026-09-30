@@ -15,7 +15,7 @@ Gate: **passing**
 | C4 | Knowledge base and question bank | R1 | TESTS PASSING | legal_sme pending |
 | C5 | Clients and organisation | R1 | TESTS PASSING | lead_auditor pending |
 | C6 | Assessment execution | R1 | TESTS PASSING | lead_auditor pending |
-| C7 | Evidence | R1 | PLANNED | lead_auditor pending |
+| C7 | Evidence | R1 | TESTS PASSING | lead_auditor pending |
 | C8 | Findings, gaps and risks | R1 | PLANNED | legal_sme pending, lead_auditor pending |
 | C9 | Remediation and re-assessment | R2 | PLANNED | lead_auditor pending |
 | C10 | Dashboards and client sharing | R2 | PLANNED | lead_auditor pending |
@@ -75,5 +75,9 @@ Gate: **passing**
 | TC-C6.2-01 | C6.2 | A department owner can answer only their department's items | refused elsewhere | literal | PASS |
 | TC-C6.3-01 | C6.3 | Not applicable needs a reason; answers map to compliance states | mapping holds | literal | PASS |
 | TC-C6.4-01 | C6.4 | Progress and compliance percentages equal the fixture | fixture values | golden | PASS |
+| TC-C7.1-01 | C7.1 | Upload stores SHA-256; downloads only via a short-lived link for authorised users | hash matches; unauthorised refused | literal | PASS |
+| TC-C7.2-01 | C7.2 | One evidence item links to several questions | shown on each | literal | PASS |
+| TC-C7.3-01 | C7.3 | Accept or reject needs a reviewer other than the uploader | uploader refused | literal | PASS |
+| TC-C7.4-01 | C7.4 | The repository filters by status and flags evidence past its valid-until date | filtered; expired flagged | literal | PASS |
 
-23 further tests are planned in later sub-phases.
+20 further tests are planned in later sub-phases.
