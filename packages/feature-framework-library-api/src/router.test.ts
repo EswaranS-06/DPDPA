@@ -74,8 +74,17 @@ describe('framework library API (as the app role)', () => {
   })
 
   it('TC-C2.5-05 counts obligations in force on each commencement date', async () => {
-    const dates = obligationNotes.map((text) => field(text, 'in_force'))
-    const liveOn = (day: string) => dates.filter((date) => date === '' || date <= day).length
+    // The seed has start dates only. Release 1.1.0 adds one documented end date: the SPDI Rules
+    // stop applying when DPDP Act s.44(2) commences on 13 May 2027.
+    const SUNSET: Record<string, string> = { 'LNK-SPDI-01': '2027-05-13' }
+    const notes = obligationNotes.map((text) => ({
+      start: field(text, 'in_force'),
+      end: SUNSET[field(text, 'obl_id')],
+    }))
+    const liveOn = (day: string) =>
+      notes.filter(
+        (note) => (note.start === '' || note.start <= day) && (!note.end || note.end > day),
+      ).length
     for (const day of ['2026-09-30', '2026-11-13', '2027-05-13']) {
       const summary = await api.summary({ asOf: day })
       expect(summary.inForce, day).toBe(liveOn(day))

@@ -15,6 +15,7 @@ import {
   getObligation,
   getPlaybook,
   getProcess,
+  getQuestion,
   getSector,
   getSummary,
   getVocabulary,
@@ -25,10 +26,13 @@ import {
   listObligations,
   listPlaybooks,
   listProcesses,
+  listQuestions,
+  listSection,
   listSectors,
   listVocabularies,
   search,
 } from './queries'
+import { KB_LIST_SECTIONS } from './refs'
 
 const releaseOf = async (ctx: ApiContext) =>
   (await currentRelease(ctx.db)) ?? notFound('A published framework release')
@@ -90,6 +94,24 @@ export const frameworkLibraryRouter = router({
         (await getControl(ctx.db, await releaseOf(ctx), input.code)) ??
         notFound(`Control ${input.code}`),
     ),
+
+  questions: authedProcedure
+    .input(
+      z.object({ domain: z.string().max(8).optional(), text: shortText.optional() }).optional(),
+    )
+    .query(async ({ ctx, input }) => listQuestions(ctx.db, await releaseOf(ctx), input ?? {})),
+
+  question: authedProcedure
+    .input(byCode)
+    .query(
+      async ({ ctx, input }) =>
+        (await getQuestion(ctx.db, await releaseOf(ctx), input.code)) ??
+        notFound(`Question ${input.code}`),
+    ),
+
+  section: authedProcedure
+    .input(z.object({ section: z.enum(KB_LIST_SECTIONS) }))
+    .query(async ({ ctx, input }) => listSection(ctx.db, await releaseOf(ctx), input.section)),
 
   domains: authedProcedure.query(async ({ ctx }) => listDomains(ctx.db, await releaseOf(ctx))),
 

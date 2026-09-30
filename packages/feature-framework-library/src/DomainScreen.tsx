@@ -1,3 +1,4 @@
+import { kbHref } from '@duatf/feature-framework-library-api'
 import { Citation, DataTable, PageHeader } from '@duatf/core-ui'
 import type { FrameworkLibraryApi } from '@duatf/feature-framework-library-api'
 import Link from 'next/link'
@@ -51,7 +52,7 @@ export const DomainScreen = async ({ api, code, today }: Props) => {
               key: 'title',
               header: 'Title',
               render: (row) => (
-                <Link className={styles.inlineLink} href={`/library/controls/${row.code}`}>
+                <Link className={styles.inlineLink} href={kbHref('controls', row.code)}>
                   {row.title}
                 </Link>
               ),

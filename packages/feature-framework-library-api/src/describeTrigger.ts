@@ -1,4 +1,4 @@
-import type { ObligationTrigger } from '@duatf/platform-db'
+import type { ObligationTrigger, QuestionApplicability } from '@duatf/platform-db'
 
 const BASIS: Record<string, string> = {
   consent: 'consent',
@@ -64,4 +64,17 @@ export const describeTrigger = (trigger: ObligationTrigger): string => {
   if (trigger.flags?.length) conditions.push(both(trigger.flags.map(flagLabel)))
   if (conditions.length === 0) return 'No trigger is recorded for this obligation.'
   return `Applies when ${both(conditions)}.`
+}
+
+/** Plain-English applicability of a question: it applies when any of its obligations does. */
+export const describeApplicability = (applicability: QuestionApplicability): string => {
+  const conditions = [
+    ...applicability.roles.map((role) => ROLE[role] ?? role),
+    ...applicability.bases.map((basis) => `the lawful basis is ${basisLabel(basis)}`),
+    ...applicability.flags.map(flagLabel),
+  ]
+  if (applicability.always || conditions.length === 0) {
+    return 'Applies to every organisation in scope.'
+  }
+  return `Applies only when ${either(conditions)}. Otherwise answer Not applicable and give the reason.`
 }

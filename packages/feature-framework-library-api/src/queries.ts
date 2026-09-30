@@ -17,6 +17,8 @@ import {
   or,
   playbookDoc,
   processTemplate,
+  question,
+  acceptanceCriterion,
   retentionAnchor,
   sectorLaw,
   sectorOverlay,
@@ -25,7 +27,9 @@ import {
   vocabularyTerm,
   type Database,
   type ObligationTrigger,
+  type QuestionApplicability,
 } from '@duatf/platform-db'
+import type { KbListSection } from './refs'
 
 export type Release = { id: string; version: string; publishedAt: Date | null; source: string }
 
@@ -48,6 +52,15 @@ const likePattern = (text: string) => `%${text.replace(/[\\%_]/g, (match) => `\\
 
 // --- Summary ------------------------------------------------------------------------------------
 
+/** An obligation is live from its in-force date until (not including) its in-force-until date. */
+export const isLiveOn = (
+  item: { inForce: string | null; inForceUntil: string | null },
+  asOf: string,
+): boolean =>
+  (item.inForce === null || item.inForce <= asOf) &&
+  (item.inForceUntil === null || item.inForceUntil > asOf)
+
+// SQL form of isLiveOn; the two must agree (TC-C4.2-03).
 const liveOn = (asOf: string) =>
   and(
     or(sql`${obligation.inForce} is null`, sql`${obligation.inForce} <= ${asOf}`),
@@ -65,7 +78,8 @@ export const getSummary = async (db: Database, release: Release, asOf: string) =
       | typeof sectorOverlay
       | typeof dataElement
       | typeof vocabulary
-      | typeof playbookDoc,
+      | typeof playbookDoc
+      | typeof question,
   ) => {
     const [row] = await db.select({ n: count() }).from(table).where(eq(table.releaseId, release.id))
     return row?.n ?? 0
@@ -121,6 +135,7 @@ export const getSummary = async (db: Database, release: Release, asOf: string) =
       dataElements: await countOf(dataElement),
       vocabularies: await countOf(vocabulary),
       playbooks: await countOf(playbookDoc),
+      questions: await countOf(question),
     },
     milestones,
   }
@@ -139,6 +154,7 @@ export type ObligationFilters = {
 
 const obligationColumns = {
   code: obligation.code,
+  inForceUntil: obligation.inForceUntil,
   title: obligation.title,
   requirement: obligation.requirement,
   domainCode: obligation.domainCode,
@@ -528,6 +544,145 @@ export const getPlaybook = async (db: Database, release: Release, slug: string) 
   return item
 }
 
+// --- Questions --------------------------------------------------------------------------------
+
+export const listQuestions = (
+  db: Database,
+  release: Release,
+  filters: { domain?: string; text?: string },
+) =>
+  db
+    .select({
+      code: question.code,
+      seq: question.seq,
+      text: question.text,
+      controlCode: question.controlCode,
+      domainCode: question.domainCode,
+      riskWeight: question.riskWeight,
+      applicability: question.applicability,
+      reviewStatus: question.reviewStatus,
+    })
+    .from(question)
+    .where(
+      and(
+        eq(question.releaseId, release.id),
+        filters.domain ? eq(question.domainCode, filters.domain) : undefined,
+        filters.text
+          ? or(
+              ilike(question.code, likePattern(filters.text)),
+              ilike(question.text, likePattern(filters.text)),
+              ilike(question.controlCode, likePattern(filters.text)),
+            )
+          : undefined,
+      ),
+    )
+    .orderBy(asc(question.seq))
+export type QuestionListItem = Awaited<ReturnType<typeof listQuestions>>[number]
+
+export const getQuestion = async (db: Database, release: Release, code: string) => {
+  const [item] = await db
+    .select()
+    .from(question)
+    .where(and(eq(question.releaseId, release.id), eq(question.code, code)))
+  if (!item) return undefined
+  const [controlRow] = await db
+    .select({
+      code: control.code,
+      title: control.title,
+      description: control.description,
+      controlType: control.controlType,
+      ownerRole: control.ownerRole,
+    })
+    .from(control)
+    .where(and(eq(control.releaseId, release.id), eq(control.code, item.controlCode)))
+  const [domainRow] = await db
+    .select({ code: domain.code, title: domain.title })
+    .from(domain)
+    .where(and(eq(domain.releaseId, release.id), eq(domain.code, item.domainCode)))
+  const obligations = item.obligationCodes.length
+    ? await db
+        .select(obligationColumns)
+        .from(obligation)
+        .where(
+          and(eq(obligation.releaseId, release.id), inArray(obligation.code, item.obligationCodes)),
+        )
+        .orderBy(asc(obligation.code))
+    : []
+  const criteria = item.obligationCodes.length
+    ? await db
+        .select({
+          obligationCode: acceptanceCriterion.obligationCode,
+          text: acceptanceCriterion.text,
+          critical: acceptanceCriterion.critical,
+        })
+        .from(acceptanceCriterion)
+        .where(
+          and(
+            eq(acceptanceCriterion.releaseId, release.id),
+            inArray(acceptanceCriterion.obligationCode, item.obligationCodes),
+          ),
+        )
+        .orderBy(asc(acceptanceCriterion.obligationCode), asc(acceptanceCriterion.seq))
+    : []
+  return {
+    ...item,
+    applicability: item.applicability satisfies QuestionApplicability,
+    control: controlRow ?? {
+      code: item.controlCode,
+      title: item.controlCode,
+      description: '',
+      controlType: '',
+      ownerRole: '',
+    },
+    domain: domainRow ?? { code: item.domainCode, title: item.domainCode },
+    obligations,
+    criteria,
+  }
+}
+export type QuestionDetail = NonNullable<Awaited<ReturnType<typeof getQuestion>>>
+
+// --- Knowledge-base sections --------------------------------------------------------------------
+
+export type SectionItem = { code: string; title: string }
+export type ListedSection = KbListSection
+
+/** Every item of one knowledge-base section as code and title, in display order. */
+export const listSection = async (
+  db: Database,
+  release: Release,
+  section: ListedSection,
+): Promise<SectionItem[]> => {
+  const pick = (rows: { code: string; title: string }[]) =>
+    rows.map(({ code, title }) => ({ code, title }))
+  switch (section) {
+    case 'law':
+      return pick((await listLaw(db, release)).instruments)
+    case 'bases':
+      return (await listLaw(db, release)).bases.map((row) => ({ code: row.code, title: row.name }))
+    case 'obligations':
+      return pick(await listObligations(db, release, {}))
+    case 'controls':
+      return pick(await listControls(db, release, {}))
+    case 'questions':
+      return (await listQuestions(db, release, {})).map((row) => ({
+        code: row.code,
+        title: row.text,
+      }))
+    case 'domains':
+      return pick(await listDomains(db, release))
+    case 'sectors':
+      return pick(await listSectors(db, release))
+    case 'processes':
+      return pick(await listProcesses(db, release, {}))
+    case 'data-elements':
+      return pick(await listDataElements(db, release))
+    case 'vocabularies':
+      return pick(await listVocabularies(db, release))
+    case 'playbooks':
+      return (await listPlaybooks(db, release)).map((row) => ({ code: row.slug, title: row.title }))
+  }
+}
+
 // --- Search -----------------------------------------------------------------------------------
 
 const pad2 = (value: string) => value.padStart(2, '0')
@@ -625,6 +780,18 @@ export const search = async (db: Database, release: Release, rawQuery: string) =
     .orderBy(asc(processTemplate.code))
     .limit(30)
 
+  const questions = await db
+    .select({ code: question.code, text: question.text })
+    .from(question)
+    .where(
+      and(
+        eq(question.releaseId, release.id),
+        or(ilike(question.code, pattern), ilike(question.text, pattern)),
+      ),
+    )
+    .orderBy(asc(question.seq))
+    .limit(30)
+
   const playbooks = await db
     .select({ slug: playbookDoc.slug, title: playbookDoc.title })
     .from(playbookDoc)
@@ -637,6 +804,6 @@ export const search = async (db: Database, release: Release, rawQuery: string) =
     .orderBy(asc(playbookDoc.title))
     .limit(10)
 
-  return { query, law, obligations, controls, processes, playbooks }
+  return { query, law, obligations, controls, questions, processes, playbooks }
 }
 export type SearchResults = Awaited<ReturnType<typeof search>>

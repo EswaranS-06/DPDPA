@@ -1,3 +1,4 @@
+import { kbHref } from '@duatf/feature-framework-library-api'
 import { formatDay, isoDate } from '@duatf/core-utils'
 import type { FrameworkLibraryApi } from '@duatf/feature-framework-library-api'
 import Link from 'next/link'
@@ -12,37 +13,42 @@ export const LibraryOverviewScreen = async ({ api, today }: Props) => {
   const { counts, release } = summary
   const sections = [
     {
-      href: '/library/law',
+      href: kbHref('law'),
       title: 'The law',
       meta: `${counts.law} sections, rules and schedules of the DPDP Act 2023 and Rules 2025`,
     },
     {
-      href: '/library/controls',
+      href: kbHref('questions'),
+      title: 'Question bank',
+      meta: `${counts.questions} assessment questions, one per control, with evidence and recommendations`,
+    },
+    {
+      href: kbHref('controls'),
       title: 'Controls',
       meta: `${counts.controls} controls with test procedures and ISO and NIST mappings`,
     },
     {
-      href: '/library/sectors',
+      href: kbHref('sectors'),
       title: 'Sector overlays',
       meta: `${counts.sectors} sectors with regulators, parallel laws and retention periods`,
     },
     {
-      href: '/library/processes',
+      href: kbHref('processes'),
       title: 'Process catalogue',
       meta: `${counts.processes} process templates to start discovery from`,
     },
     {
-      href: '/library/data-elements',
+      href: kbHref('data-elements'),
       title: 'Data elements',
       meta: `${counts.dataElements} kinds of personal data with sensitivity tags`,
     },
     {
-      href: '/library/vocabularies',
+      href: kbHref('vocabularies'),
       title: 'Vocabularies',
       meta: `${counts.vocabularies} controlled lists: roles, flags, ratings, risk scales`,
     },
     {
-      href: '/library/playbooks',
+      href: kbHref('playbooks'),
       title: 'Playbooks',
       meta: `${counts.playbooks} guides: methodology, scoping, stuck points, evidence requests`,
     },
@@ -72,7 +78,7 @@ export const LibraryOverviewScreen = async ({ api, today }: Props) => {
             <li key={domain.code}>
               <span className={styles.indexCode}>{domain.code}</span>
               <span>
-                <Link className={styles.indexTitle} href={`/library/domains/${domain.code}`}>
+                <Link className={styles.indexTitle} href={kbHref('domains', domain.code)}>
                   {domain.title}
                 </Link>
                 <span className={styles.indexMeta}>
@@ -86,7 +92,7 @@ export const LibraryOverviewScreen = async ({ api, today }: Props) => {
 
       <section className={styles.section} aria-labelledby="library-title">
         <h2 id="library-title" className={styles.sectionTitle}>
-          Also in the library
+          Also in the knowledge base
         </h2>
         <ul className={`${styles.indexGrid} ${styles.noCode}`}>
           {sections.map((section) => (

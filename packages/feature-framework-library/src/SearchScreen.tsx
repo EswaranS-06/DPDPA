@@ -1,3 +1,4 @@
+import { kbHref } from '@duatf/feature-framework-library-api'
 import { Citation, EmptyState, PageHeader } from '@duatf/core-ui'
 import type { FrameworkLibraryApi } from '@duatf/feature-framework-library-api'
 import Link from 'next/link'
@@ -34,7 +35,7 @@ export const SearchScreen = async ({ api, query }: Props) => {
     return (
       <div className={styles.page}>
         <PageHeader
-          title="Search the framework"
+          title="Search the knowledge base"
           lede="Search by citation (s.8(6), Rule 7, Schedule 3), by code (OBL-CON-01, CTL-SEC-02), or by words such as withdrawal or CCTV."
         />
       </div>
@@ -45,7 +46,7 @@ export const SearchScreen = async ({ api, query }: Props) => {
     {
       title: 'Law',
       hits: results.law.map((row) => ({
-        href: `/library/law/${row.code}`,
+        href: kbHref('law', row.code),
         code: row.code,
         title: row.title,
       })),
@@ -53,7 +54,7 @@ export const SearchScreen = async ({ api, query }: Props) => {
     {
       title: 'Obligations',
       hits: results.obligations.map((row) => ({
-        href: `/library/obligations/${row.code}`,
+        href: kbHref('obligations', row.code),
         code: row.code,
         title: row.title,
       })),
@@ -61,15 +62,23 @@ export const SearchScreen = async ({ api, query }: Props) => {
     {
       title: 'Controls',
       hits: results.controls.map((row) => ({
-        href: `/library/controls/${row.code}`,
+        href: kbHref('controls', row.code),
         code: row.code,
         title: row.title,
       })),
     },
     {
+      title: 'Questions',
+      hits: results.questions.map((row) => ({
+        href: kbHref('questions', row.code),
+        code: row.code,
+        title: row.text,
+      })),
+    },
+    {
       title: 'Process templates',
       hits: results.processes.map((row) => ({
-        href: `/library/processes/${row.code}`,
+        href: kbHref('processes', row.code),
         code: row.code,
         title: row.title,
       })),
@@ -77,7 +86,7 @@ export const SearchScreen = async ({ api, query }: Props) => {
     {
       title: 'Playbooks',
       hits: results.playbooks.map((row) => ({
-        href: `/library/playbooks/${row.slug}`,
+        href: kbHref('playbooks', row.slug),
         code: '',
         title: row.title,
       })),
@@ -89,7 +98,7 @@ export const SearchScreen = async ({ api, query }: Props) => {
     <div className={styles.page}>
       <PageHeader
         title={`Results for “${trimmed}”`}
-        lede={`${total} matches across the framework.`}
+        lede={`${total} matches across the knowledge base.`}
       />
       {total === 0 ? (
         <EmptyState title={`Nothing matches “${trimmed}”.`}>

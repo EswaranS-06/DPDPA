@@ -24,7 +24,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         <span className={styles.brandName}>DPDP compliance tracking</span>
       </Link>
       <header className={styles.top}>
-        <form action="/search" method="get" role="search" className={styles.search}>
+        <form action="/knowledge-base" method="get" role="search" className={styles.search}>
           <label htmlFor="site-search" className="visually-hidden">
             Search the knowledge base
           </label>

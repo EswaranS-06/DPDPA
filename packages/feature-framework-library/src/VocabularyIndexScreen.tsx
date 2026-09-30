@@ -1,3 +1,4 @@
+import { kbHref } from '@duatf/feature-framework-library-api'
 import { PageHeader } from '@duatf/core-ui'
 import type { FrameworkLibraryApi } from '@duatf/feature-framework-library-api'
 import Link from 'next/link'
@@ -15,7 +16,7 @@ export const VocabularyIndexScreen = async ({ api }: { api: FrameworkLibraryApi 
         {vocabularies.map((vocabulary) => (
           <li key={vocabulary.code}>
             <span>
-              <Link className={styles.indexTitle} href={`/library/vocabularies/${vocabulary.code}`}>
+              <Link className={styles.indexTitle} href={kbHref('vocabularies', vocabulary.code)}>
                 {vocabulary.title}
               </Link>
               <span className={styles.indexMeta}>

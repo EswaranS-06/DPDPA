@@ -1,3 +1,4 @@
+import { kbHref } from '@duatf/feature-framework-library-api'
 import { Chip, Citation, DataTable, MarginRow, PageHeader } from '@duatf/core-ui'
 import type { FrameworkLibraryApi } from '@duatf/feature-framework-library-api'
 import Link from 'next/link'
@@ -26,7 +27,7 @@ export const ControlScreen = async ({ api, code, today }: Props) => {
         <Chip>{item.nature}</Chip>
         <Chip>{item.frequency}</Chip>
         <Chip>
-          <Link href={`/library/domains/${item.domain.code}`}>
+          <Link href={kbHref('domains', item.domain.code)}>
             {item.domain.code} {item.domain.title}
           </Link>
         </Chip>

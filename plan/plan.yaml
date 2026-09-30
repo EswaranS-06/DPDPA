@@ -267,7 +267,7 @@ phases:
     subphases:
       - id: C4.1
         title: 'Single knowledge-base page'
-        state: planned
+        state: active
         tests:
           - id: TC-C4.1-01
             title: 'Every knowledge-base section returns items and any item resolves by code'
@@ -275,7 +275,7 @@ phases:
             source: oracle
       - id: C4.2
         title: 'Release 1.1.0 with question bank and SPDI sunset'
-        state: planned
+        state: active
         tests:
           - id: TC-C4.2-01
             title: 'Release 1.1.0 carries every 1.0.0 row unchanged'
@@ -291,7 +291,7 @@ phases:
             source: literal
       - id: C4.3
         title: 'Evidence suggestions'
-        state: planned
+        state: active
         tests:
           - id: TC-C4.3-01
             title: 'Suggestions are split into required, recommended and supporting with no duplicates'

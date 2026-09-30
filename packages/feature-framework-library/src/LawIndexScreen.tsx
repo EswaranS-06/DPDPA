@@ -1,3 +1,4 @@
+import { kbHref } from '@duatf/feature-framework-library-api'
 import { Citation, MarginRow, PageHeader } from '@duatf/core-ui'
 import type { FrameworkLibraryApi } from '@duatf/feature-framework-library-api'
 import Link from 'next/link'
@@ -18,7 +19,7 @@ const InstrumentList = ({ items, today }: { items: Instrument[]; today: string }
   <ul className={styles.plainList}>
     {items.map((item) => (
       <MarginRow key={item.code} as="li" margin={<Citation strong>{shortCitation(item)}</Citation>}>
-        <Link className={styles.indexTitle} href={`/library/law/${item.code}`}>
+        <Link className={styles.indexTitle} href={kbHref('law', item.code)}>
           {item.title}
         </Link>
         <div className={`${styles.chips} ${styles.below}`}>
@@ -93,7 +94,7 @@ export const LawIndexScreen = async ({ api, today }: Props) => {
         <p className={styles.sectionIntro}>
           Processing needs consent (s.6) or one of the legitimate uses in s.7. Section 17 exempts
           some processing from parts of the Act.{' '}
-          <Link className={styles.inlineLink} href="/library/law/bases">
+          <Link className={styles.inlineLink} href={kbHref('bases')}>
             See all {bases.length} bases and exemptions
           </Link>
           .

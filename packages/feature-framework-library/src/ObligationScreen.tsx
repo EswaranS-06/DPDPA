@@ -5,6 +5,7 @@ import {
   describeTrigger,
   flagLabel,
   type FrameworkLibraryApi,
+  kbHref,
 } from '@duatf/feature-framework-library-api'
 import Link from 'next/link'
 import { PenaltyChip } from './components/PenaltyChip'
@@ -27,7 +28,7 @@ export const ObligationScreen = async ({ api, code, today }: Props) => {
         <PenaltyChip tier={item.penaltyTier} />
         <Chip>{ACTOR_LABEL[item.actor] ?? item.actor}</Chip>
         <Chip>
-          <Link href={`/library/domains/${item.domain.code}`}>
+          <Link href={kbHref('domains', item.domain.code)}>
             {item.domain.code} {item.domain.title}
           </Link>
         </Chip>
@@ -50,7 +51,7 @@ export const ObligationScreen = async ({ api, code, today }: Props) => {
             <div className={`${styles.chips} ${styles.below}`}>
               {item.trigger.basis?.map((basis) => (
                 <Chip key={basis}>
-                  <Link href={`/library/law/bases#${basis}`}>{basisLabel(basis)}</Link>
+                  <Link href={`${kbHref('bases')}#${basis}`}>{basisLabel(basis)}</Link>
                 </Chip>
               ))}
               {item.trigger.flags?.map((flag) => (
@@ -85,7 +86,7 @@ export const ObligationScreen = async ({ api, code, today }: Props) => {
             <ul className={styles.bullets}>
               {item.instruments.map((instrument) => (
                 <li key={instrument.code}>
-                  <Link className={styles.inlineLink} href={`/library/law/${instrument.code}`}>
+                  <Link className={styles.inlineLink} href={kbHref('law', instrument.code)}>
                     {instrument.code} {instrument.title}
                   </Link>{' '}
                   <span className={styles.muted}>({KIND_SINGULAR[instrument.kind]})</span>
@@ -124,7 +125,7 @@ export const ObligationScreen = async ({ api, code, today }: Props) => {
               key: 'title',
               header: 'Title',
               render: (row) => (
-                <Link className={styles.inlineLink} href={`/library/controls/${row.code}`}>
+                <Link className={styles.inlineLink} href={kbHref('controls', row.code)}>
                   {row.title}
                 </Link>
               ),
@@ -148,7 +149,7 @@ export const ObligationScreen = async ({ api, code, today }: Props) => {
           <ul className={styles.bullets}>
             {item.processes.map((process) => (
               <li key={process.code}>
-                <Link className={styles.inlineLink} href={`/library/processes/${process.code}`}>
+                <Link className={styles.inlineLink} href={kbHref('processes', process.code)}>
                   {process.code} {process.title}
                 </Link>
               </li>

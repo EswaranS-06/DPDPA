@@ -1,4 +1,4 @@
-// Rebuilds the test database: app role, empty schema, migrations, framework release 1.0.0.
+// Rebuilds the test database: app role, empty schema, migrations, framework releases 1.0.0 and 1.1.0.
 import { join } from 'node:path'
 import {
   findRepoRoot,
@@ -8,7 +8,7 @@ import {
   testDatabaseEnvSchema,
 } from '@duatf/core-config'
 import { ensureAppRole, recreateSchema, runMigrations } from '@duatf/platform-db'
-import { importSeedVault } from '@duatf/seed-import'
+import { buildRelease, importSeedVault, RELEASE_1_1_0 } from '@duatf/seed-import'
 
 loadRootEnvFile()
 const env = parseEnv(testDatabaseEnvSchema)
@@ -21,4 +21,9 @@ const report = await importSeedVault({
   vaultPath: join(findRepoRoot(), SEED_VAULT_PATH),
   databaseUrl: env.TEST_DATABASE_URL,
 })
-console.log(`Test database ready (framework release ${report.version}).`)
+const release = await buildRelease({
+  databaseUrl: env.TEST_DATABASE_URL,
+  questionBankPath: join(findRepoRoot(), 'seed', 'question-bank', 'questions.yaml'),
+  ...RELEASE_1_1_0,
+})
+console.log(`Test database ready (framework releases ${report.version} and ${release.version}).`)
