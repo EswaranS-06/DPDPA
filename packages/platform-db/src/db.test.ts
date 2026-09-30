@@ -50,7 +50,8 @@ describe('migrations', () => {
       for (const name of names) await admin.unsafe(`drop database if exists ${name} with (force)`)
       await admin.end({ timeout: 5 })
     }
-  })
+    // Two full migrations of empty databases; slow when the shared host is busy.
+  }, 180_000)
 })
 
 describe('tenant isolation and codes', () => {

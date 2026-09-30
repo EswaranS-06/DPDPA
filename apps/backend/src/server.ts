@@ -47,7 +47,8 @@ export const buildServer = async (deps: ServerDependencies) => {
 
   await app.register(fastifyTRPCPlugin, {
     prefix: '/trpc',
-    trpcOptions: { router: appRouter, createContext: () => ({ db: deps.db }) },
+    // This port has no sessions, so data procedures answer 401; signed-in users go through the web app.
+    trpcOptions: { router: appRouter, createContext: () => ({ db: deps.db, principal: null }) },
   })
 
   return app

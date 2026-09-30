@@ -10,15 +10,17 @@ const config: NextConfig = {
   turbopack: { root: repoRoot },
   // Workspace packages ship TypeScript source.
   transpilePackages: [
+    '@duatf/core-access',
     '@duatf/core-config',
     '@duatf/core-ui',
     '@duatf/core-utils',
     '@duatf/feature-framework-library',
     '@duatf/feature-framework-library-api',
     '@duatf/platform-db',
+    '@duatf/platform-identity',
     '@duatf/platform-trpc',
   ],
-  serverExternalPackages: ['postgres'],
+  serverExternalPackages: ['postgres', 'openid-client'],
   // Lets the dev server be opened from other machines on the LAN.
   allowedDevOrigins: ['192.168.0.110'],
   headers: () =>

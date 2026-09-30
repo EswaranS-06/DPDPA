@@ -60,3 +60,18 @@ h3 {
     transition-duration: 0.01ms !important;
   }
 }
+
+.skip-link {
+  position: absolute;
+  left: var(--space-4);
+  top: -3rem;
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-accent);
+  color: #fff;
+  border-radius: var(--radius-control);
+  z-index: 10;
+}
+
+.skip-link:focus {
+  top: var(--space-3);
+}

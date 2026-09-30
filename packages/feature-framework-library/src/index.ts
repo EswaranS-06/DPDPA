@@ -1,4 +1,4 @@
-export { LibraryNav } from './components/LibraryNav'
+export { LibraryNav, LIBRARY_LINKS } from './components/LibraryNav'
 export { LibraryOverviewScreen } from './LibraryOverviewScreen'
 export { LawIndexScreen } from './LawIndexScreen'
 export { InstrumentScreen } from './InstrumentScreen'

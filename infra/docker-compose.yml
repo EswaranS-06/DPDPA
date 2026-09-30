@@ -80,6 +80,8 @@ services:
       KC_DB_USERNAME: ${POSTGRES_USER}
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
       KC_HEALTH_ENABLED: "true"
+      # Tokens carry this issuer; browsers on the LAN and the server both use it.
+      KC_HOSTNAME: ${KEYCLOAK_PUBLIC_URL:-http://localhost:58080}
     ports: ["${KEYCLOAK_PORT:-58080}:8080"]
     depends_on:
       postgres: { condition: service_healthy }

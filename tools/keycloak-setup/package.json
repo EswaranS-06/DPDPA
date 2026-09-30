@@ -1,0 +1,22 @@
+{
+  "name": "@duatf/keycloak-setup",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@duatf/core-config": "workspace:*",
+    "@duatf/platform-db": "workspace:*",
+    "@duatf/platform-identity": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
