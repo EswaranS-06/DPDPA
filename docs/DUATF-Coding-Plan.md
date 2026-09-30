@@ -99,7 +99,7 @@ Each sub-phase lists what gets built, its tests (with expected results) and its 
 | `oracle` | Computed at test time by the Python engine on the same input |
 | `sme` | A scenario file signed off by the legal SME |
 
-**Status is computed, never ticked by hand.** CI collects test results by ID, matches them against `plan/plan.yaml`, and derives the status of each sub-phase and phase (PASS / FAIL / MISSING / STALE / DRIFT). The full rules are in section 5.
+**Status is computed, never ticked by hand.** `plan/plan.yaml` is the authoritative list of test IDs; the current status is in `plan/STATUS.md`. CI collects test results by ID, matches them against `plan/plan.yaml`, and derives the status of each sub-phase and phase (PASS / FAIL / MISSING / STALE / DRIFT). The full rules are in section 5.
 
 ### Release plan
 
@@ -149,13 +149,14 @@ gantt
 | C0.2 | Turborepo + pnpm workspaces; TS strict base config; ESLint with dependency-direction rules; Prettier |
 | C0.3 | Vitest workspace, Playwright scaffold, fast-check |
 | C0.4 | Traceability harness: `plan/plan.yaml` (generated from this document), test-ID lint, collector (Vitest / Playwright JSON → results), gate script, `TRACEABILITY.md` |
-| C0.5 | Local CI: `pnpm ci` runs lint → typecheck → test → build → trace, plus a git pre-push hook. A hosted CI runner can come later. |
+| C0.5 | Local CI: `pnpm verify` runs lint → typecheck → test → build → trace, plus a git pre-push hook. A hosted CI runner can come later. |
 
 | Test | Expected | Source |
 |---|---|---|
 | TC-C0.2-01 | A fixture import from `core-*` into `feature-*` fails lint | literal |
 | TC-C0.4-01 | Plan test with no result → MISSING; result with an unknown ID → UNTRACED; one failure → the sub-phase is FAIL and the gate exits non-zero | literal |
-| TC-C0.5-01 | `pnpm ci` on a clean clone exits 0 | literal |
+| TC-C0.4-02 | DRIFT, DEFERRED, PLANNED and MANUAL-PENDING are reported without blocking the gate | literal |
+| TC-C0.5-01 | `pnpm verify` on a clean clone exits 0 | literal |
 
 **Review:** tech lead reviews the repo structure and lint rules.
 
@@ -173,12 +174,14 @@ gantt
 | Test | Expected | Source |
 |---|---|---|
 | TC-C1.1-01 | Missing or invalid env var → the app refuses to start with a named error | literal |
-| TC-C1.2-01 | Migrations up → down → up on `duatf_test` leave an identical schema | literal |
+| TC-C1.2-01 | Migrating two empty databases gives an identical schema fingerprint; re-running migrations applies nothing (no down migrations by design, ADR-0001) | literal |
 | TC-C1.2-02 | RLS: a tenant-A session selecting tenant-B rows returns 0 rows | literal |
 | TC-C1.2-03 | Code generator: the first HR activity of ORG-ACME is `ACT-ACME-HR-001`; parallel inserts give no duplicates | literal |
 | TC-C1.3-01 | Event delivered 3 times → one side effect | literal |
+| TC-C1.3-02 | The outbox relay publishes each event once and marks it published | literal |
 | TC-C1.4-01 | Upload stores the SHA-256; an expired signed URL → 403 | literal |
 | TC-C1.5-01 | `/health` → 200, with all three dependencies reported up | literal |
+| TC-C1.5-02 | Web and API reachable from another LAN machine | manual |
 
 **Review:** architecture review of the schema conventions and RLS.
 
@@ -199,12 +202,18 @@ gantt
 | TC-C2.2-02 | Every obligation has ≥ 1 control and every control has ≥ 1 obligation; 0 dangling references | literal |
 | TC-C2.2-03 | Profile: actor DF 75, any 9, sdf 7, CM 6, DP 1, state 1; phase 3→86, 0→7, 2→6 | oracle |
 | TC-C2.2-04 | Re-running the importer is refused, or with `--dry-run` shows 0 changes | literal |
+| TC-C2.2-05 | Every cross-reference stored in note bodies resolves to a framework record | literal |
+| TC-C2.2-06 | [drift] Seed counts equal the plan snapshot of 29 Sep 2026 | literal |
 | TC-C2.3-01 | UPDATE on a published release's rows fails at DB level | literal |
 | TC-C2.4-01 | Release 1.1.0: 100% of obligations have valid `anchor_level`, `tier` and `track` | literal |
 | TC-C2.4-02 | Core obligations have 3-6 criteria, each mapped to a control that maps back | literal |
 | TC-C2.4-03 | `LNK-SPDI-01` live on 2027-05-12, not live on 2027-05-13 | literal |
 | TC-C2.4-04 | Interpretation Log has 6 entries, each with a position and review date | literal |
-| TC-C2.5-01 | Publishing by the same user who edited the draft → 403 (SoD) | literal |
+| TC-C2.5-01 | Publishing by the same user who edited the draft → 403 (SoD); deferred to C3 (needs sign-in) | literal |
+| TC-C2.5-02 | Obligation detail returns the controls, law and trigger recorded in the seed | oracle |
+| TC-C2.5-03 | Triggers described in plain English | literal |
+| TC-C2.5-04 | Search finds law and obligations by citation ("Rule 7", "s.6") and words | oracle |
+| TC-C2.5-05 | In-force counts on each commencement date equal the seed | oracle |
 
 **Review:** the legal SME signs off release 1.1.0 content (anchors, tiers, criteria wording) before it is published.
 

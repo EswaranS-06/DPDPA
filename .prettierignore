@@ -1,0 +1,13 @@
+seed/
+docs/
+.claude/
+reports/
+plan/STATUS.md
+pnpm-lock.yaml
+**/.next/
+**/dist/
+**/.turbo/
+packages/platform-db/migrations/
+apps/web/public/fonts/
+*.md
+infra/
