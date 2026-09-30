@@ -7,15 +7,19 @@ import {
   listBands,
   NotFoundError,
   ratingFor,
+  listActions,
 } from '@duatf/feature-compliance-api'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { ActionTable, actionPlanOptions } from '@/components/actions/ActionBits'
+import { ActionPlanForm } from '@/components/forms/ActionForms'
 import { AcceptRiskForm, RiskRatingForm } from '@/components/forms/RiskForms'
 import { BandChip, FindingStatusChip, GapChip, RiskStatusChip } from '@/components/risk/RiskBits'
 import { loadClient } from '@/server/clients'
 import { serviceContext } from '@/server/services'
 import styles from '../../../clients.module.css'
+import { createActionAction } from '../../actions/actions'
 import { acceptRiskAction, updateRiskAction } from '../../risks/actions'
 
 export const dynamic = 'force-dynamic'
@@ -43,6 +47,9 @@ export default async function Page({ params }: Props) {
     throw error
   })
   const bands = await listBands(ctx.db)
+  const actions = await listActions(ctx, client.id, { findingId: item.id })
+  const canPlan = can(ctx.principal, 'action.manage', { clientId: client.id })
+  const planOptions = canPlan ? await actionPlanOptions(ctx, client.id) : null
   const scope = { clientId: client.id }
   const questionHref = `/clients/${client.code}/assessments/${item.assessmentCode}/items/${item.questionCode}`
   const target = item.risk
@@ -138,6 +145,32 @@ export default async function Page({ params }: Props) {
           </aside>
         ) : null}
       </div>
+
+      <section className={styles.section} aria-labelledby="remediation-title">
+        <h3 id="remediation-title" className={styles.subTitle}>
+          Remediation actions
+        </h3>
+        {actions.length === 0 ? (
+          <p className={styles.muted}>No action planned yet.</p>
+        ) : (
+          <ActionTable rows={actions} clientCode={client.code} />
+        )}
+        {canPlan && planOptions ? (
+          <div className={styles.panel}>
+            <ActionPlanForm
+              action={createActionAction.bind(null, {
+                clientId: client.id,
+                clientCode: client.code,
+                findingId: item.id,
+              })}
+              owners={planOptions.owners}
+              departments={planOptions.departments}
+              submitLabel="Plan action"
+              initial={{ title: item.title, description: item.recommendation }}
+            />
+          </div>
+        ) : null}
+      </section>
     </article>
   )
 }

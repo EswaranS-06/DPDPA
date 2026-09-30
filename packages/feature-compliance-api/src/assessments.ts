@@ -358,6 +358,17 @@ export const getItem = async (
       .where(eq(assessmentItem.assessmentId, found.id))
       .orderBy(asc(assessmentItem.seq))
     const index = siblings.findIndex((item) => item.code === row.item.questionCode)
+    const [previous] = found.previousAssessmentId
+      ? await tx
+          .select({ answer: assessmentItem.answer, comment: assessmentItem.comment })
+          .from(assessmentItem)
+          .where(
+            and(
+              eq(assessmentItem.assessmentId, found.previousAssessmentId),
+              eq(assessmentItem.questionCode, row.item.questionCode),
+            ),
+          )
+      : []
     return {
       assessment: found,
       item: {
@@ -367,6 +378,7 @@ export const getItem = async (
         reviewedByName: nameOf(row.item.reviewedBy),
       },
       question: row.question,
+      previousCycle: previous ?? null,
       previousCode: siblings[index - 1]?.code ?? null,
       nextCode: siblings[index + 1]?.code ?? null,
     }

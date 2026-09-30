@@ -50,6 +50,7 @@ export {
   ANSWER_LABEL,
   COMPLIANCE_LABEL,
   REVIEW_LABEL,
+  ACTION_STATUS_LABEL,
 } from './labels'
 export {
   createAssessment,
@@ -112,3 +113,18 @@ export {
   type RiskRow,
   type RiskDetail,
 } from './risks'
+export {
+  createAction,
+  updateActionPlan,
+  transitionAction,
+  linkActionEvidence,
+  listActions,
+  getAction,
+  nextSteps,
+  createReassessment,
+  ACTION_FLOW,
+  FINAL_ACTION_STATUSES,
+  type ActionFilters,
+  type ActionRow,
+  type ActionDetail,
+} from './actions'

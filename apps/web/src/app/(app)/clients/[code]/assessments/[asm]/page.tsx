@@ -27,11 +27,13 @@ import {
   ProgressBar,
   ReviewChip,
 } from '@/components/assessment/AssessmentBits'
+import { ReassessForm } from '@/components/forms/ActionForms'
 import { AssignForm, StatusButtons } from '@/components/forms/AssessmentForms'
 import { loadClient } from '@/server/clients'
 import { firstValue, type SearchParams } from '@/server/searchParams'
 import { serviceContext } from '@/server/services'
 import styles from '../../../clients.module.css'
+import { reassessAction } from '../../actions/actions'
 import { assignItemsAction, changeStatusAction } from '../actions'
 
 export const dynamic = 'force-dynamic'
@@ -114,6 +116,27 @@ export default async function Page({ params, searchParams }: Props) {
         <ProgressBar progress={detail.progress} label="All questions" />
         <Legend />
       </section>
+
+      {detail.status === 'completed' && can(ctx.principal, 'assessment.create', scope) ? (
+        <section className={`${styles.section} ${styles.panel}`} aria-labelledby="next-cycle">
+          <h2 id="next-cycle" className={styles.sectionTitle}>
+            Next cycle
+          </h2>
+          <p className={styles.sectionIntro}>
+            Starts a new assessment on the current knowledge base, linked to this one, with the same
+            department for each question. Answers start empty; the previous answer is shown beside
+            each question.
+          </p>
+          <ReassessForm
+            action={reassessAction.bind(null, {
+              clientId: client.id,
+              clientCode: client.code,
+              assessmentId: detail.id,
+            })}
+            defaultTitle={`${detail.title} (re-assessment)`}
+          />
+        </section>
+      ) : null}
 
       <section className={styles.section} aria-labelledby="by-domain">
         <h2 id="by-domain" className={styles.sectionTitle}>
