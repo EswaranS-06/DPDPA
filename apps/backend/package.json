@@ -1,0 +1,29 @@
+{
+  "name": "@duatf/backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "build": "tsup",
+    "start": "node dist/main.js",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@duatf/core-config": "workspace:*",
+    "@duatf/feature-framework-library-api": "workspace:*",
+    "@duatf/platform-db": "workspace:*",
+    "@duatf/platform-storage": "workspace:*",
+    "@duatf/platform-trpc": "workspace:*",
+    "@trpc/server": "catalog:",
+    "fastify": "catalog:",
+    "ioredis": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "tsup": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

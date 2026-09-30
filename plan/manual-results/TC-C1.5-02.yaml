@@ -1,0 +1,11 @@
+id: TC-C1.5-02
+result: pass
+by: claude (for EswaranS-06)
+date: '2026-09-30'
+evidence: >-
+  From the Windows workstation on the LAN (not the server): GET http://192.168.0.110:54000/health
+  returned 200 {"status":"ok","checks":{"database":"up","redis":"up","storage":"up"}};
+  GET http://192.168.0.110:53000/ returned 200 with the overview headline; obligation, search,
+  sector and law pages returned 200; an unknown obligation code returned 404; the self-hosted
+  font file returned 200. Both processes listen on 0.0.0.0 (ss -ltnp).
+notes: Re-run after any change to ports, bind address or firewall.
