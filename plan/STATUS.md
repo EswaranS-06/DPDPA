@@ -17,7 +17,7 @@ Gate: **passing**
 | C6 | Assessment execution | R1 | TESTS PASSING | lead_auditor pending |
 | C7 | Evidence | R1 | TESTS PASSING | lead_auditor pending |
 | C8 | Findings, gaps and risks | R1 | TESTS PASSING | legal_sme pending, lead_auditor pending |
-| C9 | Remediation and re-assessment | R2 | PLANNED | lead_auditor pending |
+| C9 | Remediation and re-assessment | R2 | TESTS PASSING | lead_auditor pending |
 | C10 | Dashboards and client sharing | R2 | PLANNED | lead_auditor pending |
 | C11 | Reports | R2 | PLANNED | legal_sme pending |
 | C12 | Hardening | R3 | PLANNED | security pending |
@@ -82,5 +82,8 @@ Gate: **passing**
 | TC-C8.1-01 | C8.1 | No opens exactly one finding; Yes closes it with history | 1 open, then closed | literal | PASS |
 | TC-C8.2-01 | C8.2 | Score = L x I with configurable bands | 4 Low, 5 Medium, 9 Medium, 10 High, 16 High, 17 Critical, 25 Critical | literal | PASS |
 | TC-C8.3-01 | C8.3 | A finding carries its question's recommendation and references | present | oracle | PASS |
+| TC-C9.1-01 | C9.1 | Only allowed status transitions are accepted | invalid refused | literal | PASS |
+| TC-C9.2-01 | C9.2 | Closing without evidence or by the owner is refused | refused | literal | PASS |
+| TC-C9.3-01 | C9.3 | A re-assessment copies scope and links to the previous cycle | copied and linked | literal | PASS |
 
-17 further tests are planned in later sub-phases.
+14 further tests are planned in later sub-phases.

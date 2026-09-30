@@ -449,7 +449,7 @@ phases:
     subphases:
       - id: C9.1
         title: 'Actions'
-        state: planned
+        state: active
         tests:
           - id: TC-C9.1-01
             title: 'Only allowed status transitions are accepted'
@@ -457,7 +457,7 @@ phases:
             source: literal
       - id: C9.2
         title: 'Verification'
-        state: planned
+        state: active
         tests:
           - id: TC-C9.2-01
             title: 'Closing without evidence or by the owner is refused'
@@ -465,7 +465,7 @@ phases:
             source: literal
       - id: C9.3
         title: 'Re-assessment'
-        state: planned
+        state: active
         tests:
           - id: TC-C9.3-01
             title: 'A re-assessment copies scope and links to the previous cycle'

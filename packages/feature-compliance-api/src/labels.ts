@@ -1,4 +1,5 @@
 import type {
+  ActionStatus,
   Answer,
   ApplicabilityState,
   AssessmentStatus,
@@ -102,4 +103,16 @@ export const REVIEW_LABEL: Record<ReviewState, string> = {
   not_reviewed: 'Not reviewed',
   accepted: 'Accepted',
   returned: 'Sent back',
+}
+
+export const ACTION_STATUS_LABEL: Record<ActionStatus, string> = {
+  open: 'Open',
+  assigned: 'Assigned',
+  in_progress: 'In progress',
+  pending_evidence: 'Pending evidence',
+  under_review: 'Under review',
+  rejected: 'Rejected',
+  remediated: 'Remediated',
+  closed: 'Closed',
+  accepted_risk: 'Accepted risk',
 }

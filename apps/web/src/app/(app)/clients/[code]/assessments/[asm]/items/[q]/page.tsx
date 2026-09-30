@@ -125,6 +125,12 @@ export default async function Page({ params }: Props) {
             <h3 id="answer-title" className={styles.subTitle}>
               {item.answer === 'not_assessed' ? 'Answer' : `Answer: ${ANSWER_LABEL[item.answer]}`}
             </h3>
+            {detail.previousCycle && detail.previousCycle.answer !== 'not_assessed' ? (
+              <p className={styles.muted}>
+                Last cycle: {ANSWER_LABEL[detail.previousCycle.answer]}
+                {detail.previousCycle.comment ? ` — ${detail.previousCycle.comment}` : ''}
+              </p>
+            ) : null}
             {item.answeredAt ? (
               <p className={styles.muted}>
                 By {item.answeredByName ?? 'someone'}, {formatIst(item.answeredAt)}

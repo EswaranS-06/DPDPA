@@ -13,6 +13,7 @@ import {
   unique,
   uniqueIndex,
   uuid,
+  type AnyPgColumn,
 } from 'drizzle-orm/pg-core'
 import { frameworkRelease } from './framework'
 import { tenant } from './platform'
@@ -224,12 +225,18 @@ export const evidenceLink = pgTable(
       .notNull()
       .references(() => evidence.id, { onDelete: 'cascade' }),
     itemId: uuid('item_id').references(() => assessmentItem.id, { onDelete: 'cascade' }),
+    actionId: uuid('action_id').references((): AnyPgColumn => remediationAction.id, {
+      onDelete: 'cascade',
+    }),
     createdBy: uuid('created_by'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
     unique('evidence_link_item').on(table.evidenceId, table.itemId),
+    unique('evidence_link_action').on(table.evidenceId, table.actionId),
     index('evidence_link_item_idx').on(table.itemId),
+    index('evidence_link_action_idx').on(table.actionId),
+    check('evidence_link_target', sql`num_nonnulls(${table.itemId}, ${table.actionId}) = 1`),
   ],
 )
 
@@ -345,4 +352,68 @@ export const risk = pgTable(
     check('risk_likelihood_range', sql`${table.likelihood} between 1 and 5`),
     check('risk_impact_range', sql`${table.impact} between 1 and 5`),
   ],
+)
+
+export const ACTION_STATUSES = [
+  'open',
+  'assigned',
+  'in_progress',
+  'pending_evidence',
+  'under_review',
+  'rejected',
+  'remediated',
+  'closed',
+  'accepted_risk',
+] as const
+export type ActionStatus = (typeof ACTION_STATUSES)[number]
+
+/** A remediation action for a finding, tracked through the workflow in ACTION_FLOW. */
+export const remediationAction = pgTable(
+  'remediation_action',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenant.id, { onDelete: 'cascade' }),
+    code: text('code').notNull(),
+    findingId: uuid('finding_id')
+      .notNull()
+      .references(() => finding.id, { onDelete: 'cascade' }),
+    title: text('title').notNull(),
+    description: text('description'),
+    ownerUserId: uuid('owner_user_id'),
+    departmentId: uuid('department_id').references(() => department.id, { onDelete: 'set null' }),
+    dueDate: date('due_date', { mode: 'string' }),
+    status: text('status').$type<ActionStatus>().notNull().default('open'),
+    createdBy: uuid('created_by'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    verifiedBy: uuid('verified_by'),
+    verifiedAt: timestamp('verified_at', { withTimezone: true }),
+    closedAt: timestamp('closed_at', { withTimezone: true }),
+  },
+  (table) => [
+    unique('remediation_action_tenant_code').on(table.tenantId, table.code),
+    index('remediation_action_finding').on(table.findingId),
+  ],
+)
+
+/** Every status change of an action, with who made it and why. */
+export const actionEvent = pgTable(
+  'action_event',
+  {
+    id: bigserial('id', { mode: 'number' }).primaryKey(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenant.id, { onDelete: 'cascade' }),
+    actionId: uuid('action_id')
+      .notNull()
+      .references(() => remediationAction.id, { onDelete: 'cascade' }),
+    at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
+    actorUserId: uuid('actor_user_id'),
+    fromStatus: text('from_status'),
+    toStatus: text('to_status').notNull(),
+    note: text('note'),
+  },
+  (table) => [index('action_event_action').on(table.actionId)],
 )

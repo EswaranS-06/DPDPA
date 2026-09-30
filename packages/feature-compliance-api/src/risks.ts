@@ -13,6 +13,7 @@ import {
   type RiskStatus,
 } from '@duatf/platform-db'
 import { z } from 'zod'
+import { acceptActionsForFinding } from './actions'
 import { audit, inClient, type ServiceContext } from './context'
 import { NotFoundError, optionalText, parseInput, RuleError, ValidationError } from './errors'
 
@@ -232,11 +233,14 @@ export const acceptRisk = async (
   )
   await inClient(ctx, clientId, async (tx) => {
     const [current] = await tx
-      .select({ code: risk.code, status: risk.status })
+      .select({ code: risk.code, status: risk.status, findingId: risk.findingId })
       .from(risk)
       .where(and(eq(risk.id, riskId), eq(risk.tenantId, clientId)))
     if (!current) throw new NotFoundError('Risk')
     if (current.status === 'closed') throw new RuleError('This risk is already closed.')
+    if (current.findingId) {
+      await acceptActionsForFinding(tx, ctx, clientId, current.findingId, input.note)
+    }
     await tx
       .update(risk)
       .set({
