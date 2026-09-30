@@ -1,0 +1,545 @@
+# DUATF coding plan as data. Source: docs/DUATF-Coding-Plan.md.
+# `pnpm trace` matches test results to these IDs and writes plan/STATUS.md.
+# state: planned (not started) | active (being built, tests gate CI) | done
+# source: literal | golden | oracle (computed at test time) | sme (signed scenario) | manual
+version: 1
+phases:
+  - id: C0
+    title: Repository and tooling
+    release: R0
+    reviews: [tech_lead]
+    subphases:
+      - id: C0.1
+        title: Node 22, pnpm, git repository
+        state: active
+        tests: []
+      - id: C0.2
+        title: Turborepo, TypeScript, ESLint boundaries, Prettier
+        state: active
+        tests:
+          - id: TC-C0.2-01
+            title: A core-* package importing a feature-* package fails lint
+            expected: no-restricted-imports error
+            source: literal
+      - id: C0.3
+        title: Vitest, Playwright scaffold, fast-check
+        state: active
+        tests: []
+      - id: C0.4
+        title: Traceability harness
+        state: active
+        tests:
+          - id: TC-C0.4-01
+            title: Missing result, unknown ID and failure are reported and block the gate
+            expected: MISSING, UNTRACED, FAIL; gate blocked
+            source: literal
+          - id: TC-C0.4-02
+            title: Drift, deferred and planned tests are reported without blocking
+            expected: DRIFT, DEFERRED, PLANNED; gate passing
+            source: literal
+      - id: C0.5
+        title: Local CI command
+        state: active
+        tests:
+          - id: TC-C0.5-01
+            title: pnpm verify on a clean clone exits 0
+            expected: exit code 0
+            source: manual
+            kind: manual
+
+  - id: C1
+    title: Infrastructure and database core
+    release: R0
+    reviews: [architect]
+    subphases:
+      - id: C1.1
+        title: Docker services and validated environment
+        state: active
+        tests:
+          - id: TC-C1.1-01
+            title: A missing or invalid env var stops startup with a named error
+            expected: EnvError naming each bad variable
+            source: literal
+      - id: C1.2
+        title: Drizzle schema, migrations, codes, row-level security
+        state: active
+        tests:
+          - id: TC-C1.2-01
+            title: Migrating an empty database twice gives the same schema and the second run is a no-op
+            expected: identical schema fingerprint; 0 migrations applied on re-run
+            source: literal
+          - id: TC-C1.2-02
+            title: A tenant-A session cannot read tenant-B rows
+            expected: 0 rows (RLS as the non-owner app role)
+            source: literal
+          - id: TC-C1.2-03
+            title: Code generator gives sequential codes with no duplicates under concurrency
+            expected: ACT-ACME-HR-001 first; 50 parallel calls give 50 distinct codes
+            source: literal
+      - id: C1.3
+        title: Outbox and idempotent consumers
+        state: active
+        tests:
+          - id: TC-C1.3-01
+            title: An event delivered three times has one side effect
+            expected: 1
+            source: literal
+          - id: TC-C1.3-02
+            title: The outbox relay publishes each event once and marks it processed
+            expected: published once; processed_at set
+            source: literal
+      - id: C1.4
+        title: Object storage
+        state: active
+        tests:
+          - id: TC-C1.4-01
+            title: Upload stores SHA-256; an expired signed URL is refused
+            expected: sha256 matches; HTTP 403 after expiry
+            source: literal
+      - id: C1.5
+        title: API health endpoint and web shell on 0.0.0.0
+        state: active
+        tests:
+          - id: TC-C1.5-01
+            title: /health reports database, Redis and object storage up
+            expected: HTTP 200 with all three up
+            source: literal
+          - id: TC-C1.5-02
+            title: Web and API are reachable from another LAN machine
+            expected: HTTP 200 from 192.168.0.110:53000 and :54000/health
+            source: manual
+            kind: manual
+
+  - id: C2
+    title: Framework in the database
+    release: R0
+    reviews: [legal_sme, tech_lead]
+    subphases:
+      - id: C2.1
+        title: Framework schema
+        state: active
+        tests: []
+      - id: C2.2
+        title: One-time seed import (release 1.0.0)
+        state: active
+        tests:
+          - id: TC-C2.2-01
+            title: Release 1.0.0 row counts equal the counts in the seed
+            expected: equal per type
+            source: oracle
+          - id: TC-C2.2-02
+            title: Obligation-control links are complete and consistent
+            expected: every obligation >= 1 control, every control >= 1 obligation, 0 dangling
+            source: literal
+          - id: TC-C2.2-03
+            title: Obligation profile by actor and phase equals the seed
+            expected: equal distributions
+            source: oracle
+          - id: TC-C2.2-04
+            title: Importing again is refused
+            expected: AlreadyImportedError
+            source: literal
+          - id: TC-C2.2-05
+            title: Every cross-reference stored in note bodies resolves to a framework record
+            expected: 0 unresolved references
+            source: literal
+          - id: TC-C2.2-06
+            title: '[drift] Seed counts equal the plan snapshot of 29 Sep 2026'
+            expected: 44 sections, 23 rules, 8 schedules, 19 bases, 18 domains, 99 obligations, 82 controls, 124 templates, 20 overlays, 91 data elements, 17 vocabularies, 34 PBC items, 25 stuck points
+            source: literal
+      - id: C2.3
+        title: Release lifecycle and immutability
+        state: active
+        tests:
+          - id: TC-C2.3-01
+            title: Changing rows of a published release fails at database level
+            expected: exception on insert, update and delete
+            source: literal
+      - id: C2.4
+        title: v0.2 seed patches (release 1.1.0 draft)
+        state: planned
+        tests:
+          - id: TC-C2.4-01
+            title: Every obligation has anchor level, tier and track
+            expected: 100%
+            source: literal
+          - id: TC-C2.4-02
+            title: Core obligations have 3-6 criteria mapped to controls
+            expected: 100%
+            source: literal
+          - id: TC-C2.4-03
+            title: LNK-SPDI-01 live on 12 May 2027, not on 13 May 2027
+            expected: true, false
+            source: literal
+          - id: TC-C2.4-04
+            title: Interpretation Log has 6 entries with position and review date
+            expected: 6
+            source: literal
+      - id: C2.5
+        title: Framework library API and UI
+        state: active
+        tests:
+          - id: TC-C2.5-01
+            title: The editor of a draft cannot publish it
+            expected: HTTP 403
+            source: literal
+            deferredTo: C3
+          - id: TC-C2.5-02
+            title: Obligation detail returns its controls, instruments and trigger as recorded in the seed
+            expected: OBL-CON-01 with CTL-LB-02, CTL-LB-04, CTL-CON-01, CTL-CON-06
+            source: oracle
+          - id: TC-C2.5-03
+            title: Triggers are described in plain English
+            expected: literal cases
+            source: literal
+          - id: TC-C2.5-04
+            title: Search finds obligations and law by code, citation and words
+            expected: '"Rule 7" finds R07 and OBL-BRE-*'
+            source: literal
+          - id: TC-C2.5-05
+            title: In-force counts by date equal the seed
+            expected: 7 on 2026-09-30, 13 on 2026-11-13, 99 on 2027-05-13
+            source: oracle
+
+  - id: C3
+    title: Authentication, tenancy, audit
+    release: R0
+    reviews: [security]
+    subphases:
+      - id: C3.1
+        title: Keycloak OIDC and dev fallback
+        state: planned
+        tests:
+          - id: TC-C3.1-01
+            title: Dev auth mode refuses to start in production
+            expected: startup error
+            source: literal
+      - id: C3.2
+        title: Tenants, memberships, permissions, separation of duties
+        state: planned
+        tests:
+          - id: TC-C3.2-01
+            title: Permission matrix enforced for every role and capability
+            expected: 100% match
+            source: golden
+          - id: TC-C3.2-02
+            title: Preparer approving own item is refused and audited
+            expected: HTTP 403 + audit entry
+            source: literal
+      - id: C3.3
+        title: Hash-chained audit log
+        state: planned
+        tests:
+          - id: TC-C3.3-01
+            title: Tampering one audit row breaks chain verification at that row
+            expected: failure at the tampered row
+            source: literal
+      - id: C3.4
+        title: Notifications
+        state: planned
+        tests: []
+      - id: C3.5
+        title: Web shell with login and tenant switcher
+        state: planned
+        tests:
+          - id: TC-C3.5-01
+            title: Sign in, switch tenant, see only that tenant's data
+            expected: E2E pass
+            source: literal
+
+  - id: C4
+    title: Rules engine
+    release: R1
+    reviews: [legal_sme, tech_lead]
+    subphases:
+      - id: C4.1
+        title: v1 evaluator
+        state: planned
+        tests:
+          - id: TC-C4.1-01
+            title: DemoPay applicable counts on release 1.0.0
+            expected: 46, 67, 63, 54, 64, 67
+            source: oracle
+      - id: C4.2
+        title: Differential harness
+        state: planned
+        tests:
+          - id: TC-C4.2-01
+            title: 594 of 594 rows identical to the Python engine
+            expected: 0 differences
+            source: oracle
+          - id: TC-C4.2-02
+            title: 10,000 random contexts identical to the Python engine
+            expected: 0 differences
+            source: oracle
+      - id: C4.3
+        title: v0.2 evaluator
+        state: planned
+        tests:
+          - id: TC-C4.3-01
+            title: Six stress scenarios match the signed expected files
+            expected: match
+            source: sme
+          - id: TC-C4.3-07
+            title: Readiness and compliance labels follow as_of
+            expected: readiness before, compliance from 2027-05-13
+            source: literal
+      - id: C4.4
+        title: Explanations and overrides
+        state: planned
+        tests:
+          - id: TC-C4.4-01
+            title: Every N/A row has a reason; only approved overrides change results
+            expected: 100%; audited
+            source: literal
+      - id: C4.5
+        title: Incremental recompute
+        state: planned
+        tests:
+          - id: TC-C4.5-01
+            title: Recompute performance
+            expected: full < 10 s; single change p95 < 1 s
+            source: literal
+          - id: TC-C4.5-02
+            title: Deterministic output
+            expected: identical hash over 100 runs
+            source: literal
+
+  - id: C5
+    title: Client graph
+    release: R1
+    reviews: [assessor]
+    subphases:
+      - id: C5.1
+        title: Graph schema and API
+        state: planned
+        tests:
+          - id: TC-C5.1-01
+            title: A shared system is stored once and its finding is visible from every activity
+            expected: 1 row; 30 activities
+            source: literal
+      - id: C5.3
+        title: Workshop mode
+        state: planned
+        tests:
+          - id: TC-C5.3-01
+            title: Support staff outside India sets cross_border and prompts a flow
+            expected: flag set; flow prompt
+            source: literal
+      - id: C5.5
+        title: Import and DemoPay tenant
+        state: planned
+        tests:
+          - id: TC-C5.5-01
+            title: DemoPay tenant object counts equal the seed example
+            expected: 6, 6, 7, 13, 6, 5, 4, 4
+            source: oracle
+      - id: C5.6
+        title: Completeness checks
+        state: planned
+        tests:
+          - id: TC-C5.6-01
+            title: DemoPay completeness flags CUS-001 consent basis without a consent purpose
+            expected: flagged
+            source: golden
+
+  - id: C6
+    title: Engagement and scoping
+    release: R1
+    reviews: [legal_sme]
+    subphases:
+      - id: C6.2
+        title: Scoping questionnaire and facts
+        state: planned
+        tests:
+          - id: TC-C6.2-01
+            title: Answers map to facts and tracks
+            expected: Q17 third_schedule, Q9 CM track, Q7 processor track
+            source: golden
+          - id: TC-C6.2-02
+            title: DemoPay answers reproduce ORG-DEMO profile
+            expected: equal
+            source: golden
+      - id: C6.5
+        title: Profile approval
+        state: planned
+        tests:
+          - id: TC-C6.5-01
+            title: Compliance-mode run blocked on unapproved profile
+            expected: blocked
+            source: literal
+
+  - id: C7
+    title: Testing and review
+    release: R1
+    reviews: [assessor, legal_sme]
+    subphases:
+      - id: C7.4
+        title: Assurance validator and review
+        state: planned
+        tests:
+          - id: TC-C7.4-01
+            title: Inquiry-only test with maturity 3 is rejected
+            expected: rejected
+            source: literal
+      - id: C7.5
+        title: Status derivation
+        state: planned
+        tests:
+          - id: TC-C7.5-01
+            title: Derivation truth table
+            expected: 12 of 12
+            source: golden
+          - id: TC-C7.5-02
+            title: One criterion change propagates to the entity index
+            expected: under 2 s, audited
+            source: literal
+
+  - id: C8
+    title: Gaps, findings, risk, roadmap
+    release: R1
+    reviews: [legal_sme, assessor]
+    subphases:
+      - id: C8.2
+        title: Finding composer
+        state: planned
+        tests:
+          - id: TC-C8.2-01
+            title: CTL-NOT-01 failing at PUR-DEMO-001 gives one finding covering OBL-NOT-01..04
+            expected: 1 finding
+            source: golden
+      - id: C8.3
+        title: Risk engine
+        state: planned
+        tests:
+          - id: TC-C8.3-01
+            title: FND-DEMO-001 scores 15 High
+            expected: L5 x I3 = 15
+            source: golden
+          - id: TC-C8.3-02
+            title: Band boundaries
+            expected: 4 Low, 5 Medium, 9 Medium, 10 High, 16 High, 17 Critical, 25 Critical
+            source: literal
+      - id: C8.E2E
+        title: End-to-end assessment
+        state: planned
+        tests:
+          - id: TC-C8.E2E-01
+            title: DemoPay from scoping to a report-ready finding list
+            expected: E2E pass
+            source: literal
+
+  - id: C9
+    title: Remediation
+    release: R2
+    reviews: [assessor]
+    subphases:
+      - id: C9.1
+        title: Actions, retest, risk acceptance, reminders
+        state: planned
+        tests:
+          - id: TC-C9-01
+            title: Passing retest closes the finding and recomputes roll-up
+            expected: closed
+            source: literal
+          - id: TC-C9-02
+            title: Critical risk acceptance by DPO-level user is refused
+            expected: refused
+            source: literal
+          - id: TC-C9-03
+            title: One reminder at target minus 7 days
+            expected: 1
+            source: literal
+
+  - id: C10
+    title: Operations registers
+    release: R2
+    reviews: [legal_sme]
+    subphases:
+      - id: C10.1
+        title: Rights, breach, DPIA, vendors, regulatory change, commencement job
+        state: planned
+        tests:
+          - id: TC-C10-01
+            title: Rights request received 2027-06-01 is due 2027-08-30
+            expected: 2027-08-30
+            source: literal
+          - id: TC-C10-02
+            title: Breach aware 2027-06-10 10:00 IST is due to CERT-In at 16:00 IST
+            expected: 2027-06-10 16:00 IST
+            source: literal
+          - id: TC-C10-03
+            title: On 2027-05-13 readiness gaps become compliance gaps and SPDI stops being live
+            expected: converted; SPDI not live
+            source: literal
+
+  - id: C11
+    title: Reporting
+    release: R2
+    reviews: [legal_sme]
+    subphases:
+      - id: C11.1
+        title: Dashboards, reports, exports, audit viewer
+        state: planned
+        tests:
+          - id: TC-C11-01
+            title: Same snapshot gives the same content hash
+            expected: equal
+            source: literal
+          - id: TC-C11-02
+            title: Report citing an unverified item is blocked
+            expected: blocked
+            source: literal
+          - id: TC-C11-03
+            title: Disclaimer, release, snapshot hash and as_of on every report
+            expected: present
+            source: literal
+
+  - id: C12
+    title: Hardening
+    release: R3
+    reviews: [security]
+    subphases:
+      - id: C12.1
+        title: Isolation, load, restore, ClamAV, accessibility, self-assessment
+        state: planned
+        tests:
+          - id: TC-C12-01
+            title: No cross-tenant access across all routes
+            expected: 0
+            source: literal
+          - id: TC-C12-02
+            title: API p95 under load
+            expected: under 300 ms at 50 users
+            source: literal
+          - id: TC-C12-03
+            title: Restore drill
+            expected: under 4 h; audit chain verifies
+            source: literal
+
+  - id: C13
+    title: Pilots and production on the server
+    release: R3
+    reviews: [leadership]
+    subphases:
+      - id: C13.1
+        title: Production profile, pilots, measurement, 1.0
+        state: planned
+        tests:
+          - id: TC-C13-01
+            title: Pilot coverage of operative sections
+            expected: 100%
+            source: literal
+          - id: TC-C13-02
+            title: Findings per root cause
+            expected: at most 1.2
+            source: literal
+          - id: TC-C13-03
+            title: Inter-assessor agreement
+            expected: at least 90%
+            source: literal
+          - id: TC-C13-04
+            title: UAT sign-off
+            expected: signed
+            source: manual
+            kind: manual

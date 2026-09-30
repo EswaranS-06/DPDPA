@@ -1,0 +1,45 @@
+{
+  "name": "duatf",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.8.1",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev:web": "pnpm --filter @duatf/web dev",
+    "dev:api": "pnpm --filter @duatf/backend dev",
+    "start:web": "pnpm --filter @duatf/web start",
+    "start:api": "pnpm --filter @duatf/backend start",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "lint": "eslint . --max-warnings=0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "env:make": "bash infra/make-app-env.sh",
+    "db:setup": "tsx packages/platform-db/src/cli/setup.ts",
+    "db:migrate": "tsx packages/platform-db/src/cli/migrate.ts",
+    "db:generate": "pnpm --filter @duatf/platform-db generate",
+    "db:test:reset": "tsx tools/test-support/src/resetTestDb.ts",
+    "seed:import": "tsx tools/seed-import/src/cli.ts",
+    "test": "pnpm db:test:reset && vitest run",
+    "test:ci": "pnpm db:test:reset && vitest run --reporter=default --reporter=json --outputFile.json=reports/vitest.json",
+    "trace": "tsx tools/traceability/src/cli.ts",
+    "verify": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:ci && pnpm build && pnpm trace"
+  },
+  "devDependencies": {
+    "@eslint/js": "catalog:",
+    "@next/eslint-plugin-next": "catalog:",
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "eslint-plugin-react-hooks": "catalog:",
+    "globals": "catalog:",
+    "prettier": "catalog:",
+    "tsx": "catalog:",
+    "turbo": "catalog:",
+    "typescript": "catalog:",
+    "typescript-eslint": "catalog:",
+    "vitest": "catalog:"
+  }
+}
