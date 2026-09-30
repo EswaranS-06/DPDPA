@@ -1,0 +1,595 @@
+activity,obligation,applies,reason
+ACT-DEMO-ADM-001,LNK-CCPA-01,Y,Triggered by flags online_presence
+ACT-DEMO-ADM-001,LNK-CERT-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,LNK-CERT-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,LNK-CERT-03,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,LNK-CERT-04,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,LNK-SPDI-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,LNK-TRAI-01,N,Flag(s) not set: marketing
+ACT-DEMO-ADM-001,OBL-BRE-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,OBL-BRE-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,OBL-BRE-03,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,OBL-BRE-04,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,OBL-CHD-01,N,Flag(s) not set: children
+ACT-DEMO-ADM-001,OBL-CHD-02,N,Flag(s) not set: children
+ACT-DEMO-ADM-001,OBL-CHD-03,N,Flag(s) not set: children
+ACT-DEMO-ADM-001,OBL-CHD-04,N,Flag(s) not set: children
+ACT-DEMO-ADM-001,OBL-CHD-05,N,Flag(s) not set: children
+ACT-DEMO-ADM-001,OBL-CHD-06,N,Flag(s) not set: children
+ACT-DEMO-ADM-001,OBL-CMO-01,N,Entity is not a Consent Manager
+ACT-DEMO-ADM-001,OBL-CMO-02,N,Entity is not a Consent Manager
+ACT-DEMO-ADM-001,OBL-CMO-03,N,Entity is not a Consent Manager
+ACT-DEMO-ADM-001,OBL-CMO-04,N,Entity is not a Consent Manager
+ACT-DEMO-ADM-001,OBL-CMO-05,N,Entity is not a Consent Manager
+ACT-DEMO-ADM-001,OBL-CMO-06,N,Entity is not a Consent Manager
+ACT-DEMO-ADM-001,OBL-CON-01,N,Lawful basis not in ['consent']
+ACT-DEMO-ADM-001,OBL-CON-02,N,Lawful basis not in ['consent']
+ACT-DEMO-ADM-001,OBL-CON-03,N,Lawful basis not in ['consent']
+ACT-DEMO-ADM-001,OBL-CON-04,N,Lawful basis not in ['consent']
+ACT-DEMO-ADM-001,OBL-CON-05,N,Lawful basis not in ['consent']
+ACT-DEMO-ADM-001,OBL-CON-06,N,Lawful basis not in ['consent']
+ACT-DEMO-ADM-001,OBL-CON-07,N,Lawful basis not in ['consent']
+ACT-DEMO-ADM-001,OBL-DQ-01,N,Flag(s) not set: decision_or_disclosure
+ACT-DEMO-ADM-001,OBL-GOV-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,OBL-GOV-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,OBL-GOV-03,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,OBL-GOV-04,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,OBL-GOV-05,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,OBL-LB-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,OBL-LB-02,N,Lawful basis not in ['consent']
+ACT-DEMO-ADM-001,OBL-LB-03,Y,Triggered by basis s7a
+ACT-DEMO-ADM-001,OBL-LB-04,N,"Lawful basis not in ['s7c', 's7d', 's7e']"
+ACT-DEMO-ADM-001,OBL-LB-05,N,"Lawful basis not in ['s7f', 's7g', 's7h']"
+ACT-DEMO-ADM-001,OBL-LB-06,Y,Triggered by basis s7i
+ACT-DEMO-ADM-001,OBL-MAP-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,OBL-MAP-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,OBL-NOT-01,N,Lawful basis not in ['consent']
+ACT-DEMO-ADM-001,OBL-NOT-02,N,Lawful basis not in ['consent']
+ACT-DEMO-ADM-001,OBL-NOT-03,N,Lawful basis not in ['consent']
+ACT-DEMO-ADM-001,OBL-NOT-04,N,Lawful basis not in ['consent']
+ACT-DEMO-ADM-001,OBL-NOT-05,N,Lawful basis not in ['consent']
+ACT-DEMO-ADM-001,OBL-NOT-06,N,Lawful basis not in ['consent']
+ACT-DEMO-ADM-001,OBL-PRC-01,N,Flag(s) not set: processor
+ACT-DEMO-ADM-001,OBL-PRC-02,N,Flag(s) not set: processor
+ACT-DEMO-ADM-001,OBL-PRC-03,N,Flag(s) not set: processor
+ACT-DEMO-ADM-001,OBL-PRC-04,N,Flag(s) not set: processor
+ACT-DEMO-ADM-001,OBL-PWD-01,N,Flag(s) not set: pwd
+ACT-DEMO-ADM-001,OBL-PWD-02,N,Flag(s) not set: pwd
+ACT-DEMO-ADM-001,OBL-REG-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,OBL-REG-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,OBL-REG-03,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,OBL-REG-04,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,OBL-REG-05,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,OBL-RES-01,N,Lawful basis not in ['ex17_2b']
+ACT-DEMO-ADM-001,OBL-RET-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,OBL-RET-02,N,Flag(s) not set: processor
+ACT-DEMO-ADM-001,OBL-RET-03,N,Flag(s) not set: third_schedule
+ACT-DEMO-ADM-001,OBL-RET-04,N,Flag(s) not set: third_schedule
+ACT-DEMO-ADM-001,OBL-RET-05,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,OBL-RET-06,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,OBL-RGT-01,Y,Triggered by flags online_presence
+ACT-DEMO-ADM-001,OBL-RGT-02,Y,Triggered by basis s7a
+ACT-DEMO-ADM-001,OBL-RGT-03,Y,Triggered by basis s7a
+ACT-DEMO-ADM-001,OBL-RGT-04,Y,Triggered by basis s7a
+ACT-DEMO-ADM-001,OBL-RGT-05,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,OBL-RGT-06,Y,Triggered by basis s7a
+ACT-DEMO-ADM-001,OBL-RGT-07,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,OBL-RGT-08,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,OBL-SCP-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,OBL-SCP-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,OBL-SCP-03,N,"Lawful basis not in ['ex17_1a', 'ex17_1b', 'ex17_1c', 'ex17_1d', 'ex17_1e', 'ex17_1f', 'ex17_2a', 'ex17_2b', 'ex17_3']"
+ACT-DEMO-ADM-001,OBL-SCP-04,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,OBL-SDF-01,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-ADM-001,OBL-SDF-02,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-ADM-001,OBL-SDF-03,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-ADM-001,OBL-SDF-04,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-ADM-001,OBL-SDF-05,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-ADM-001,OBL-SDF-06,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-ADM-001,OBL-SDF-07,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-ADM-001,OBL-SEC-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,OBL-SEC-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,OBL-SEC-03,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,OBL-SEC-04,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,OBL-SEC-05,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,OBL-SEC-06,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,OBL-SEC-07,N,Flag(s) not set: processor
+ACT-DEMO-ADM-001,OBL-SEC-08,Y,Applies to every in-scope processing activity
+ACT-DEMO-ADM-001,OBL-STA-01,N,Not State processing
+ACT-DEMO-ADM-001,OBL-XB-01,N,Flag(s) not set: cross_border
+ACT-DEMO-ADM-001,OBL-XB-02,N,Flag(s) not set: cross_border
+ACT-DEMO-ADM-001,OBL-XB-03,N,Flag(s) not set: cross_border
+ACT-DEMO-CUS-001,LNK-CCPA-01,Y,Triggered by flags online_presence
+ACT-DEMO-CUS-001,LNK-CERT-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,LNK-CERT-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,LNK-CERT-03,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,LNK-CERT-04,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,LNK-SPDI-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,LNK-TRAI-01,N,Flag(s) not set: marketing
+ACT-DEMO-CUS-001,OBL-BRE-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,OBL-BRE-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,OBL-BRE-03,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,OBL-BRE-04,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,OBL-CHD-01,N,Flag(s) not set: children
+ACT-DEMO-CUS-001,OBL-CHD-02,N,Flag(s) not set: children
+ACT-DEMO-CUS-001,OBL-CHD-03,N,Flag(s) not set: children
+ACT-DEMO-CUS-001,OBL-CHD-04,N,Flag(s) not set: children
+ACT-DEMO-CUS-001,OBL-CHD-05,N,Flag(s) not set: children
+ACT-DEMO-CUS-001,OBL-CHD-06,N,Flag(s) not set: children
+ACT-DEMO-CUS-001,OBL-CMO-01,N,Entity is not a Consent Manager
+ACT-DEMO-CUS-001,OBL-CMO-02,N,Entity is not a Consent Manager
+ACT-DEMO-CUS-001,OBL-CMO-03,N,Entity is not a Consent Manager
+ACT-DEMO-CUS-001,OBL-CMO-04,N,Entity is not a Consent Manager
+ACT-DEMO-CUS-001,OBL-CMO-05,N,Entity is not a Consent Manager
+ACT-DEMO-CUS-001,OBL-CMO-06,N,Entity is not a Consent Manager
+ACT-DEMO-CUS-001,OBL-CON-01,Y,Triggered by basis consent
+ACT-DEMO-CUS-001,OBL-CON-02,Y,Triggered by basis consent
+ACT-DEMO-CUS-001,OBL-CON-03,Y,Triggered by basis consent
+ACT-DEMO-CUS-001,OBL-CON-04,Y,Triggered by basis consent
+ACT-DEMO-CUS-001,OBL-CON-05,Y,Triggered by basis consent
+ACT-DEMO-CUS-001,OBL-CON-06,Y,Triggered by basis consent
+ACT-DEMO-CUS-001,OBL-CON-07,N,Flag(s) not set: consent_manager_used
+ACT-DEMO-CUS-001,OBL-DQ-01,N,Flag(s) not set: decision_or_disclosure
+ACT-DEMO-CUS-001,OBL-GOV-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,OBL-GOV-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,OBL-GOV-03,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,OBL-GOV-04,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,OBL-GOV-05,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,OBL-LB-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,OBL-LB-02,Y,Triggered by basis consent
+ACT-DEMO-CUS-001,OBL-LB-03,N,Lawful basis not in ['s7a']
+ACT-DEMO-CUS-001,OBL-LB-04,Y,Triggered by basis s7d
+ACT-DEMO-CUS-001,OBL-LB-05,N,"Lawful basis not in ['s7f', 's7g', 's7h']"
+ACT-DEMO-CUS-001,OBL-LB-06,N,Lawful basis not in ['s7i']
+ACT-DEMO-CUS-001,OBL-MAP-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,OBL-MAP-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,OBL-NOT-01,Y,Triggered by basis consent
+ACT-DEMO-CUS-001,OBL-NOT-02,Y,Triggered by basis consent
+ACT-DEMO-CUS-001,OBL-NOT-03,Y,Triggered by basis consent
+ACT-DEMO-CUS-001,OBL-NOT-04,Y,Triggered by basis consent
+ACT-DEMO-CUS-001,OBL-NOT-05,Y,Triggered by basis consent
+ACT-DEMO-CUS-001,OBL-NOT-06,Y,Triggered by basis consent; flags legacy_data
+ACT-DEMO-CUS-001,OBL-PRC-01,Y,Triggered by flags processor
+ACT-DEMO-CUS-001,OBL-PRC-02,Y,Triggered by flags processor
+ACT-DEMO-CUS-001,OBL-PRC-03,Y,Triggered by flags processor
+ACT-DEMO-CUS-001,OBL-PRC-04,Y,Triggered by flags processor
+ACT-DEMO-CUS-001,OBL-PWD-01,N,Flag(s) not set: pwd
+ACT-DEMO-CUS-001,OBL-PWD-02,N,Flag(s) not set: pwd
+ACT-DEMO-CUS-001,OBL-REG-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,OBL-REG-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,OBL-REG-03,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,OBL-REG-04,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,OBL-REG-05,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,OBL-RES-01,N,Lawful basis not in ['ex17_2b']
+ACT-DEMO-CUS-001,OBL-RET-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,OBL-RET-02,Y,Triggered by flags processor
+ACT-DEMO-CUS-001,OBL-RET-03,N,Flag(s) not set: third_schedule
+ACT-DEMO-CUS-001,OBL-RET-04,N,Flag(s) not set: third_schedule
+ACT-DEMO-CUS-001,OBL-RET-05,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,OBL-RET-06,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,OBL-RGT-01,Y,Triggered by flags online_presence
+ACT-DEMO-CUS-001,OBL-RGT-02,Y,Triggered by basis consent
+ACT-DEMO-CUS-001,OBL-RGT-03,Y,Triggered by basis consent
+ACT-DEMO-CUS-001,OBL-RGT-04,Y,Triggered by basis consent
+ACT-DEMO-CUS-001,OBL-RGT-05,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,OBL-RGT-06,Y,Triggered by basis consent
+ACT-DEMO-CUS-001,OBL-RGT-07,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,OBL-RGT-08,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,OBL-SCP-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,OBL-SCP-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,OBL-SCP-03,N,"Lawful basis not in ['ex17_1a', 'ex17_1b', 'ex17_1c', 'ex17_1d', 'ex17_1e', 'ex17_1f', 'ex17_2a', 'ex17_2b', 'ex17_3']"
+ACT-DEMO-CUS-001,OBL-SCP-04,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,OBL-SDF-01,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-CUS-001,OBL-SDF-02,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-CUS-001,OBL-SDF-03,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-CUS-001,OBL-SDF-04,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-CUS-001,OBL-SDF-05,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-CUS-001,OBL-SDF-06,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-CUS-001,OBL-SDF-07,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-CUS-001,OBL-SEC-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,OBL-SEC-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,OBL-SEC-03,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,OBL-SEC-04,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,OBL-SEC-05,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,OBL-SEC-06,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,OBL-SEC-07,Y,Triggered by flags processor
+ACT-DEMO-CUS-001,OBL-SEC-08,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-001,OBL-STA-01,N,Not State processing
+ACT-DEMO-CUS-001,OBL-XB-01,Y,Triggered by flags cross_border
+ACT-DEMO-CUS-001,OBL-XB-02,Y,Triggered by flags cross_border
+ACT-DEMO-CUS-001,OBL-XB-03,Y,Triggered by flags cross_border
+ACT-DEMO-CUS-002,LNK-CCPA-01,Y,Triggered by flags online_presence
+ACT-DEMO-CUS-002,LNK-CERT-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,LNK-CERT-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,LNK-CERT-03,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,LNK-CERT-04,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,LNK-SPDI-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,LNK-TRAI-01,N,Flag(s) not set: marketing
+ACT-DEMO-CUS-002,OBL-BRE-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,OBL-BRE-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,OBL-BRE-03,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,OBL-BRE-04,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,OBL-CHD-01,N,Flag(s) not set: children
+ACT-DEMO-CUS-002,OBL-CHD-02,N,Flag(s) not set: children
+ACT-DEMO-CUS-002,OBL-CHD-03,N,Flag(s) not set: children
+ACT-DEMO-CUS-002,OBL-CHD-04,N,Flag(s) not set: children
+ACT-DEMO-CUS-002,OBL-CHD-05,N,Flag(s) not set: children
+ACT-DEMO-CUS-002,OBL-CHD-06,N,Flag(s) not set: children
+ACT-DEMO-CUS-002,OBL-CMO-01,N,Entity is not a Consent Manager
+ACT-DEMO-CUS-002,OBL-CMO-02,N,Entity is not a Consent Manager
+ACT-DEMO-CUS-002,OBL-CMO-03,N,Entity is not a Consent Manager
+ACT-DEMO-CUS-002,OBL-CMO-04,N,Entity is not a Consent Manager
+ACT-DEMO-CUS-002,OBL-CMO-05,N,Entity is not a Consent Manager
+ACT-DEMO-CUS-002,OBL-CMO-06,N,Entity is not a Consent Manager
+ACT-DEMO-CUS-002,OBL-CON-01,Y,Triggered by basis consent
+ACT-DEMO-CUS-002,OBL-CON-02,Y,Triggered by basis consent
+ACT-DEMO-CUS-002,OBL-CON-03,Y,Triggered by basis consent
+ACT-DEMO-CUS-002,OBL-CON-04,Y,Triggered by basis consent
+ACT-DEMO-CUS-002,OBL-CON-05,Y,Triggered by basis consent
+ACT-DEMO-CUS-002,OBL-CON-06,Y,Triggered by basis consent
+ACT-DEMO-CUS-002,OBL-CON-07,N,Flag(s) not set: consent_manager_used
+ACT-DEMO-CUS-002,OBL-DQ-01,Y,Triggered by flags decision_or_disclosure
+ACT-DEMO-CUS-002,OBL-GOV-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,OBL-GOV-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,OBL-GOV-03,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,OBL-GOV-04,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,OBL-GOV-05,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,OBL-LB-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,OBL-LB-02,Y,Triggered by basis consent
+ACT-DEMO-CUS-002,OBL-LB-03,N,Lawful basis not in ['s7a']
+ACT-DEMO-CUS-002,OBL-LB-04,N,"Lawful basis not in ['s7c', 's7d', 's7e']"
+ACT-DEMO-CUS-002,OBL-LB-05,N,"Lawful basis not in ['s7f', 's7g', 's7h']"
+ACT-DEMO-CUS-002,OBL-LB-06,N,Lawful basis not in ['s7i']
+ACT-DEMO-CUS-002,OBL-MAP-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,OBL-MAP-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,OBL-NOT-01,Y,Triggered by basis consent
+ACT-DEMO-CUS-002,OBL-NOT-02,Y,Triggered by basis consent
+ACT-DEMO-CUS-002,OBL-NOT-03,Y,Triggered by basis consent
+ACT-DEMO-CUS-002,OBL-NOT-04,Y,Triggered by basis consent
+ACT-DEMO-CUS-002,OBL-NOT-05,Y,Triggered by basis consent
+ACT-DEMO-CUS-002,OBL-NOT-06,N,Flag(s) not set: legacy_data
+ACT-DEMO-CUS-002,OBL-PRC-01,Y,Triggered by flags processor
+ACT-DEMO-CUS-002,OBL-PRC-02,Y,Triggered by flags processor
+ACT-DEMO-CUS-002,OBL-PRC-03,Y,Triggered by flags processor
+ACT-DEMO-CUS-002,OBL-PRC-04,Y,Triggered by flags processor
+ACT-DEMO-CUS-002,OBL-PWD-01,N,Flag(s) not set: pwd
+ACT-DEMO-CUS-002,OBL-PWD-02,N,Flag(s) not set: pwd
+ACT-DEMO-CUS-002,OBL-REG-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,OBL-REG-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,OBL-REG-03,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,OBL-REG-04,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,OBL-REG-05,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,OBL-RES-01,N,Lawful basis not in ['ex17_2b']
+ACT-DEMO-CUS-002,OBL-RET-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,OBL-RET-02,Y,Triggered by flags processor
+ACT-DEMO-CUS-002,OBL-RET-03,N,Flag(s) not set: third_schedule
+ACT-DEMO-CUS-002,OBL-RET-04,N,Flag(s) not set: third_schedule
+ACT-DEMO-CUS-002,OBL-RET-05,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,OBL-RET-06,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,OBL-RGT-01,Y,Triggered by flags online_presence
+ACT-DEMO-CUS-002,OBL-RGT-02,Y,Triggered by basis consent
+ACT-DEMO-CUS-002,OBL-RGT-03,Y,Triggered by basis consent
+ACT-DEMO-CUS-002,OBL-RGT-04,Y,Triggered by basis consent
+ACT-DEMO-CUS-002,OBL-RGT-05,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,OBL-RGT-06,Y,Triggered by basis consent
+ACT-DEMO-CUS-002,OBL-RGT-07,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,OBL-RGT-08,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,OBL-SCP-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,OBL-SCP-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,OBL-SCP-03,N,"Lawful basis not in ['ex17_1a', 'ex17_1b', 'ex17_1c', 'ex17_1d', 'ex17_1e', 'ex17_1f', 'ex17_2a', 'ex17_2b', 'ex17_3']"
+ACT-DEMO-CUS-002,OBL-SCP-04,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,OBL-SDF-01,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-CUS-002,OBL-SDF-02,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-CUS-002,OBL-SDF-03,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-CUS-002,OBL-SDF-04,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-CUS-002,OBL-SDF-05,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-CUS-002,OBL-SDF-06,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-CUS-002,OBL-SDF-07,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-CUS-002,OBL-SEC-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,OBL-SEC-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,OBL-SEC-03,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,OBL-SEC-04,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,OBL-SEC-05,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,OBL-SEC-06,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,OBL-SEC-07,Y,Triggered by flags processor
+ACT-DEMO-CUS-002,OBL-SEC-08,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-002,OBL-STA-01,N,Not State processing
+ACT-DEMO-CUS-002,OBL-XB-01,N,Flag(s) not set: cross_border
+ACT-DEMO-CUS-002,OBL-XB-02,N,Flag(s) not set: cross_border
+ACT-DEMO-CUS-002,OBL-XB-03,N,Flag(s) not set: cross_border
+ACT-DEMO-CUS-003,LNK-CCPA-01,Y,Triggered by flags online_presence
+ACT-DEMO-CUS-003,LNK-CERT-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,LNK-CERT-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,LNK-CERT-03,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,LNK-CERT-04,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,LNK-SPDI-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,LNK-TRAI-01,N,Flag(s) not set: marketing
+ACT-DEMO-CUS-003,OBL-BRE-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,OBL-BRE-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,OBL-BRE-03,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,OBL-BRE-04,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,OBL-CHD-01,N,Flag(s) not set: children
+ACT-DEMO-CUS-003,OBL-CHD-02,N,Flag(s) not set: children
+ACT-DEMO-CUS-003,OBL-CHD-03,N,Flag(s) not set: children
+ACT-DEMO-CUS-003,OBL-CHD-04,N,Flag(s) not set: children
+ACT-DEMO-CUS-003,OBL-CHD-05,N,Flag(s) not set: children
+ACT-DEMO-CUS-003,OBL-CHD-06,N,Flag(s) not set: children
+ACT-DEMO-CUS-003,OBL-CMO-01,N,Entity is not a Consent Manager
+ACT-DEMO-CUS-003,OBL-CMO-02,N,Entity is not a Consent Manager
+ACT-DEMO-CUS-003,OBL-CMO-03,N,Entity is not a Consent Manager
+ACT-DEMO-CUS-003,OBL-CMO-04,N,Entity is not a Consent Manager
+ACT-DEMO-CUS-003,OBL-CMO-05,N,Entity is not a Consent Manager
+ACT-DEMO-CUS-003,OBL-CMO-06,N,Entity is not a Consent Manager
+ACT-DEMO-CUS-003,OBL-CON-01,N,Lawful basis not in ['consent']
+ACT-DEMO-CUS-003,OBL-CON-02,N,Lawful basis not in ['consent']
+ACT-DEMO-CUS-003,OBL-CON-03,N,Lawful basis not in ['consent']
+ACT-DEMO-CUS-003,OBL-CON-04,N,Lawful basis not in ['consent']
+ACT-DEMO-CUS-003,OBL-CON-05,N,Lawful basis not in ['consent']
+ACT-DEMO-CUS-003,OBL-CON-06,N,Lawful basis not in ['consent']
+ACT-DEMO-CUS-003,OBL-CON-07,N,Lawful basis not in ['consent']
+ACT-DEMO-CUS-003,OBL-DQ-01,N,Flag(s) not set: decision_or_disclosure
+ACT-DEMO-CUS-003,OBL-GOV-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,OBL-GOV-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,OBL-GOV-03,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,OBL-GOV-04,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,OBL-GOV-05,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,OBL-LB-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,OBL-LB-02,N,Lawful basis not in ['consent']
+ACT-DEMO-CUS-003,OBL-LB-03,Y,Triggered by basis s7a
+ACT-DEMO-CUS-003,OBL-LB-04,N,"Lawful basis not in ['s7c', 's7d', 's7e']"
+ACT-DEMO-CUS-003,OBL-LB-05,N,"Lawful basis not in ['s7f', 's7g', 's7h']"
+ACT-DEMO-CUS-003,OBL-LB-06,N,Lawful basis not in ['s7i']
+ACT-DEMO-CUS-003,OBL-MAP-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,OBL-MAP-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,OBL-NOT-01,N,Lawful basis not in ['consent']
+ACT-DEMO-CUS-003,OBL-NOT-02,N,Lawful basis not in ['consent']
+ACT-DEMO-CUS-003,OBL-NOT-03,N,Lawful basis not in ['consent']
+ACT-DEMO-CUS-003,OBL-NOT-04,N,Lawful basis not in ['consent']
+ACT-DEMO-CUS-003,OBL-NOT-05,N,Lawful basis not in ['consent']
+ACT-DEMO-CUS-003,OBL-NOT-06,N,Lawful basis not in ['consent']
+ACT-DEMO-CUS-003,OBL-PRC-01,Y,Triggered by flags processor
+ACT-DEMO-CUS-003,OBL-PRC-02,Y,Triggered by flags processor
+ACT-DEMO-CUS-003,OBL-PRC-03,Y,Triggered by flags processor
+ACT-DEMO-CUS-003,OBL-PRC-04,Y,Triggered by flags processor
+ACT-DEMO-CUS-003,OBL-PWD-01,N,Flag(s) not set: pwd
+ACT-DEMO-CUS-003,OBL-PWD-02,N,Flag(s) not set: pwd
+ACT-DEMO-CUS-003,OBL-REG-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,OBL-REG-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,OBL-REG-03,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,OBL-REG-04,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,OBL-REG-05,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,OBL-RES-01,N,Lawful basis not in ['ex17_2b']
+ACT-DEMO-CUS-003,OBL-RET-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,OBL-RET-02,Y,Triggered by flags processor
+ACT-DEMO-CUS-003,OBL-RET-03,N,Flag(s) not set: third_schedule
+ACT-DEMO-CUS-003,OBL-RET-04,N,Flag(s) not set: third_schedule
+ACT-DEMO-CUS-003,OBL-RET-05,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,OBL-RET-06,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,OBL-RGT-01,Y,Triggered by flags online_presence
+ACT-DEMO-CUS-003,OBL-RGT-02,Y,Triggered by basis s7a
+ACT-DEMO-CUS-003,OBL-RGT-03,Y,Triggered by basis s7a
+ACT-DEMO-CUS-003,OBL-RGT-04,Y,Triggered by basis s7a
+ACT-DEMO-CUS-003,OBL-RGT-05,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,OBL-RGT-06,Y,Triggered by basis s7a
+ACT-DEMO-CUS-003,OBL-RGT-07,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,OBL-RGT-08,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,OBL-SCP-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,OBL-SCP-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,OBL-SCP-03,N,"Lawful basis not in ['ex17_1a', 'ex17_1b', 'ex17_1c', 'ex17_1d', 'ex17_1e', 'ex17_1f', 'ex17_2a', 'ex17_2b', 'ex17_3']"
+ACT-DEMO-CUS-003,OBL-SCP-04,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,OBL-SDF-01,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-CUS-003,OBL-SDF-02,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-CUS-003,OBL-SDF-03,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-CUS-003,OBL-SDF-04,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-CUS-003,OBL-SDF-05,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-CUS-003,OBL-SDF-06,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-CUS-003,OBL-SDF-07,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-CUS-003,OBL-SEC-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,OBL-SEC-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,OBL-SEC-03,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,OBL-SEC-04,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,OBL-SEC-05,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,OBL-SEC-06,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,OBL-SEC-07,Y,Triggered by flags processor
+ACT-DEMO-CUS-003,OBL-SEC-08,Y,Applies to every in-scope processing activity
+ACT-DEMO-CUS-003,OBL-STA-01,N,Not State processing
+ACT-DEMO-CUS-003,OBL-XB-01,Y,Triggered by flags cross_border
+ACT-DEMO-CUS-003,OBL-XB-02,Y,Triggered by flags cross_border
+ACT-DEMO-CUS-003,OBL-XB-03,Y,Triggered by flags cross_border
+ACT-DEMO-HR-001,LNK-CCPA-01,Y,Triggered by flags online_presence
+ACT-DEMO-HR-001,LNK-CERT-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,LNK-CERT-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,LNK-CERT-03,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,LNK-CERT-04,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,LNK-SPDI-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,LNK-TRAI-01,N,Flag(s) not set: marketing
+ACT-DEMO-HR-001,OBL-BRE-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,OBL-BRE-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,OBL-BRE-03,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,OBL-BRE-04,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,OBL-CHD-01,N,Flag(s) not set: children
+ACT-DEMO-HR-001,OBL-CHD-02,N,Flag(s) not set: children
+ACT-DEMO-HR-001,OBL-CHD-03,N,Flag(s) not set: children
+ACT-DEMO-HR-001,OBL-CHD-04,N,Flag(s) not set: children
+ACT-DEMO-HR-001,OBL-CHD-05,N,Flag(s) not set: children
+ACT-DEMO-HR-001,OBL-CHD-06,N,Flag(s) not set: children
+ACT-DEMO-HR-001,OBL-CMO-01,N,Entity is not a Consent Manager
+ACT-DEMO-HR-001,OBL-CMO-02,N,Entity is not a Consent Manager
+ACT-DEMO-HR-001,OBL-CMO-03,N,Entity is not a Consent Manager
+ACT-DEMO-HR-001,OBL-CMO-04,N,Entity is not a Consent Manager
+ACT-DEMO-HR-001,OBL-CMO-05,N,Entity is not a Consent Manager
+ACT-DEMO-HR-001,OBL-CMO-06,N,Entity is not a Consent Manager
+ACT-DEMO-HR-001,OBL-CON-01,Y,Triggered by basis consent
+ACT-DEMO-HR-001,OBL-CON-02,Y,Triggered by basis consent
+ACT-DEMO-HR-001,OBL-CON-03,Y,Triggered by basis consent
+ACT-DEMO-HR-001,OBL-CON-04,Y,Triggered by basis consent
+ACT-DEMO-HR-001,OBL-CON-05,Y,Triggered by basis consent
+ACT-DEMO-HR-001,OBL-CON-06,Y,Triggered by basis consent
+ACT-DEMO-HR-001,OBL-CON-07,N,Flag(s) not set: consent_manager_used
+ACT-DEMO-HR-001,OBL-DQ-01,Y,Triggered by flags decision_or_disclosure
+ACT-DEMO-HR-001,OBL-GOV-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,OBL-GOV-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,OBL-GOV-03,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,OBL-GOV-04,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,OBL-GOV-05,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,OBL-LB-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,OBL-LB-02,Y,Triggered by basis consent
+ACT-DEMO-HR-001,OBL-LB-03,Y,Triggered by basis s7a
+ACT-DEMO-HR-001,OBL-LB-04,N,"Lawful basis not in ['s7c', 's7d', 's7e']"
+ACT-DEMO-HR-001,OBL-LB-05,N,"Lawful basis not in ['s7f', 's7g', 's7h']"
+ACT-DEMO-HR-001,OBL-LB-06,N,Lawful basis not in ['s7i']
+ACT-DEMO-HR-001,OBL-MAP-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,OBL-MAP-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,OBL-NOT-01,Y,Triggered by basis consent
+ACT-DEMO-HR-001,OBL-NOT-02,Y,Triggered by basis consent
+ACT-DEMO-HR-001,OBL-NOT-03,Y,Triggered by basis consent
+ACT-DEMO-HR-001,OBL-NOT-04,Y,Triggered by basis consent
+ACT-DEMO-HR-001,OBL-NOT-05,Y,Triggered by basis consent
+ACT-DEMO-HR-001,OBL-NOT-06,N,Flag(s) not set: legacy_data
+ACT-DEMO-HR-001,OBL-PRC-01,Y,Triggered by flags processor
+ACT-DEMO-HR-001,OBL-PRC-02,Y,Triggered by flags processor
+ACT-DEMO-HR-001,OBL-PRC-03,Y,Triggered by flags processor
+ACT-DEMO-HR-001,OBL-PRC-04,Y,Triggered by flags processor
+ACT-DEMO-HR-001,OBL-PWD-01,N,Flag(s) not set: pwd
+ACT-DEMO-HR-001,OBL-PWD-02,N,Flag(s) not set: pwd
+ACT-DEMO-HR-001,OBL-REG-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,OBL-REG-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,OBL-REG-03,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,OBL-REG-04,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,OBL-REG-05,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,OBL-RES-01,N,Lawful basis not in ['ex17_2b']
+ACT-DEMO-HR-001,OBL-RET-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,OBL-RET-02,Y,Triggered by flags processor
+ACT-DEMO-HR-001,OBL-RET-03,N,Flag(s) not set: third_schedule
+ACT-DEMO-HR-001,OBL-RET-04,N,Flag(s) not set: third_schedule
+ACT-DEMO-HR-001,OBL-RET-05,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,OBL-RET-06,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,OBL-RGT-01,Y,Triggered by flags online_presence
+ACT-DEMO-HR-001,OBL-RGT-02,Y,Triggered by basis consent/s7a
+ACT-DEMO-HR-001,OBL-RGT-03,Y,Triggered by basis consent/s7a
+ACT-DEMO-HR-001,OBL-RGT-04,Y,Triggered by basis consent/s7a
+ACT-DEMO-HR-001,OBL-RGT-05,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,OBL-RGT-06,Y,Triggered by basis consent/s7a
+ACT-DEMO-HR-001,OBL-RGT-07,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,OBL-RGT-08,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,OBL-SCP-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,OBL-SCP-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,OBL-SCP-03,N,"Lawful basis not in ['ex17_1a', 'ex17_1b', 'ex17_1c', 'ex17_1d', 'ex17_1e', 'ex17_1f', 'ex17_2a', 'ex17_2b', 'ex17_3']"
+ACT-DEMO-HR-001,OBL-SCP-04,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,OBL-SDF-01,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-HR-001,OBL-SDF-02,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-HR-001,OBL-SDF-03,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-HR-001,OBL-SDF-04,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-HR-001,OBL-SDF-05,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-HR-001,OBL-SDF-06,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-HR-001,OBL-SDF-07,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-HR-001,OBL-SEC-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,OBL-SEC-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,OBL-SEC-03,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,OBL-SEC-04,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,OBL-SEC-05,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,OBL-SEC-06,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,OBL-SEC-07,Y,Triggered by flags processor
+ACT-DEMO-HR-001,OBL-SEC-08,Y,Applies to every in-scope processing activity
+ACT-DEMO-HR-001,OBL-STA-01,N,Not State processing
+ACT-DEMO-HR-001,OBL-XB-01,N,Flag(s) not set: cross_border
+ACT-DEMO-HR-001,OBL-XB-02,N,Flag(s) not set: cross_border
+ACT-DEMO-HR-001,OBL-XB-03,N,Flag(s) not set: cross_border
+ACT-DEMO-MKT-001,LNK-CCPA-01,Y,Triggered by flags online_presence
+ACT-DEMO-MKT-001,LNK-CERT-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,LNK-CERT-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,LNK-CERT-03,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,LNK-CERT-04,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,LNK-SPDI-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,LNK-TRAI-01,Y,Triggered by flags marketing
+ACT-DEMO-MKT-001,OBL-BRE-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,OBL-BRE-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,OBL-BRE-03,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,OBL-BRE-04,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,OBL-CHD-01,N,Flag(s) not set: children
+ACT-DEMO-MKT-001,OBL-CHD-02,N,Flag(s) not set: children
+ACT-DEMO-MKT-001,OBL-CHD-03,N,Flag(s) not set: children
+ACT-DEMO-MKT-001,OBL-CHD-04,N,Flag(s) not set: children
+ACT-DEMO-MKT-001,OBL-CHD-05,N,Flag(s) not set: children
+ACT-DEMO-MKT-001,OBL-CHD-06,N,Flag(s) not set: children
+ACT-DEMO-MKT-001,OBL-CMO-01,N,Entity is not a Consent Manager
+ACT-DEMO-MKT-001,OBL-CMO-02,N,Entity is not a Consent Manager
+ACT-DEMO-MKT-001,OBL-CMO-03,N,Entity is not a Consent Manager
+ACT-DEMO-MKT-001,OBL-CMO-04,N,Entity is not a Consent Manager
+ACT-DEMO-MKT-001,OBL-CMO-05,N,Entity is not a Consent Manager
+ACT-DEMO-MKT-001,OBL-CMO-06,N,Entity is not a Consent Manager
+ACT-DEMO-MKT-001,OBL-CON-01,Y,Triggered by basis consent
+ACT-DEMO-MKT-001,OBL-CON-02,Y,Triggered by basis consent
+ACT-DEMO-MKT-001,OBL-CON-03,Y,Triggered by basis consent
+ACT-DEMO-MKT-001,OBL-CON-04,Y,Triggered by basis consent
+ACT-DEMO-MKT-001,OBL-CON-05,Y,Triggered by basis consent
+ACT-DEMO-MKT-001,OBL-CON-06,Y,Triggered by basis consent
+ACT-DEMO-MKT-001,OBL-CON-07,N,Flag(s) not set: consent_manager_used
+ACT-DEMO-MKT-001,OBL-DQ-01,N,Flag(s) not set: decision_or_disclosure
+ACT-DEMO-MKT-001,OBL-GOV-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,OBL-GOV-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,OBL-GOV-03,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,OBL-GOV-04,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,OBL-GOV-05,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,OBL-LB-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,OBL-LB-02,Y,Triggered by basis consent
+ACT-DEMO-MKT-001,OBL-LB-03,N,Lawful basis not in ['s7a']
+ACT-DEMO-MKT-001,OBL-LB-04,N,"Lawful basis not in ['s7c', 's7d', 's7e']"
+ACT-DEMO-MKT-001,OBL-LB-05,N,"Lawful basis not in ['s7f', 's7g', 's7h']"
+ACT-DEMO-MKT-001,OBL-LB-06,N,Lawful basis not in ['s7i']
+ACT-DEMO-MKT-001,OBL-MAP-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,OBL-MAP-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,OBL-NOT-01,Y,Triggered by basis consent
+ACT-DEMO-MKT-001,OBL-NOT-02,Y,Triggered by basis consent
+ACT-DEMO-MKT-001,OBL-NOT-03,Y,Triggered by basis consent
+ACT-DEMO-MKT-001,OBL-NOT-04,Y,Triggered by basis consent
+ACT-DEMO-MKT-001,OBL-NOT-05,Y,Triggered by basis consent
+ACT-DEMO-MKT-001,OBL-NOT-06,Y,Triggered by basis consent; flags legacy_data
+ACT-DEMO-MKT-001,OBL-PRC-01,Y,Triggered by flags processor
+ACT-DEMO-MKT-001,OBL-PRC-02,Y,Triggered by flags processor
+ACT-DEMO-MKT-001,OBL-PRC-03,Y,Triggered by flags processor
+ACT-DEMO-MKT-001,OBL-PRC-04,Y,Triggered by flags processor
+ACT-DEMO-MKT-001,OBL-PWD-01,N,Flag(s) not set: pwd
+ACT-DEMO-MKT-001,OBL-PWD-02,N,Flag(s) not set: pwd
+ACT-DEMO-MKT-001,OBL-REG-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,OBL-REG-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,OBL-REG-03,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,OBL-REG-04,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,OBL-REG-05,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,OBL-RES-01,N,Lawful basis not in ['ex17_2b']
+ACT-DEMO-MKT-001,OBL-RET-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,OBL-RET-02,Y,Triggered by flags processor
+ACT-DEMO-MKT-001,OBL-RET-03,N,Flag(s) not set: third_schedule
+ACT-DEMO-MKT-001,OBL-RET-04,N,Flag(s) not set: third_schedule
+ACT-DEMO-MKT-001,OBL-RET-05,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,OBL-RET-06,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,OBL-RGT-01,Y,Triggered by flags online_presence
+ACT-DEMO-MKT-001,OBL-RGT-02,Y,Triggered by basis consent
+ACT-DEMO-MKT-001,OBL-RGT-03,Y,Triggered by basis consent
+ACT-DEMO-MKT-001,OBL-RGT-04,Y,Triggered by basis consent
+ACT-DEMO-MKT-001,OBL-RGT-05,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,OBL-RGT-06,Y,Triggered by basis consent
+ACT-DEMO-MKT-001,OBL-RGT-07,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,OBL-RGT-08,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,OBL-SCP-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,OBL-SCP-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,OBL-SCP-03,N,"Lawful basis not in ['ex17_1a', 'ex17_1b', 'ex17_1c', 'ex17_1d', 'ex17_1e', 'ex17_1f', 'ex17_2a', 'ex17_2b', 'ex17_3']"
+ACT-DEMO-MKT-001,OBL-SCP-04,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,OBL-SDF-01,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-MKT-001,OBL-SDF-02,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-MKT-001,OBL-SDF-03,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-MKT-001,OBL-SDF-04,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-MKT-001,OBL-SDF-05,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-MKT-001,OBL-SDF-06,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-MKT-001,OBL-SDF-07,N,Entity not notified as Significant Data Fiduciary
+ACT-DEMO-MKT-001,OBL-SEC-01,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,OBL-SEC-02,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,OBL-SEC-03,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,OBL-SEC-04,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,OBL-SEC-05,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,OBL-SEC-06,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,OBL-SEC-07,Y,Triggered by flags processor
+ACT-DEMO-MKT-001,OBL-SEC-08,Y,Applies to every in-scope processing activity
+ACT-DEMO-MKT-001,OBL-STA-01,N,Not State processing
+ACT-DEMO-MKT-001,OBL-XB-01,Y,Triggered by flags cross_border
+ACT-DEMO-MKT-001,OBL-XB-02,Y,Triggered by flags cross_border
+ACT-DEMO-MKT-001,OBL-XB-03,Y,Triggered by flags cross_border
