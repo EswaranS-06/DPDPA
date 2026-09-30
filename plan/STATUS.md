@@ -18,7 +18,7 @@ Gate: **passing**
 | C7 | Evidence | R1 | TESTS PASSING | lead_auditor pending |
 | C8 | Findings, gaps and risks | R1 | TESTS PASSING | legal_sme pending, lead_auditor pending |
 | C9 | Remediation and re-assessment | R2 | TESTS PASSING | lead_auditor pending |
-| C10 | Dashboards and client sharing | R2 | PLANNED | lead_auditor pending |
+| C10 | Dashboards and client sharing | R2 | TESTS PASSING | lead_auditor pending |
 | C11 | Reports | R2 | PLANNED | legal_sme pending |
 | C12 | Hardening | R3 | PLANNED | security pending |
 | C13 | Pilots and production | R3 | PLANNED | leadership pending |
@@ -85,5 +85,7 @@ Gate: **passing**
 | TC-C9.1-01 | C9.1 | Only allowed status transitions are accepted | invalid refused | literal | PASS |
 | TC-C9.2-01 | C9.2 | Closing without evidence or by the owner is refused | refused | literal | PASS |
 | TC-C9.3-01 | C9.3 | A re-assessment copies scope and links to the previous cycle | copied and linked | literal | PASS |
+| TC-C10.1-01 | C10.1 | Dashboard figures equal direct counts | equal | oracle | PASS |
+| TC-C10.2-01 | C10.2 | A client user is sent to their own client and cannot open another | redirected; refused | literal | PASS |
 
-14 further tests are planned in later sub-phases.
+12 further tests are planned in later sub-phases.

@@ -1,61 +1,196 @@
-import { ROLE_DESCRIPTION, ROLE_LABEL } from '@duatf/core-access'
-import { PageHeader } from '@duatf/core-ui'
+import { can, ROLE_LABEL } from '@duatf/core-access'
+import { buttonClass, DataTable, EmptyState, PageHeader } from '@duatf/core-ui'
+import { homeFor, portfolio } from '@duatf/feature-compliance-api'
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { listClients } from '@duatf/feature-compliance-api'
+import { redirect } from 'next/navigation'
+import { AssessmentStatusChip, ProgressBar } from '@/components/assessment/AssessmentBits'
+import { ClientStatusChip } from '@/components/ClientChips'
+import { BandChip } from '@/components/risk/RiskBits'
 import { serviceContext } from '@/server/services'
 import styles from './home.module.css'
 
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = { title: 'Home' }
 
+const percent = (value: number | null | undefined) =>
+  value === null || value === undefined ? '—' : `${value}%`
+
 export default async function Page() {
   const ctx = await serviceContext()
   const { user, principal } = ctx.session
-  const clientNames = new Map((await listClients(ctx)).map((client) => [client.id, client.name]))
+  const view = await portfolio(ctx)
+  const landing = homeFor(
+    principal,
+    view.rows.map((row) => row.code),
+  )
+  if (landing) redirect(landing)
+
+  const severe = view.bands.filter((band) => band.tone === 'severe')
+  const roles = [...new Set(principal.assignments.map((assignment) => ROLE_LABEL[assignment.role]))]
+
   return (
-    <>
+    <div className={styles.page}>
       <PageHeader
         title={`Welcome, ${user.displayName}`}
-        lede="What you can see and do in DUATF depends on the roles below."
-      />
-      <section aria-labelledby="access" className={styles.section}>
-        <h2 id="access" className={styles.heading}>
-          Your access
+        lede={
+          roles.length
+            ? `Signed in as ${roles.join(', ')}.`
+            : 'No role has been given to you yet. Ask your DUATF administrator.'
+        }
+      >
+        {can(principal, 'client.create') ? (
+          <Link href="/clients/new" className={buttonClass()}>
+            Onboard client
+          </Link>
+        ) : null}
+      </PageHeader>
+
+      <dl className={styles.totals}>
+        <div>
+          <dt>Clients</dt>
+          <dd>{view.totals.clients}</dd>
+          <span>{view.totals.activeClients} active or onboarding</span>
+        </div>
+        <div>
+          <dt>Assessments running</dt>
+          <dd>{view.totals.assessmentsInProgress}</dd>
+          <span>Latest cycle not completed</span>
+        </div>
+        <div>
+          <dt>Open gaps</dt>
+          <dd>{view.totals.openGaps + view.totals.openPotentialGaps}</dd>
+          <span>
+            {view.totals.openGaps} gaps, {view.totals.openPotentialGaps} potential
+          </span>
+        </div>
+        <div>
+          <dt>Serious risks</dt>
+          <dd>
+            {severe.reduce((sum, band) => sum + (view.totals.openRisksByBand[band.name] ?? 0), 0)}
+          </dd>
+          <span>
+            {severe
+              .map(
+                (band) =>
+                  `${view.totals.openRisksByBand[band.name] ?? 0} ${band.name.toLowerCase()}`,
+              )
+              .join(', ')}
+          </span>
+        </div>
+        <div>
+          <dt>Overdue actions</dt>
+          <dd className={view.totals.overdueActions > 0 ? styles.alarm : undefined}>
+            {view.totals.overdueActions}
+          </dd>
+          <span>{view.totals.evidenceAwaitingReview} evidence files awaiting review</span>
+        </div>
+      </dl>
+
+      <section aria-labelledby="portfolio" className={styles.section}>
+        <h2 id="portfolio" className={styles.heading}>
+          Portfolio
         </h2>
-        {principal.assignments.length === 0 ? (
-          <p className={styles.note}>
-            You can sign in, but no role has been given to you yet. Ask your DUATF administrator.
-          </p>
+        {view.rows.length === 0 ? (
+          <EmptyState title="No clients yet.">
+            {can(principal, 'client.create')
+              ? 'Onboard the first client to begin.'
+              : 'You have not been given access to a client yet.'}
+          </EmptyState>
         ) : (
-          <ul className={styles.roles}>
-            {principal.assignments.map((assignment) => (
-              <li
-                key={`${assignment.role}-${assignment.clientId ?? 'all'}-${assignment.departmentId ?? ''}`}
-                className={styles.role}
-              >
-                <span className={styles.roleName}>{ROLE_LABEL[assignment.role]}</span>
-                <span className={styles.roleScope}>
-                  {assignment.clientId === null
-                    ? 'All clients'
-                    : (clientNames.get(assignment.clientId) ?? 'One client')}
-                  {assignment.departmentId ? ', one department' : ''}
-                </span>
-                <span className={styles.roleText}>{ROLE_DESCRIPTION[assignment.role]}</span>
-              </li>
-            ))}
-          </ul>
+          <DataTable
+            rows={view.rows}
+            rowKey={(row) => row.id}
+            columns={[
+              {
+                key: 'client',
+                header: 'Client',
+                render: (row) => (
+                  <span className={styles.cell}>
+                    <Link href={`/clients/${row.code}`} className={styles.clientName}>
+                      {row.name}
+                    </Link>
+                    <span className={styles.muted}>
+                      {row.code} · <ClientStatusChip status={row.status} />
+                    </span>
+                  </span>
+                ),
+              },
+              {
+                key: 'assessment',
+                header: 'Latest assessment',
+                width: '24%',
+                render: (row) =>
+                  row.latestAssessment ? (
+                    <span className={styles.cell}>
+                      <Link href={`/clients/${row.code}/assessments/${row.latestAssessment.code}`}>
+                        {row.latestAssessment.code}
+                      </Link>
+                      <ProgressBar progress={row.latestAssessment.progress} label={row.name} />
+                      <span className={styles.muted}>
+                        {percent(row.latestAssessment.progress.progressPct)} answered ·{' '}
+                        <AssessmentStatusChip status={row.latestAssessment.status} />
+                      </span>
+                    </span>
+                  ) : (
+                    <span className={styles.muted}>None yet</span>
+                  ),
+              },
+              {
+                key: 'compliance',
+                header: 'Compliance',
+                align: 'end',
+                render: (row) => percent(row.latestAssessment?.progress.compliancePct),
+              },
+              {
+                key: 'gaps',
+                header: 'Open gaps',
+                align: 'end',
+                render: (row) => (
+                  <Link href={`/clients/${row.code}/findings`}>
+                    {row.openFindings.gap + row.openFindings.potentialGap}
+                  </Link>
+                ),
+              },
+              {
+                key: 'risks',
+                header: 'Serious risks',
+                render: (row) => (
+                  <span className={styles.chips}>
+                    {severe.map((band) =>
+                      (row.openRisksByBand[band.name] ?? 0) > 0 ? (
+                        <BandChip
+                          key={band.name}
+                          band={band}
+                          score={row.openRisksByBand[band.name]}
+                        />
+                      ) : null,
+                    )}
+                  </span>
+                ),
+              },
+              {
+                key: 'actions',
+                header: 'Actions',
+                render: (row) => (
+                  <Link href={`/clients/${row.code}/actions`} className={styles.cell}>
+                    <span>{row.actions.open} open</span>
+                    {row.actions.overdue ? (
+                      <span className={styles.alarm}>{row.actions.overdue} overdue</span>
+                    ) : null}
+                  </Link>
+                ),
+              },
+            ]}
+          />
         )}
       </section>
+
       <section aria-labelledby="start" className={styles.section}>
         <h2 id="start" className={styles.heading}>
-          Start here
+          Also here
         </h2>
         <ul className={styles.links}>
-          <li>
-            <Link href="/clients">Clients</Link>
-            <span>Client profiles, departments, people and their assessments.</span>
-          </li>
           <li>
             <Link href="/knowledge-base">Knowledge base</Link>
             <span>
@@ -64,6 +199,6 @@ export default async function Page() {
           </li>
         </ul>
       </section>
-    </>
+    </div>
   )
 }

@@ -128,3 +128,11 @@ export {
   type ActionRow,
   type ActionDetail,
 } from './actions'
+export {
+  portfolio,
+  clientFigures,
+  homeFor,
+  type Portfolio,
+  type PortfolioRow,
+  type ClientFigures,
+} from './dashboard'

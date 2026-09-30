@@ -479,7 +479,7 @@ phases:
     subphases:
       - id: C10.1
         title: 'Firm portfolio dashboard'
-        state: planned
+        state: active
         tests:
           - id: TC-C10.1-01
             title: 'Dashboard figures equal direct counts'
@@ -487,7 +487,7 @@ phases:
             source: oracle
       - id: C10.2
         title: 'Client dashboard and portal'
-        state: planned
+        state: active
         tests:
           - id: TC-C10.2-01
             title: 'A client user is sent to their own client and cannot open another'
