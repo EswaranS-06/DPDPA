@@ -1,0 +1,25 @@
+{
+  "name": "@duatf/feature-compliance-api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@duatf/core-access": "workspace:*",
+    "@duatf/core-utils": "workspace:*",
+    "@duatf/platform-db": "workspace:*",
+    "@duatf/platform-identity": "workspace:*",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@duatf/core-config": "workspace:*",
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

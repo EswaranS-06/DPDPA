@@ -2,14 +2,17 @@ import { ROLE_DESCRIPTION, ROLE_LABEL } from '@duatf/core-access'
 import { PageHeader } from '@duatf/core-ui'
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { requireSession } from '@/server/auth'
+import { listClients } from '@duatf/feature-compliance-api'
+import { serviceContext } from '@/server/services'
 import styles from './home.module.css'
 
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = { title: 'Home' }
 
 export default async function Page() {
-  const { user, principal } = await requireSession()
+  const ctx = await serviceContext()
+  const { user, principal } = ctx.session
+  const clientNames = new Map((await listClients(ctx)).map((client) => [client.id, client.name]))
   return (
     <>
       <PageHeader
@@ -33,7 +36,9 @@ export default async function Page() {
               >
                 <span className={styles.roleName}>{ROLE_LABEL[assignment.role]}</span>
                 <span className={styles.roleScope}>
-                  {assignment.clientId === null ? 'All clients' : 'One client'}
+                  {assignment.clientId === null
+                    ? 'All clients'
+                    : (clientNames.get(assignment.clientId) ?? 'One client')}
                   {assignment.departmentId ? ', one department' : ''}
                 </span>
                 <span className={styles.roleText}>{ROLE_DESCRIPTION[assignment.role]}</span>
@@ -47,6 +52,10 @@ export default async function Page() {
           Start here
         </h2>
         <ul className={styles.links}>
+          <li>
+            <Link href="/clients">Clients</Link>
+            <span>Client profiles, departments, people and their assessments.</span>
+          </li>
           <li>
             <Link href="/knowledge-base">Knowledge base</Link>
             <span>
