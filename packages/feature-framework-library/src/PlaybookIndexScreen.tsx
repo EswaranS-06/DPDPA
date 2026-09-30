@@ -1,3 +1,4 @@
+import { kbHref } from '@duatf/feature-framework-library-api'
 import { PageHeader } from '@duatf/core-ui'
 import type { FrameworkLibraryApi } from '@duatf/feature-framework-library-api'
 import Link from 'next/link'
@@ -16,7 +17,7 @@ export const PlaybookIndexScreen = async ({ api }: { api: FrameworkLibraryApi })
         {playbooks.map((playbook) => (
           <li key={playbook.slug}>
             <span>
-              <Link className={styles.indexTitle} href={`/library/playbooks/${playbook.slug}`}>
+              <Link className={styles.indexTitle} href={kbHref('playbooks', playbook.slug)}>
                 {playbook.title}
               </Link>
               <span className={styles.indexMeta}>

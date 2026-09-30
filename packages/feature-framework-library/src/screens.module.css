@@ -227,3 +227,27 @@
   font-weight: 600;
   color: var(--color-pencil);
 }
+
+.kb {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.breadcrumb {
+  font-size: var(--text-sm);
+  color: var(--color-pencil);
+}
+
+.questionText {
+  display: block;
+  color: var(--color-ink);
+  font-family: var(--font-serif);
+  line-height: 1.55;
+  text-decoration: none;
+}
+
+.questionText:hover {
+  color: var(--color-accent);
+  text-decoration: underline;
+}

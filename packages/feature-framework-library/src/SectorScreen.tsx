@@ -1,3 +1,4 @@
+import { kbHref } from '@duatf/feature-framework-library-api'
 import { Chip, Citation, DataTable, MarginRow, PageHeader } from '@duatf/core-ui'
 import type { FrameworkLibraryApi } from '@duatf/feature-framework-library-api'
 import Link from 'next/link'
@@ -115,7 +116,7 @@ export const SectorScreen = async ({ api, code }: Props) => {
         <ul className={styles.bullets}>
           {item.processes.map((process) => (
             <li key={process.code}>
-              <Link className={styles.inlineLink} href={`/library/processes/${process.code}`}>
+              <Link className={styles.inlineLink} href={kbHref('processes', process.code)}>
                 {process.code} {process.title}
               </Link>{' '}
               <span className={styles.muted}>{process.department}</span>

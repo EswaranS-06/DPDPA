@@ -48,6 +48,7 @@ DUATF_HOST_IP=192.168.0.110 pnpm env:make           # writes .env from infra/.en
 pnpm install
 pnpm db:setup && pnpm db:migrate                    # app role, schema, RLS, release guards
 pnpm seed:import                                    # one-time: framework release 1.0.0
+pnpm kb:release                                     # one-time: release 1.1.0 (question bank, SPDI sunset)
 pnpm kc:setup                                       # Keycloak realm, clients, policies (idempotent)
 pnpm admin:bootstrap                                # first firm admin; one-time password in .run/first-admin.txt
 pnpm build && bash infra/run-app.sh start

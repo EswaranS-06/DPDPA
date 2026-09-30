@@ -1,3 +1,4 @@
+import { kbHref } from '@duatf/feature-framework-library-api'
 import { DataTable, PageHeader } from '@duatf/core-ui'
 import type { FrameworkLibraryApi } from '@duatf/feature-framework-library-api'
 import Link from 'next/link'
@@ -19,7 +20,7 @@ export const SectorIndexScreen = async ({ api }: { api: FrameworkLibraryApi }) =
             key: 'title',
             header: 'Sector',
             render: (row) => (
-              <Link className={styles.inlineLink} href={`/library/sectors/${row.code}`}>
+              <Link className={styles.inlineLink} href={kbHref('sectors', row.code)}>
                 {row.title}
               </Link>
             ),

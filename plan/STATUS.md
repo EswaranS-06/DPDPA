@@ -12,7 +12,7 @@ Gate: **passing**
 | C1 | Infrastructure and database core | R0 | TESTS PASSING | architect pending |
 | C2 | Framework in the database | R0 | TESTS PASSING | legal_sme pending, tech_lead pending |
 | C3 | Identity and access | R0 | IN PROGRESS | security pending |
-| C4 | Knowledge base and question bank | R1 | PLANNED | legal_sme pending |
+| C4 | Knowledge base and question bank | R1 | TESTS PASSING | legal_sme pending |
 | C5 | Clients and organisation | R1 | PLANNED | lead_auditor pending |
 | C6 | Assessment execution | R1 | PLANNED | lead_auditor pending |
 | C7 | Evidence | R1 | PLANNED | lead_auditor pending |
@@ -62,5 +62,10 @@ Gate: **passing**
 | TC-C3.3-03 | C3.3 | A client user can never read another client's rows (RLS) | 0 rows | literal | PASS |
 | TC-C3.4-01 | C3.4 | Tampering with one audit row breaks verification at that row | failure at the tampered row | literal | PASS |
 | TC-C3.5-01 | C3.5 | Login through Keycloak from a LAN machine lands on the role home page | signed in | manual | MANUAL-PENDING |
+| TC-C4.1-01 | C4.1 | Every knowledge-base section returns items and any item resolves by code | all sections non-empty; items resolve | oracle | PASS |
+| TC-C4.2-01 | C4.2 | Release 1.1.0 carries every 1.0.0 row unchanged | equal counts per table | oracle | PASS |
+| TC-C4.2-02 | C4.2 | One question per control, each with references, evidence and a recommendation | questions = controls, all complete | oracle | PASS |
+| TC-C4.2-03 | C4.2 | LNK-SPDI-01 live on 12 May 2027, not on 13 May 2027 | true, false | literal | PASS |
+| TC-C4.3-01 | C4.3 | Suggestions are split into required, recommended and supporting with no duplicates | three disjoint lists | literal | PASS |
 
-36 further tests are planned in later sub-phases.
+31 further tests are planned in later sub-phases.

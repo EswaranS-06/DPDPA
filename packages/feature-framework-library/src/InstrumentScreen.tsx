@@ -1,3 +1,4 @@
+import { kbHref } from '@duatf/feature-framework-library-api'
 import { Chip, Citation, MarginRow, PageHeader } from '@duatf/core-ui'
 import type { FrameworkLibraryApi } from '@duatf/feature-framework-library-api'
 import Link from 'next/link'
@@ -55,7 +56,7 @@ export const InstrumentScreen = async ({ api, code, today }: Props) => {
             <ul className={styles.bullets}>
               {item.related.map((related) => (
                 <li key={related.code}>
-                  <Link className={styles.inlineLink} href={`/library/law/${related.code}`}>
+                  <Link className={styles.inlineLink} href={kbHref('law', related.code)}>
                     {related.code} {related.title}
                   </Link>
                 </li>

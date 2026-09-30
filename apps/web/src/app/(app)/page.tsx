@@ -48,8 +48,10 @@ export default async function Page() {
         </h2>
         <ul className={styles.links}>
           <li>
-            <Link href="/library">Knowledge base</Link>
-            <span>The DPDP Act and Rules, obligations, controls and playbooks.</span>
+            <Link href="/knowledge-base">Knowledge base</Link>
+            <span>
+              The DPDP Act and Rules, obligations, controls, the question bank and playbooks.
+            </span>
           </li>
         </ul>
       </section>

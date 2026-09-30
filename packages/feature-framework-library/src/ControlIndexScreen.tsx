@@ -1,9 +1,10 @@
+import { KB_PATH, kbHref } from '@duatf/feature-framework-library-api'
 import { Citation, DataTable, EmptyState, PageHeader } from '@duatf/core-ui'
 import type { FrameworkLibraryApi } from '@duatf/feature-framework-library-api'
 import Link from 'next/link'
 import styles from './screens.module.css'
 
-export type ControlSearchParams = { domain?: string; type?: string; q?: string }
+export type ControlSearchParams = { domain?: string; type?: string; text?: string }
 
 type Props = { api: FrameworkLibraryApi; params: ControlSearchParams }
 
@@ -15,10 +16,10 @@ export const ControlIndexScreen = async ({ api, params }: Props) => {
     api.controls({
       domain: params.domain || undefined,
       controlType: params.type || undefined,
-      text: params.q?.trim() || undefined,
+      text: params.text?.trim() || undefined,
     }),
   ])
-  const filtering = Boolean(params.domain || params.type || params.q)
+  const filtering = Boolean(params.domain || params.type || params.text)
 
   return (
     <div className={styles.page}>
@@ -26,7 +27,8 @@ export const ControlIndexScreen = async ({ api, params }: Props) => {
         title="Controls"
         lede="What an organisation puts in place to meet its obligations, with how to test each one and what evidence to collect."
       />
-      <form method="get" action="/library/controls" className={styles.filters}>
+      <form method="get" action={KB_PATH} className={styles.filters}>
+        <input type="hidden" name="section" value="controls" />
         <label className={styles.field}>
           Domain
           <select name="domain" defaultValue={params.domain ?? ''}>
@@ -52,9 +54,9 @@ export const ControlIndexScreen = async ({ api, params }: Props) => {
         <label className={styles.field}>
           Words or code
           <input
-            name="q"
+            name="text"
             type="search"
-            defaultValue={params.q ?? ''}
+            defaultValue={params.text ?? ''}
             placeholder="consent, CTL-SEC"
           />
         </label>
@@ -62,7 +64,7 @@ export const ControlIndexScreen = async ({ api, params }: Props) => {
           Show controls
         </button>
         {filtering ? (
-          <Link href="/library/controls" className={styles.linkButton}>
+          <Link href={kbHref('controls')} className={styles.linkButton}>
             Clear filters
           </Link>
         ) : null}
@@ -88,7 +90,7 @@ export const ControlIndexScreen = async ({ api, params }: Props) => {
               header: 'Title',
               render: (row) => (
                 <>
-                  <Link className={styles.inlineLink} href={`/library/controls/${row.code}`}>
+                  <Link className={styles.inlineLink} href={kbHref('controls', row.code)}>
                     {row.title}
                   </Link>
                   <span className={styles.indexMeta}>{row.description}</span>

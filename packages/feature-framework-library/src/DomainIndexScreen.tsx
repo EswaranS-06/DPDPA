@@ -1,3 +1,4 @@
+import { kbHref } from '@duatf/feature-framework-library-api'
 import { PageHeader } from '@duatf/core-ui'
 import type { FrameworkLibraryApi } from '@duatf/feature-framework-library-api'
 import Link from 'next/link'
@@ -16,7 +17,7 @@ export const DomainIndexScreen = async ({ api }: { api: FrameworkLibraryApi }) =
           <li key={domain.code}>
             <span className={styles.indexCode}>{domain.code}</span>
             <span>
-              <Link className={styles.indexTitle} href={`/library/domains/${domain.code}`}>
+              <Link className={styles.indexTitle} href={kbHref('domains', domain.code)}>
                 {domain.title}
               </Link>
               <span className={styles.indexMeta}>{domain.description}</span>

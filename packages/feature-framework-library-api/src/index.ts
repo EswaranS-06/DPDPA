@@ -3,12 +3,28 @@ export {
   createFrameworkLibraryApi,
   type FrameworkLibraryApi,
 } from './router'
-export { describeTrigger, basisLabel, flagLabel } from './describeTrigger'
-export { refHref, type RefKind } from './refs'
+export { describeTrigger, describeApplicability, basisLabel, flagLabel } from './describeTrigger'
+export {
+  refHref,
+  kbHref,
+  isKbSection,
+  KB_SECTIONS,
+  KB_LIST_SECTIONS,
+  KB_SECTION_LABEL,
+  KB_PATH,
+  type RefKind,
+  type KbSection,
+  type KbListSection,
+} from './refs'
+export { isLiveOn } from './queries'
 export type {
   ObligationFilters,
   ObligationListItem,
   ObligationDetail,
+  QuestionListItem,
+  QuestionDetail,
+  SectionItem,
+  ListedSection,
   LibrarySummary,
   SearchResults,
 } from './queries'

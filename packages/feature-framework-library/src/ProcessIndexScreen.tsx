@@ -1,3 +1,4 @@
+import { kbHref } from '@duatf/feature-framework-library-api'
 import { Chip, Citation, DataTable, PageHeader } from '@duatf/core-ui'
 import type { FrameworkLibraryApi } from '@duatf/feature-framework-library-api'
 import Link from 'next/link'
@@ -27,7 +28,7 @@ export const ProcessIndexScreen = async ({ api, sector }: Props) => {
         <ul className={styles.sectorLinks}>
           <li>
             <Chip tone={sector ? 'neutral' : 'accent'}>
-              <Link href="/library/processes" aria-current={sector ? undefined : 'page'}>
+              <Link href={kbHref('processes')} aria-current={sector ? undefined : 'page'}>
                 All {all.length}
               </Link>
             </Chip>
@@ -36,7 +37,7 @@ export const ProcessIndexScreen = async ({ api, sector }: Props) => {
             <li key={code}>
               <Chip tone={sector === code ? 'accent' : 'neutral'}>
                 <Link
-                  href={`/library/processes?sector=${code}`}
+                  href={kbHref('processes', undefined, { sector: code })}
                   aria-current={sector === code ? 'page' : undefined}
                 >
                   {titleOf(code)}
@@ -60,7 +61,7 @@ export const ProcessIndexScreen = async ({ api, sector }: Props) => {
             key: 'title',
             header: 'Process',
             render: (row) => (
-              <Link className={styles.inlineLink} href={`/library/processes/${row.code}`}>
+              <Link className={styles.inlineLink} href={kbHref('processes', row.code)}>
                 {row.title}
               </Link>
             ),

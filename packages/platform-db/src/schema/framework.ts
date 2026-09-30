@@ -389,6 +389,46 @@ export const notificationEntry = pgTable(
   (table) => [primaryKey({ name: 'notification_entry_pk', columns: [table.releaseId, table.seq] })],
 )
 
+/** Conditions under which a question applies: the union of its obligations' triggers. */
+export type QuestionApplicability = {
+  always: boolean
+  roles: string[]
+  flags: string[]
+  bases: string[]
+}
+
+export type QuestionReviewStatus = 'draft' | 'sme_approved'
+
+/**
+ * The assessment question bank: one question per control. References, applicability, risk
+ * weight and evidence suggestions are derived from the knowledge base when the release is built.
+ */
+export const question = pgTable(
+  'question',
+  {
+    releaseId: releaseRef(),
+    code: text('code').notNull(),
+    seq: integer('seq').notNull(),
+    controlCode: text('control_code').notNull(),
+    domainCode: text('domain_code').notNull(),
+    text: text('text').notNull(),
+    guidance: text('guidance').notNull(),
+    recommendation: text('recommendation').notNull(),
+    obligationCodes: textList('obligation_codes'),
+    references: textList('references'),
+    applicability: jsonb('applicability').$type<QuestionApplicability>().notNull(),
+    riskWeight: integer('risk_weight').notNull(),
+    evidenceRequired: textList('evidence_required'),
+    evidenceRecommended: textList('evidence_recommended'),
+    evidenceSupporting: textList('evidence_supporting'),
+    reviewStatus: text('review_status').$type<QuestionReviewStatus>().notNull().default('draft'),
+  },
+  (table) => [
+    primaryKey({ name: 'question_pk', columns: [table.releaseId, table.code] }),
+    unique('question_release_control').on(table.releaseId, table.controlCode),
+  ],
+)
+
 /** Child tables guarded by the published-release trigger. */
 export const FRAMEWORK_CHILD_TABLES = [
   'instrument',
@@ -412,4 +452,5 @@ export const FRAMEWORK_CHILD_TABLES = [
   'discovery_question',
   'playbook_doc',
   'notification_entry',
+  'question',
 ] as const

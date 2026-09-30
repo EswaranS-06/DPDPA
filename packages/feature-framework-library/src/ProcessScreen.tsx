@@ -3,6 +3,7 @@ import {
   basisLabel,
   flagLabel,
   type FrameworkLibraryApi,
+  kbHref,
 } from '@duatf/feature-framework-library-api'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
@@ -68,7 +69,7 @@ export const ProcessScreen = async ({ api, code, today }: Props) => {
           <ChipList
             items={item.typicalLawfulBasis}
             render={(basis) => (
-              <Link href={`/library/law/bases#${basis}`}>{basisLabel(basis)}</Link>
+              <Link href={`${kbHref('bases')}#${basis}`}>{basisLabel(basis)}</Link>
             )}
           />
         </MarginRow>

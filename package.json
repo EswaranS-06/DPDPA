@@ -23,6 +23,7 @@
     "db:generate": "pnpm --filter @duatf/platform-db generate",
     "db:test:reset": "tsx tools/test-support/src/resetTestDb.ts",
     "seed:import": "tsx tools/seed-import/src/cli.ts",
+    "kb:release": "tsx tools/seed-import/src/releaseCli.ts",
     "kc:setup": "tsx tools/keycloak-setup/src/cli.ts",
     "admin:bootstrap": "tsx tools/keycloak-setup/src/bootstrapCli.ts",
     "test": "pnpm db:test:reset && vitest run",

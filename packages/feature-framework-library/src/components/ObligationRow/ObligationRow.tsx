@@ -1,3 +1,4 @@
+import { kbHref } from '@duatf/feature-framework-library-api'
 import type { ObligationListItem } from '@duatf/feature-framework-library-api'
 import { Chip, Citation, MarginRow } from '@duatf/core-ui'
 import Link from 'next/link'
@@ -23,18 +24,18 @@ export const ObligationRow = ({ item, today, showDomain = true }: ObligationRowP
     }
   >
     <div className={styles.head}>
-      <Link href={`/library/obligations/${item.code}`} className={styles.title}>
+      <Link href={kbHref('obligations', item.code)} className={styles.title}>
         {item.title}
       </Link>
       <Citation>{item.code}</Citation>
     </div>
     <p className={styles.requirement}>{item.requirement}</p>
     <div className={styles.meta}>
-      <TimeStatus inForce={item.inForce} today={today} />
+      <TimeStatus inForce={item.inForce} inForceUntil={item.inForceUntil} today={today} />
       <PenaltyChip tier={item.penaltyTier} />
       {showDomain ? (
         <Chip>
-          <Link href={`/library/domains/${item.domainCode}`}>{item.domainCode}</Link>
+          <Link href={kbHref('domains', item.domainCode)}>{item.domainCode}</Link>
         </Chip>
       ) : null}
     </div>

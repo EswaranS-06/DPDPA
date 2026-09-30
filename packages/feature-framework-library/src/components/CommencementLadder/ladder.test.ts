@@ -15,6 +15,7 @@ const summary = {
     dataElements: 91,
     vocabularies: 17,
     playbooks: 11,
+    questions: 82,
   },
   milestones: [
     { date: null, count: 3, domains: [{ code: 'D09', title: 'Security', count: 3 }] },

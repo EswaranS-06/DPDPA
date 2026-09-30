@@ -1,3 +1,4 @@
+import { KB_PATH, kbHref } from '@duatf/feature-framework-library-api'
 import { EmptyState, PageHeader } from '@duatf/core-ui'
 import type { FrameworkLibraryApi, ObligationListItem } from '@duatf/feature-framework-library-api'
 import Link from 'next/link'
@@ -10,7 +11,7 @@ export type ObligationSearchParams = {
   phase?: string
   penalty?: string
   actor?: string
-  q?: string
+  text?: string
 }
 
 type Props = { api: FrameworkLibraryApi; today: string; params: ObligationSearchParams }
@@ -33,12 +34,12 @@ export const ObligationIndexScreen = async ({ api, today, params }: Props) => {
       phase: parsePhase(params.phase),
       penaltyTier: params.penalty || undefined,
       actor: params.actor || undefined,
-      text: params.q?.trim() || undefined,
+      text: params.text?.trim() || undefined,
     }),
   ])
   const actors = [...new Set(all.map((item) => item.actor))].sort()
   const filtering = Boolean(
-    params.domain || params.phase || params.penalty || params.actor || params.q,
+    params.domain || params.phase || params.penalty || params.actor || params.text,
   )
   const groups = domains
     .map((domain) => ({
@@ -54,7 +55,8 @@ export const ObligationIndexScreen = async ({ api, today, params }: Props) => {
         lede="Each obligation is one duty from the DPDP Act, the Rules, or a linked Indian law. The citation sits in the margin."
       />
 
-      <form method="get" action="/library/obligations" className={styles.filters}>
+      <form method="get" action={KB_PATH} className={styles.filters}>
+        <input type="hidden" name="section" value="obligations" />
         <label className={styles.field}>
           Domain
           <select name="domain" defaultValue={params.domain ?? ''}>
@@ -102,9 +104,9 @@ export const ObligationIndexScreen = async ({ api, today, params }: Props) => {
         <label className={styles.field}>
           Words or citation
           <input
-            name="q"
+            name="text"
             type="search"
-            defaultValue={params.q ?? ''}
+            defaultValue={params.text ?? ''}
             placeholder="s.8(6), withdrawal"
           />
         </label>
@@ -112,7 +114,7 @@ export const ObligationIndexScreen = async ({ api, today, params }: Props) => {
           Show obligations
         </button>
         {filtering ? (
-          <Link href="/library/obligations" className={styles.linkButton}>
+          <Link href={kbHref('obligations')} className={styles.linkButton}>
             Clear filters
           </Link>
         ) : null}
@@ -132,7 +134,7 @@ export const ObligationIndexScreen = async ({ api, today, params }: Props) => {
         groups.map((group) => (
           <section key={group.domain.code} className={styles.section}>
             <h2 className={styles.sectionTitle}>
-              <Link href={`/library/domains/${group.domain.code}`} className={styles.indexTitle}>
+              <Link href={kbHref('domains', group.domain.code)} className={styles.indexTitle}>
                 {group.domain.code} {group.domain.title}
               </Link>
             </h2>

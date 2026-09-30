@@ -21,6 +21,29 @@ const config: NextConfig = {
     '@duatf/platform-trpc',
   ],
   serverExternalPackages: ['postgres', 'openid-client'],
+  // The framework library became one knowledge-base page; old links keep working.
+  redirects: () =>
+    Promise.resolve([
+      { source: '/library', destination: '/knowledge-base', permanent: true },
+      { source: '/search', destination: '/knowledge-base', permanent: true },
+      {
+        source: '/library/law/bases',
+        destination: '/knowledge-base?section=bases',
+        permanent: true,
+      },
+      {
+        source:
+          '/library/:section(law|obligations|controls|domains|sectors|processes|data-elements|vocabularies|playbooks)',
+        destination: '/knowledge-base?section=:section',
+        permanent: true,
+      },
+      {
+        source:
+          '/library/:section(law|obligations|controls|domains|sectors|processes|vocabularies|playbooks)/:item',
+        destination: '/knowledge-base?section=:section&item=:item',
+        permanent: true,
+      },
+    ]),
   // Lets the dev server be opened from other machines on the LAN.
   allowedDevOrigins: ['192.168.0.110'],
   headers: () =>

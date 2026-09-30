@@ -26,9 +26,11 @@ describe('plain-English triggers', () => {
 
 describe('reference links', () => {
   it('maps stored references to app routes', () => {
-    expect(refHref('ref:obligation/OBL-CON-01')).toBe('/library/obligations/OBL-CON-01')
-    expect(refHref('ref:law/S06')).toBe('/library/law/S06')
-    expect(refHref('ref:basis/s7a')).toBe('/library/law/bases#s7a')
+    expect(refHref('ref:obligation/OBL-CON-01')).toBe(
+      '/knowledge-base?section=obligations&item=OBL-CON-01',
+    )
+    expect(refHref('ref:law/S06')).toBe('/knowledge-base?section=law&item=S06')
+    expect(refHref('ref:basis/s7a')).toBe('/knowledge-base?section=bases#s7a')
     expect(refHref('https://example.org')).toBe('https://example.org')
   })
 })
