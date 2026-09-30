@@ -9,6 +9,9 @@ export const navigationFor = (principal: Principal): NavItem[] => {
     { href: '/clients', label: firm ? 'Clients' : 'My organisation' },
   ]
   if (can(principal, 'kb.view')) items.push({ href: '/knowledge-base', label: 'Knowledge base' })
-  if (can(principal, 'platform.admin')) items.push({ href: '/admin/staff', label: 'Staff' })
+  if (can(principal, 'platform.admin')) {
+    items.push({ href: '/admin/staff', label: 'Staff' })
+    items.push({ href: '/admin/risk-bands', label: 'Risk bands' })
+  }
   return items
 }

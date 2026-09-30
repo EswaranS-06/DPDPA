@@ -419,7 +419,7 @@ phases:
     subphases:
       - id: C8.1
         title: 'Gap rules and findings'
-        state: planned
+        state: active
         tests:
           - id: TC-C8.1-01
             title: 'No opens exactly one finding; Yes closes it with history'
@@ -427,7 +427,7 @@ phases:
             source: literal
       - id: C8.2
         title: 'Risk register and scoring'
-        state: planned
+        state: active
         tests:
           - id: TC-C8.2-01
             title: 'Score = L x I with configurable bands'
@@ -435,7 +435,7 @@ phases:
             source: literal
       - id: C8.3
         title: 'Recommendations from the knowledge base'
-        state: planned
+        state: active
         tests:
           - id: TC-C8.3-01
             title: "A finding carries its question's recommendation and references"
