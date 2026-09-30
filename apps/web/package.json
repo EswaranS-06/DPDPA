@@ -1,0 +1,31 @@
+{
+  "name": "@duatf/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev -H 0.0.0.0 -p 53000",
+    "build": "next build",
+    "start": "next start -H 0.0.0.0 -p 53000",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@duatf/core-config": "workspace:*",
+    "@duatf/core-ui": "workspace:*",
+    "@duatf/core-utils": "workspace:*",
+    "@duatf/feature-framework-library": "workspace:*",
+    "@duatf/feature-framework-library-api": "workspace:*",
+    "@duatf/platform-db": "workspace:*",
+    "@duatf/platform-trpc": "workspace:*",
+    "@trpc/server": "catalog:",
+    "next": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "typescript": "catalog:"
+  }
+}

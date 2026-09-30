@@ -1,0 +1,13 @@
+.citation {
+  font-family: var(--font-sans);
+  font-stretch: var(--width-condensed);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.strong {
+  font-weight: 650;
+  color: var(--color-ink);
+}
