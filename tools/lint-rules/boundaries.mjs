@@ -10,6 +10,7 @@ const TOOLS = [
   '@duatf/test-support',
   '@duatf/lint-rules',
   '@duatf/keycloak-setup',
+  '@duatf/demo-data',
 ]
 const DEEP_IMPORT = {
   group: ['@duatf/*/src', '@duatf/*/src/**'],

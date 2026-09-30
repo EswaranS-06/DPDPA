@@ -471,6 +471,18 @@ phases:
             title: 'A re-assessment copies scope and links to the previous cycle'
             expected: 'copied and linked'
             source: literal
+      - id: C9.4
+        title: 'Finding closure across remediation and cycles'
+        state: active
+        tests:
+          - id: TC-C9.4-01
+            title: 'Closing the last verified action closes the finding and its risk'
+            expected: 'closed as remediated'
+            source: literal
+          - id: TC-C9.4-02
+            title: 'A re-assessment resolves or carries forward earlier findings, counting each gap once'
+            expected: 'resolved; carried with actions and rating; no double count'
+            source: literal
 
   - id: C10
     title: 'Dashboards and client sharing'
@@ -485,6 +497,10 @@ phases:
             title: 'Dashboard figures equal direct counts'
             expected: 'equal'
             source: oracle
+          - id: TC-C10.1-02
+            title: 'Overall heatmap, compliance by domain and actions due equal direct counts'
+            expected: 'equal'
+            source: oracle
       - id: C10.2
         title: 'Client dashboard and portal'
         state: active
@@ -492,6 +508,22 @@ phases:
           - id: TC-C10.2-01
             title: 'A client user is sent to their own client and cannot open another'
             expected: 'redirected; refused'
+            source: literal
+      - id: C10.3
+        title: 'Department dashboards'
+        state: active
+        tests:
+          - id: TC-C10.3-01
+            title: 'Department figures add up to the client and equal direct counts'
+            expected: 'sum = client; equal'
+            source: oracle
+      - id: C10.4
+        title: 'Demo clients (Nadall hospital, AMMA school)'
+        state: active
+        tests:
+          - id: TC-C10.4-01
+            title: 'The demo loads through the services, dated, and a reload replaces it'
+            expected: 'story figures; replaced'
             source: literal
 
   - id: C11
@@ -514,6 +546,18 @@ phases:
           - id: TC-C11.2-01
             title: 'Executive report shows required sections, release and date'
             expected: 'present'
+            source: literal
+      - id: C11.3
+        title: 'Dashboard workbooks: overall, client and department'
+        state: active
+        tests:
+          - id: TC-C11.3-01
+            title: 'Overall workbook covers the clients the user may export, figures equal the dashboard'
+            expected: 'rows = clients; equal'
+            source: oracle
+          - id: TC-C11.3-02
+            title: 'Department workbook holds only that department records'
+            expected: 'department only'
             source: literal
 
   - id: C12

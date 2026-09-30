@@ -3,6 +3,7 @@ import { formatDay } from '@duatf/core-utils'
 import { buttonClass, DataTable } from '@duatf/core-ui'
 import {
   clientFigures,
+  departmentBreakdown,
   getAssessment,
   ORGANISATION_TYPE_LABEL,
 } from '@duatf/feature-compliance-api'
@@ -16,7 +17,9 @@ import {
   Metrics,
   ProgressBar,
 } from '@/components/assessment/AssessmentBits'
-import { BandChip } from '@/components/risk/RiskBits'
+import { DepartmentTable, FigurePanels } from '@/components/dashboard/DashboardBits'
+import dashStyles from '@/components/dashboard/DashboardBits.module.css'
+import { Heatmap } from '@/components/risk/RiskBits'
 import { loadClient } from '@/server/clients'
 import { serviceContext } from '@/server/services'
 import styles from '../clients.module.css'
@@ -69,17 +72,50 @@ export default async function Page({ params }: Props) {
   const client = await loadClient((await params).code)
   const ctx = await serviceContext()
   const { principal } = ctx
-  const figures = await clientFigures(ctx, client.id)
+  const [figures, breakdown] = await Promise.all([
+    clientFigures(ctx, client.id),
+    departmentBreakdown(ctx, client.id),
+  ])
   const latest = figures.latestAssessment
     ? await getAssessment(ctx, client.id, figures.latestAssessment.code)
     : null
   const base = `/clients/${client.code}`
+  const ownDepartments = breakdown.rows.filter((row) =>
+    principal.assignments.some(
+      (assignment) =>
+        assignment.role === 'department_owner' &&
+        assignment.clientId === client.id &&
+        assignment.departmentId === row.id,
+    ),
+  )
   return (
     <>
       <section className={styles.section} aria-labelledby="dashboard-title">
-        <h2 id="dashboard-title" className={styles.sectionTitle}>
-          Where things stand
-        </h2>
+        <div className={styles.headerTop}>
+          <h2 id="dashboard-title" className={styles.sectionTitle}>
+            Where things stand
+          </h2>
+          {can(principal, 'report.export', { clientId: client.id }) ? (
+            <a
+              href={`${base}/reports/workbook`}
+              className={buttonClass('secondary')}
+              rel="nofollow"
+            >
+              Download client workbook
+            </a>
+          ) : null}
+        </div>
+        {ownDepartments.length ? (
+          <p className={styles.sectionIntro}>
+            Your department:{' '}
+            {ownDepartments.map((row, index) => (
+              <span key={row.id}>
+                {index > 0 ? ', ' : ''}
+                <Link href={`${base}/departments/${row.code}`}>{row.name} dashboard</Link>
+              </span>
+            ))}
+          </p>
+        ) : null}
         {latest ? (
           <>
             <p className={styles.sectionIntro}>
@@ -98,48 +134,15 @@ export default async function Page({ params }: Props) {
             and gaps here.
           </p>
         )}
-        <dl className={styles.profile}>
-          <div className={styles.panel}>
-            <dt>Open findings</dt>
-            <dd>
-              <Link href={`${base}/findings`}>
-                {figures.openFindings.gap} gaps, {figures.openFindings.potentialGap} potential gaps
-              </Link>
-            </dd>
-          </div>
-          <div className={styles.panel}>
-            <dt>Open risks</dt>
-            <dd className={styles.roles}>
-              {figures.bands.map((band) => (
-                <BandChip
-                  key={band.name}
-                  band={band}
-                  score={figures.openRisksByBand[band.name] ?? 0}
-                />
-              ))}
-            </dd>
-          </div>
-          <div className={styles.panel}>
-            <dt>Remediation</dt>
-            <dd>
-              <Link href={`${base}/actions`}>
-                {figures.actions.open} open, {figures.actions.underReview} under review,{' '}
-                {figures.actions.closed} closed
-              </Link>
-              {figures.actions.overdue ? (
-                <span className={styles.overdueText}> · {figures.actions.overdue} overdue</span>
-              ) : null}
-            </dd>
-          </div>
-          <div className={styles.panel}>
-            <dt>Evidence awaiting review</dt>
-            <dd>
-              <Link href={`${base}/evidence?status=pending_review`}>
-                {figures.evidenceAwaitingReview}
-              </Link>
-            </dd>
-          </div>
-        </dl>
+        <FigurePanels
+          figures={figures}
+          bands={figures.bands}
+          links={{
+            findings: `${base}/findings`,
+            actions: `${base}/actions`,
+            evidence: `${base}/evidence?status=pending_review`,
+          }}
+        />
         {latest && latest.domains.length ? (
           <DataTable
             caption="Compliance by domain in the latest assessment"
@@ -171,6 +174,34 @@ export default async function Page({ params }: Props) {
             ]}
           />
         ) : null}
+      </section>
+
+      {breakdown.rows.length ? (
+        <section className={styles.section} aria-labelledby="by-department-title">
+          <h2 id="by-department-title" className={styles.sectionTitle}>
+            By department
+          </h2>
+          <p className={styles.sectionIntro}>
+            Each department&apos;s questions in the latest assessment, and the findings, risks,
+            actions and evidence that belong to it. Open a department for its own dashboard.
+          </p>
+          <DepartmentTable rows={breakdown.rows} clientCode={client.code} bands={breakdown.bands} />
+        </section>
+      ) : null}
+
+      <section className={styles.section} aria-labelledby="heatmap-title">
+        <div className={dashStyles.twoUp}>
+          <div>
+            <h2 id="heatmap-title" className={styles.sectionTitle}>
+              Risk picture
+            </h2>
+            <Heatmap grid={figures.heatmap} bands={figures.bands} />
+          </div>
+          <p className={styles.sectionIntro}>
+            Open risks by likelihood and impact. The full register, with ratings, owners and client
+            acceptance, is on the <Link href={`${base}/risks`}>Risks</Link> tab.
+          </p>
+        </div>
       </section>
 
       <section className={styles.section} aria-labelledby="profile-title">

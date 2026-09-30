@@ -325,35 +325,45 @@ The platform is a **DPDPA Compliance Management Platform** for ComplyX to track 
 | C9.1 | Actions from recommendations: owner, due date, priority, status (Open, Assigned, In progress, Pending evidence, Under review, Rejected, Remediated, Closed, Accepted risk) |
 | C9.2 | Verification: closing needs evidence and a verifier other than the owner |
 | C9.3 | Re-assessment: new cycle from a previous one, carrying scope and open findings |
+| C9.4 | Finding closure: a finding closes when its last action is verified and closed; in a re-assessment a Yes resolves the previous cycle's open finding and a No or Partial carries it forward (actions, risk rating and acceptance move with it), so each gap is counted once |
 
 | Test | Expected | Source |
 |---|---|---|
 | TC-C9.1-01 | Only allowed status transitions are accepted | literal |
 | TC-C9.2-01 | Closing without evidence, or by the owner, is refused | literal |
 | TC-C9.3-01 | A re-assessment copies scope and links to the previous cycle | literal |
+| TC-C9.4-01 | Closing the last verified action closes the finding and its risk | literal |
+| TC-C9.4-02 | A re-assessment resolves or carries forward earlier findings, counting each gap once | literal |
 
 ### C10: Dashboards and client sharing (R2)
 | Sub | Build |
 |---|---|
-| C10.1 | Firm portfolio: clients, progress, open risks by level, overdue actions |
-| C10.2 | Client dashboard: compliance %, open risks and gaps, assessment/evidence/remediation progress, department compliance |
-| C10.3 | Client portal: client roles see their own dashboard, answer assigned questions, upload evidence and update actions |
+| C10.1 | Overall dashboard (home): clients, progress, open risks by level, overdue actions, compliance by domain for every client, the risk heatmap across clients, actions due next |
+| C10.2 | Client dashboard and portal: compliance %, open risks and gaps, assessment/evidence/remediation progress, figures by department; client roles see their own client only |
+| C10.3 | Department dashboard: the department's share of the latest assessment, what needs an answer or rework, open findings and risks, heatmap, actions and evidence |
+| C10.4 | Demo clients: `pnpm demo:load` tells the Nadall (hospital) and AMMA (school) stories through the services, dated over past months |
 
 | Test | Expected | Source |
 |---|---|---|
 | TC-C10.1-01 | Dashboard figures equal counts computed directly from items, findings, risks and actions | oracle |
+| TC-C10.1-02 | Overall heatmap, compliance by domain and actions due equal direct counts | oracle |
 | TC-C10.2-01 | A client user is sent to their own client and cannot open another | literal |
+| TC-C10.3-01 | Department figures add up to the client and equal direct counts | oracle |
+| TC-C10.4-01 | The demo loads through the services, dated, and a reload replaces it | literal |
 
 ### C11: Reports (R2)
 | Sub | Build |
 |---|---|
 | C11.1 | Excel exports: risk register, gap register, action plan, evidence register |
 | C11.2 | Printable executive and detailed assessment reports (browser print to PDF), ComplyX branding, disclaimer |
+| C11.3 | Dashboard workbooks at three levels: overall (all clients), client (opens on a dashboard sheet, then departments and registers) and department |
 
 | Test | Expected | Source |
 |---|---|---|
 | TC-C11.1-01 | The risk-register workbook has one row per risk with every column | oracle |
 | TC-C11.2-01 | The executive report shows every required section, the release and the date | literal |
+| TC-C11.3-01 | The overall workbook covers the clients the user may export; its figures equal the dashboard | oracle |
+| TC-C11.3-02 | A department workbook holds only that department's records | literal |
 
 ### C12: Hardening (R3) and C13: Pilots and production (R3)
 Unchanged in intent: isolation tests for every route, load test, restore drill, ClamAV, accessibility, self-assessment; then pilots and 1.0.
