@@ -1,4 +1,12 @@
-import type { ApplicabilityState, ClientStatus, OrganisationType } from '@duatf/platform-db'
+import type {
+  Answer,
+  ApplicabilityState,
+  AssessmentStatus,
+  ClientStatus,
+  ComplianceState,
+  OrganisationType,
+  ReviewState,
+} from '@duatf/platform-db'
 
 export const ORGANISATION_TYPE_LABEL: Record<OrganisationType, string> = {
   private_limited: 'Private limited company',
@@ -66,3 +74,32 @@ export const INDIAN_STATES = [
   'Lakshadweep',
   'Puducherry',
 ] as const
+
+export const ASSESSMENT_STATUS_LABEL: Record<AssessmentStatus, string> = {
+  draft: 'Draft',
+  in_progress: 'In progress',
+  in_review: 'In review',
+  completed: 'Completed',
+}
+
+export const ANSWER_LABEL: Record<Answer, string> = {
+  yes: 'Yes',
+  partial: 'Partial',
+  no: 'No',
+  not_applicable: 'Not applicable',
+  not_assessed: 'Not assessed',
+}
+
+export const COMPLIANCE_LABEL: Record<ComplianceState, string> = {
+  compliant: 'Compliant',
+  potential_gap: 'Potential gap',
+  gap: 'Gap',
+  excluded: 'Excluded',
+  pending: 'Pending',
+}
+
+export const REVIEW_LABEL: Record<ReviewState, string> = {
+  not_reviewed: 'Not reviewed',
+  accepted: 'Accepted',
+  returned: 'Sent back',
+}

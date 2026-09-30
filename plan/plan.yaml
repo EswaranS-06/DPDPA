@@ -343,7 +343,7 @@ phases:
     subphases:
       - id: C6.1
         title: 'Assessment cycles'
-        state: planned
+        state: active
         tests:
           - id: TC-C6.1-01
             title: 'A new assessment pins the release and creates one item per question'
@@ -351,7 +351,7 @@ phases:
             source: oracle
       - id: C6.2
         title: 'Items and department assignment'
-        state: planned
+        state: active
         tests:
           - id: TC-C6.2-01
             title: "A department owner can answer only their department's items"
@@ -359,7 +359,7 @@ phases:
             source: literal
       - id: C6.3
         title: 'Answers'
-        state: planned
+        state: active
         tests:
           - id: TC-C6.3-01
             title: 'Not applicable needs a reason; answers map to compliance states'
@@ -367,7 +367,7 @@ phases:
             source: literal
       - id: C6.4
         title: 'Review and progress'
-        state: planned
+        state: active
         tests:
           - id: TC-C6.4-01
             title: 'Progress and compliance percentages equal the fixture'

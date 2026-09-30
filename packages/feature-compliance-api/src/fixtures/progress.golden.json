@@ -1,0 +1,19 @@
+{
+  "description": "One assessment of the 82-question bank: 30 Yes, 10 Partial, 12 No, 8 Not applicable and 22 not yet assessed; of the answers, the first 20 accepted and the next 5 sent back. Percentages are rounded to one decimal: progress 60/82, compliance (30 + 10/2)/52, reviewed 20/60.",
+  "answers": { "yes": 30, "partial": 10, "no": 12, "not_applicable": 8 },
+  "reviews": { "accepted": 20, "returned": 5 },
+  "expected": {
+    "total": 82,
+    "answered": 60,
+    "pending": 22,
+    "compliant": 30,
+    "potentialGap": 10,
+    "gap": 12,
+    "excluded": 8,
+    "accepted": 20,
+    "returned": 5,
+    "progressPct": 73.2,
+    "compliancePct": 67.3,
+    "reviewedPct": 33.3
+  }
+}

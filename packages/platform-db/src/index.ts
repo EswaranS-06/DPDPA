@@ -40,4 +40,5 @@ export {
   notInArray,
   or,
   sql,
+  type SQL,
 } from 'drizzle-orm'

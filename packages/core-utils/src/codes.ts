@@ -14,6 +14,8 @@ export type CodePrefix =
   | 'EVD'
   | 'FND'
   | 'REM'
+  | 'ASM'
+  | 'RSK'
 
 const SEGMENT = /^[A-Z0-9]+$/
 

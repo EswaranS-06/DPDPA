@@ -50,6 +50,20 @@
       "when": 1790766938302,
       "tag": "0006_clients_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790767831481,
+      "tag": "0007_assessments",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790767831979,
+      "tag": "0008_assessments_rls",
+      "breakpoints": true
     }
   ]
 }
