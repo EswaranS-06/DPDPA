@@ -56,15 +56,14 @@ describe('API server', () => {
     await app.close()
   })
 
-  it('serves the framework library over tRPC', async () => {
+  it('refuses the framework library over tRPC without a signed-in user', async () => {
     const app = await buildServer({ db: database.db, version: 'test', probes })
     const input = encodeURIComponent(JSON.stringify({ code: 'OBL-CON-01' }))
     const response = await app.inject({
       method: 'GET',
       url: `/trpc/framework.obligation?input=${input}`,
     })
-    expect(response.statusCode).toBe(200)
-    expect(response.json()).toMatchObject({ result: { data: { code: 'OBL-CON-01' } } })
+    expect(response.statusCode).toBe(401)
     await app.close()
   })
 })

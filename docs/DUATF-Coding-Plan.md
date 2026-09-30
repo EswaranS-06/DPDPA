@@ -106,8 +106,8 @@ Each sub-phase lists what gets built, its tests (with expected results) and its 
 | Release | Coding phases | Target | Outcome |
 |---|---|---|---|
 | **R0 Foundation** | C0-C3 | 30 Oct 2026 | Repo, CI, database, framework release 1.0.0 in the database, login and tenancy |
-| **R1 Assess & Gap (MVP)** | C4-C8 | 1 Feb 2027 | Engine, graph, scoping, testing, findings: an assessment from start to finish |
-| **R2 Track & Operate** | C9-C11 | 2 Apr 2027 | Remediation, registers, reports |
+| **R1 Assess & Gap (MVP)** | C4-C8 | 1 Feb 2027 | Knowledge base, clients, assessments, evidence, findings and risks |
+| **R2 Track & Share** | C9-C11 | 2 Apr 2027 | Remediation, dashboards, client portal, reports |
 | **R3 Hardened 1.0** | C12-C13 | 3 May 2027 | Security, performance, pilots, production on the server |
 
 ```mermaid
@@ -217,153 +217,149 @@ gantt
 
 **Review:** the legal SME signs off release 1.1.0 content (anchors, tiers, criteria wording) before it is published.
 
-### C3: Authentication, tenancy, audit (R0)
-**Goal:** secure multi-tenant access. Keycloak is the target; a development identity provider fallback keeps work unblocked while its image is pending.
+### V1 product scope (user decision, 30 Sep 2026)
 
+The platform is a **DPDPA Compliance Management Platform** for ComplyX to track clients and share assessment progress with them:
+
+**Client → Departments → Assessment → Questions + Evidence → Findings (gap) → Risk scoring → Recommendations → Remediation → Re-assessment → Reports**
+
+- **Knowledge base:** the framework data (release 1.x) *powers* the app. Questions are built from KB controls; expected evidence, recommendations and regulatory references come from KB obligations and controls. It is presented as one "Knowledge base" page.
+- **Central object:** the finding/risk and its evidence trail. Reports are generated from that structured data.
+- **Later versions:** V2 (ROPA, data inventory, DIA, rights) and V3 (vendors) follow V1.
+
+### C3: Identity and access (R0)
 | Sub | Build |
 |---|---|
-| C3.1 | `platform-auth`: OIDC client (Keycloak realm `duatf`, realm export in `infra/keycloak/`); sessions; MFA required by realm policy. **Fallback:** `AUTH_MODE=dev` with seeded local users, disabled in production by config check |
-| C3.2 | Tenants, legal entities, memberships (role × scope), permission matrix as data, SoD guard |
-| C3.3 | Hash-chained `audit_event`; audit middleware on every mutation |
-| C3.4 | Notifications (in-app + email via Mailpit) |
-| C3.5 | Web app shell: login, tenant / entity / cycle switcher, navigation per role |
+| C3.1 | Keycloak realm `duatf`: web client (OIDC code + PKCE), admin service client, password policy, brute-force protection, MFA (TOTP) required for new users; idempotent setup script |
+| C3.2 | Login and logout (OIDC), server-side sessions (hashed token, httpOnly cookie, 8 h), user profile sync on login |
+| C3.3 | Roles and permission matrix: firm_admin, lead_auditor, auditor, client_dpo, department_owner, client_viewer; client and department scoping; RLS per client |
+| C3.4 | Hash-chained audit log on every change |
+| C3.5 | App shell with role-aware navigation; bootstrap of the first firm admin |
 
 | Test | Expected | Source |
 |---|---|---|
-| TC-C3.1-01 | `AUTH_MODE=dev` with `NODE_ENV=production` → the app refuses to start | literal |
-| TC-C3.2-01 | Generated test per (role, capability) equals the permission matrix, 100% | golden |
-| TC-C3.2-02 | Preparer approving own item → 403 + audit entry | literal |
-| TC-C3.3-01 | Tampering one audit row makes the chain check fail at that row | literal |
-| TC-C3.5-01 | E2E: sign in → switch tenant → sees only that tenant's data | literal |
+| TC-C3.1-01 | Realm setup is idempotent, and the discovery issuer is the LAN URL of realm duatf | literal |
+| TC-C3.2-01 | Sessions are stored only as hashes; expired or revoked sessions are refused | literal |
+| TC-C3.2-02 | The login callback rejects a mismatched state | literal |
+| TC-C3.3-01 | Permission matrix: every role × capability equals the documented table | golden |
+| TC-C3.3-02 | An auditor assigned to client A is refused for client B; a department owner is refused outside their department | literal |
+| TC-C3.3-03 | A client user can never read another client's rows (RLS) | literal |
+| TC-C3.4-01 | Tampering with one audit row breaks chain verification at that row | literal |
+| TC-C3.5-01 | Login through Keycloak from a LAN machine lands on the role's home page | manual |
 
-**Review:** security review (threat model v1).
-
-### C4: Rules engine (R1)
-**Goal:** exact v1 parity, then v0.2 per-anchor evaluation, explanations and fast incremental recompute.
-
+### C4: Knowledge base and question bank (R1)
 | Sub | Build |
 |---|---|
-| C4.1 | `core-rules-engine` v1 evaluator (pure TS) reading framework rows from the database |
-| C4.2 | `tools/oracle` differential harness: Python engine on the seed vault vs TS engine on release 1.0.0; fast-check random contexts |
-| C4.3 | v0.2 evaluator: anchors (entity / purpose / cohort / flow / system), tracks, tiers, modes (readiness / compliance / re-assessment), `in_force_until`, s.17 per purpose |
-| C4.4 | Reason traces (JSON), N/A reasons, override workflow, run snapshots and run-to-run diff |
-| C4.5 | Incremental recompute: dependency index, outbox-driven jobs, performance budget |
+| C4.1 | One "Knowledge base" page: every section (law, obligations, controls, questions, domains, sectors, processes, data elements, vocabularies, playbooks) with search and a detail pane; the old library URLs redirect |
+| C4.2 | Release 1.1.0 = clone of 1.0.0 + DPDPA question bank (one question per control, draft for legal SME review) + SPDI sunset (`in_force_until` 13 May 2027) |
+| C4.3 | Evidence suggestions per question: required (control evidence), recommended (obligation evidence), supporting (evidence-request list for the domain) |
 
 | Test | Expected | Source |
 |---|---|---|
-| TC-C4.1-01 | DemoPay on release 1.0.0: ADM-001 46, CUS-001 67, CUS-002 63, CUS-003 54, HR-001 64, MKT-001 67 | oracle |
-| TC-C4.2-01 | 594/594 rows identical (applies + reason) vs Python | oracle |
-| TC-C4.2-02 | 10,000 random contexts → 0 differences | oracle |
-| TC-C4.3-01..06 | Six stress scenarios (hospital, SaaS processor, 40-entity group, edtech children, startup, bundled consent) match the SME expected files | sme |
-| TC-C4.3-07 | as_of 2026-09-30: phase-3 rows labelled readiness; as_of 2027-05-13: compliance | literal |
-| TC-C4.4-01 | 100% of N/A rows have a reason; only approved overrides change results, and they are audited | literal |
-| TC-C4.5-01 | 800 activities / 2,000 anchors: full recompute < 10 s; single change p95 < 1 s | literal |
-| TC-C4.5-02 | 100 runs on the same input → identical output hash | literal |
+| TC-C4.1-01 | The knowledge-base service returns every section with items and resolves any item by code | oracle |
+| TC-C4.2-01 | Release 1.1.0 carries every 1.0.0 row unchanged (counts per table equal) | oracle |
+| TC-C4.2-02 | One question per control; each has ≥ 1 regulatory reference, expected evidence and a recommendation | oracle |
+| TC-C4.2-03 | `LNK-SPDI-01` is live on 12 May 2027 and not on 13 May 2027 | literal |
+| TC-C4.3-01 | Evidence suggestions are split into three categories with no duplicates across them | literal |
 
-**Review:** the legal SME signs every scenario diff; performance review.
-
-### C5: Client graph (R1)
-**Goal:** map a client's processing as a graph in the app, the collect step.
-
+### C5: Clients and organisation (R1)
 | Sub | Build |
 |---|---|
-| C5.1 | Schema and API: department, process (from catalogue), activity, purpose (lawful basis), cohort, data-element use, system, third party (multi-role + rationale), flow, data event, notice, retention rule, consent record type |
-| C5.2 | UI: list/detail/edit per object; "instantiate from catalogue" |
-| C5.3 | Workshop mode driven by the question bank (from the database) |
-| C5.4 | Graph explorer (Cytoscape.js), saved traversals, confidence heatmap, discovery backlog |
-| C5.5 | Import: Excel/CSV activity register; DemoPay seed tenant (loaded from the seed vault's example folder by `tools/seed-import --example`) |
-| C5.6 | Completeness checks (Stage 2 exit metrics) |
+| C5.1 | Client onboarding: identity, sector, size, locations, DPO and contacts, DPDPA applicability, status |
+| C5.2 | Departments (code DEP-<CLIENT>-<CODE>), head, owner, description |
+| C5.3 | Client users: invite (creates the Keycloak user with a temporary password and MFA), role, department |
+| C5.4 | Firm staff assignment to clients (lead auditor, auditors) |
 
 | Test | Expected | Source |
 |---|---|---|
-| TC-C5.1-01 | A system linked from 30 activities is stored once; a finding on it is visible from all 30 | literal |
-| TC-C5.3-01 | Q18 "support outside India" sets `cross_border` and prompts for a flow with a country | literal |
-| TC-C5.5-01 | DemoPay tenant: 6 activities, 6 systems, 7 third parties, 13 flows, 6 purposes, 5 tests, 4 findings, 4 remediations | oracle |
-| TC-C5.6-01 | DemoPay completeness flags CUS-001 (consent basis with no consent purpose) | golden |
+| TC-C5.1-01 | Onboarding validates required fields and gives the client a unique code | literal |
+| TC-C5.2-01 | Department codes are unique within a client | literal |
+| TC-C5.3-01 | Inviting a user creates one app user and a role scoped to that client; a repeat invite does not duplicate | literal |
+| TC-C5.4-01 | A firm admin sees all clients; an auditor sees only assigned clients | literal |
 
-**Review:** assessor UAT with a real department workshop.
-
-### C6: Engagement and scoping (R1)
+### C6: Assessment execution (R1)
 | Sub | Build |
 |---|---|
-| C6.1 | Engagement, cycle (mode, as_of, pinned release, scope), RACI |
-| C6.2 | Scoping questionnaire (25 Q, from the database) → entity facts rule table; role decision tree → tracks |
-| C6.3 | Overlay selection, exemption register |
-| C6.4 | PBC generation and client tasks |
-| C6.5 | Two-party profile approval, versioning |
+| C6.1 | Assessment cycles per client (name, period, pinned framework release, lead) |
+| C6.2 | Items: one per question, each assigned to a department; reassign and split by department |
+| C6.3 | Answers: Yes, Partial, No, Not applicable (reason required), Not assessed; comments |
+| C6.4 | Review: auditor accepts or returns an answer; progress and compliance percentages |
 
 | Test | Expected | Source |
 |---|---|---|
-| TC-C6.2-01 | Q17 → third_schedule; Q9 → CM track; Q7 → processor track | golden |
-| TC-C6.2-02 | DemoPay answers → profile equals ORG-DEMO | golden |
-| TC-C6.5-01 | Compliance-mode engine run on an unapproved profile is blocked | literal |
+| TC-C6.1-01 | A new assessment pins the release and creates one item per question | oracle |
+| TC-C6.2-01 | A department owner can answer only their department's items | literal |
+| TC-C6.3-01 | Not applicable needs a reason; answers map to Compliant / Potential gap / Gap / Excluded / Pending | literal |
+| TC-C6.4-01 | Progress and compliance percentages equal the counts in a fixture | golden |
 
-### C7: Testing and review (R1)
+### C7: Evidence (R1)
 | Sub | Build |
 |---|---|
-| C7.1 | Test plan generator (obligation × anchor → controls; P1-P3 mandatory) |
-| C7.2 | Test workspace (criteria checklist, test type, sample, evidence, maturity) |
-| C7.3 | Evidence portal (PBC upload → review → expiry) |
-| C7.4 | Assurance validator (BR-05/06/07) and 4-eyes review |
-| C7.5 | Derivation service: criteria → anchor → roll-up → domain → entity index |
+| C7.1 | Upload to object storage with SHA-256, type, version, owner, dates |
+| C7.2 | Link evidence to assessment items, findings and actions (many to many) |
+| C7.3 | Review: accept or reject with a note; expiry flag |
+| C7.4 | Evidence repository per client |
 
 | Test | Expected | Source |
 |---|---|---|
-| TC-C7.4-01 | Inquiry-only test with maturity 3 → rejected | literal |
-| TC-C7.5-01 | Truth table: 12/12 cases (plan §6.5) | golden |
-| TC-C7.5-02 | One criterion PASS→FAIL propagates to the entity index in < 2 s, with audit | literal |
+| TC-C7.1-01 | An upload stores the file with its SHA-256; downloads go through a short-lived link for authorised users only | literal |
+| TC-C7.2-01 | One evidence item links to several questions and shows on each | literal |
+| TC-C7.3-01 | Accept or reject needs a reviewer different from the uploader | literal |
 
-### C8: Gaps, findings, risk, roadmap (R1 = MVP)
+### C8: Findings, gaps and risks (R1)
 | Sub | Build |
 |---|---|
-| C8.1 | Gap register (automatic open/close, readiness vs compliance) |
-| C8.2 | Finding composer (root-cause key, graph propagation, merge/split) |
-| C8.3 | Risk engine (tier floors, context uplifts, bands) |
-| C8.4 | Finding lifecycle and client validation |
-| C8.5 | Roadmap builder |
+| C8.1 | Gap rules: No or Partial opens one finding per item; Yes or Not applicable closes it |
+| C8.2 | Risk register: likelihood × impact, configurable bands, inherent and residual scores, owner |
+| C8.3 | Recommendations from the knowledge base attached to each finding |
 
 | Test | Expected | Source |
 |---|---|---|
-| TC-C8.2-01 | CTL-NOT-01 failing at PUR-DEMO-001 → one finding covering OBL-NOT-01..04 | golden |
-| TC-C8.3-01 | FND-DEMO-001: L5 × I3 = 15, High | golden |
-| TC-C8.3-02 | Bands at 4 / 5 / 9 / 10 / 16 / 17 / 25 → Low / Medium / Medium / High / High / Critical / Critical | literal |
-| TC-C8.E2E-01 | Playwright: DemoPay from scoping to a report-ready finding list | literal |
+| TC-C8.1-01 | Answering No opens exactly one finding; changing to Yes closes it and keeps history | literal |
+| TC-C8.2-01 | Score = L × I; bands 4 Low, 5 Medium, 9 Medium, 10 High, 16 High, 17 Critical, 25 Critical | literal |
+| TC-C8.3-01 | A finding carries its question's recommendation and regulatory references | oracle |
 
-### C9: Remediation (R2)
-Actions, retest loop, risk acceptance with expiry, reminders and escalation, programme trend.
-Tests:
-- TC-C9-01: a passing retest closes the finding and recomputes the roll-up.
-- TC-C9-02: a Critical finding accepted by a DPO-level user is rejected.
-- TC-C9-03: exactly one reminder is sent at target − 7 days.
+### C9: Remediation and re-assessment (R2)
+| Sub | Build |
+|---|---|
+| C9.1 | Actions from recommendations: owner, due date, priority, status (Open, Assigned, In progress, Pending evidence, Under review, Rejected, Remediated, Closed, Accepted risk) |
+| C9.2 | Verification: closing needs evidence and a verifier other than the owner |
+| C9.3 | Re-assessment: new cycle from a previous one, carrying scope and open findings |
 
-### C10: Operations registers (R2)
-Rights register (statutory 90 days plus internal SLA), breach register (CERT-In 6 h, Board 72 h), DPIA, vendor reviews, authority requests, regulatory change and re-assessment, continuous monitoring, and the commencement job.
-Tests:
-- TC-C10-01: a request received 2027-06-01 is due by 2027-08-30.
-- TC-C10-02: a breach discovered at 2027-06-10 10:00 IST is due to CERT-In by 16:00 the same day.
-- TC-C10-03: on 2027-05-13, readiness gaps convert to compliance gaps and SPDI stops being live.
+| Test | Expected | Source |
+|---|---|---|
+| TC-C9.1-01 | Only allowed status transitions are accepted | literal |
+| TC-C9.2-01 | Closing without evidence, or by the owner, is refused | literal |
+| TC-C9.3-01 | A re-assessment copies scope and links to the previous cycle | literal |
 
-### C11: Reporting (R2)
-Dashboards; DOCX/PDF/XLSX reports built from locked snapshots with ComplyX branding; RoPA and Excel exports; audit trail viewer.
-Tests:
-- TC-C11-01: the same snapshot gives the same content hash.
-- TC-C11-02: a report citing an item still marked `verify` is blocked.
-- TC-C11-03: every report shows the disclaimer, release, snapshot hash and as_of date.
+### C10: Dashboards and client sharing (R2)
+| Sub | Build |
+|---|---|
+| C10.1 | Firm portfolio: clients, progress, open risks by level, overdue actions |
+| C10.2 | Client dashboard: compliance %, open risks and gaps, assessment/evidence/remediation progress, department compliance |
+| C10.3 | Client portal: client roles see their own dashboard, answer assigned questions, upload evidence and update actions |
 
-### C12: Hardening (R3)
-Tenant-isolation tests generated for every route, load tests (k6), backup and restore drill (`pg_dump` + MinIO mirror), ClamAV added behind `FileScanner`, accessibility (WCAG 2.2 AA), and a self-assessment of the platform as tenant ORG-XYB.
-Tests:
-- TC-C12-01: 0 cross-tenant access across all routes.
-- TC-C12-02: API p95 under 300 ms with 50 concurrent users.
-- TC-C12-03: restore completes in under 4 h and the audit chain verifies.
+| Test | Expected | Source |
+|---|---|---|
+| TC-C10.1-01 | Dashboard figures equal counts computed directly from items, findings, risks and actions | oracle |
+| TC-C10.2-01 | A client user is sent to their own client and cannot open another | literal |
 
-### C13: Pilots and production on the server (R3)
-Production compose profile on `omnitrix` (web :53000, API :54000 behind a reverse proxy on the LAN), systemd/compose restart policies, nightly backups, the three pilots, measurement, and the 1.0 release.
-Tests:
-- TC-C13-01: coverage across the pilots is 100%.
-- TC-C13-02: at most 1.2 findings per root cause.
-- TC-C13-03: at least 90% agreement between assessors.
-- TC-C13-04: UAT signed off.
+### C11: Reports (R2)
+| Sub | Build |
+|---|---|
+| C11.1 | Excel exports: risk register, gap register, action plan, evidence register |
+| C11.2 | Printable executive and detailed assessment reports (browser print to PDF), ComplyX branding, disclaimer |
+
+| Test | Expected | Source |
+|---|---|---|
+| TC-C11.1-01 | The risk-register workbook has one row per risk with every column | oracle |
+| TC-C11.2-01 | The executive report shows every required section, the release and the date | literal |
+
+### C12: Hardening (R3) and C13: Pilots and production (R3)
+Unchanged in intent: isolation tests for every route, load test, restore drill, ClamAV, accessibility, self-assessment; then pilots and 1.0.
+
+### C14: ROPA, data inventory and DIA (V2) and C15: Vendors (V3)
+These are planned after V1. The C4 rules engine (applicability per anchor) moves into C14, where processing activities exist.
 
 ---
 

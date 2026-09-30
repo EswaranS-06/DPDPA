@@ -4,8 +4,9 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import styles from './LibraryNav.module.css'
 
-const ITEMS = [
-  { href: '/', label: 'Overview' },
+/** Sections of the framework library, in reading order. */
+export const LIBRARY_LINKS = [
+  { href: '/library', label: 'Overview' },
   { href: '/library/law', label: 'The law' },
   { href: '/library/obligations', label: 'Obligations' },
   { href: '/library/controls', label: 'Controls' },
@@ -18,14 +19,16 @@ const ITEMS = [
 ] as const
 
 const isCurrent = (pathname: string, href: string) =>
-  href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`)
+  href === '/library'
+    ? pathname === '/library'
+    : pathname === href || pathname.startsWith(`${href}/`)
 
 export const LibraryNav = () => {
   const pathname = usePathname()
   return (
     <nav aria-label="Framework library" className={styles.nav}>
       <ul className={styles.list}>
-        {ITEMS.map((item) => {
+        {LIBRARY_LINKS.map((item) => {
           const current = isCurrent(pathname, item.href)
           return (
             <li key={item.href}>

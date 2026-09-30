@@ -1,29 +1,20 @@
-import { loadRootEnvFile, parseEnv, webEnvSchema } from '@duatf/core-config'
 import { isoDate } from '@duatf/core-utils'
 import {
   createFrameworkLibraryApi,
   frameworkLibraryRouter,
+  type FrameworkLibraryApi,
 } from '@duatf/feature-framework-library-api'
-import { createDatabase, type DatabaseHandle } from '@duatf/platform-db'
 import { router } from '@duatf/platform-trpc'
-
-declare global {
-  // One connection pool per server process, reused across hot reloads in development.
-  var duatfDatabase: DatabaseHandle | undefined
-}
-
-export const database = (): DatabaseHandle => {
-  if (!globalThis.duatfDatabase) {
-    loadRootEnvFile()
-    const env = parseEnv(webEnvSchema)
-    globalThis.duatfDatabase = createDatabase(env.APP_DATABASE_URL, { max: 10 })
-  }
-  return globalThis.duatfDatabase
-}
+import { requireSession } from './auth'
+import { database } from './runtime'
 
 export const appRouter = router({ framework: frameworkLibraryRouter })
 
-export const libraryApi = () => createFrameworkLibraryApi({ db: database().db })
+/** The knowledge-base API for the signed-in user; redirects to sign-in otherwise. */
+export const libraryApi = async (): Promise<FrameworkLibraryApi> => {
+  const { principal } = await requireSession()
+  return createFrameworkLibraryApi({ db: database().db, principal })
+}
 
 /** Today's date in India, used for commencement status. */
 export const today = () => isoDate(new Date())

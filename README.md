@@ -5,7 +5,7 @@ This is a web application for running DPDP Act 2023 and DPDP Rules 2025 assessme
 It is a working compliance framework, not legal advice.
 
 - Design plan: `docs/DUATF-GRC-Platform-Plan.md`
-- Coding plan (phases C0–C13): `docs/DUATF-Coding-Plan.md`
+- Coding plan (phases C0–C15): `docs/DUATF-Coding-Plan.md`
 - Live build status, computed from test results: `plan/STATUS.md`
 - Design system: `docs/design/DUATF-Design-System.md`
 - Decisions: `docs/adr/`
@@ -14,12 +14,12 @@ It is a working compliance framework, not legal advice.
 
 | Service | Port | Notes |
 |---|---|---|
-| Web app (Next.js) | 53000 | Framework library UI, bound to 0.0.0.0 |
-| API (Fastify + tRPC) | 54000 | `/health`, `/trpc/*`, bound to 0.0.0.0 |
+| Web app (Next.js) | 53000 | Sign-in, client tracking, knowledge base; bound to 0.0.0.0 |
+| API (Fastify + tRPC) | 54000 | `/health`; tRPC answers 401 (no sessions on this port) |
 | PostgreSQL 16 | 55432 | Docker, `infra/docker-compose.yml` |
 | Redis 7 | 56379 | Docker |
 | MinIO (S3) | 59000 / 59001 | Docker; buckets `duatf-evidence`, `duatf-reports` |
-| Keycloak 26 | 58080 | Docker; used from C3 |
+| Keycloak 26 | 58080 | Docker; realm `duatf`, sign-in with password + authenticator app |
 | Mailpit | 51025 / 58025 | Docker; development mail |
 
 ## Layout
@@ -48,6 +48,8 @@ DUATF_HOST_IP=192.168.0.110 pnpm env:make           # writes .env from infra/.en
 pnpm install
 pnpm db:setup && pnpm db:migrate                    # app role, schema, RLS, release guards
 pnpm seed:import                                    # one-time: framework release 1.0.0
+pnpm kc:setup                                       # Keycloak realm, clients, policies (idempotent)
+pnpm admin:bootstrap                                # first firm admin; one-time password in .run/first-admin.txt
 pnpm build && bash infra/run-app.sh start
 ```
 
@@ -60,6 +62,8 @@ pnpm build && bash infra/run-app.sh start
 | `pnpm trace` | Matches test results to `plan/plan.yaml` and rewrites `plan/STATUS.md` |
 | `bash infra/run-app.sh restart` | Restarts the built web and API apps in the background |
 | `pnpm dev:web` / `pnpm dev:api` | Development servers on 0.0.0.0 |
+| `pnpm kc:setup` | Creates or updates the Keycloak realm `duatf` and its clients |
+| `pnpm admin:bootstrap --email … --name …` | Creates (or resets) a firm administrator |
 
 ## How tests prove the plan
 

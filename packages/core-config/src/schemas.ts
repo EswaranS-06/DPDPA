@@ -34,6 +34,38 @@ export const seedEnvSchema = z.object({
   SEED_VAULT_PATH: z.string().default('seed/DPDP-DUATF-Vault'),
 })
 
+const httpUrl = z
+  .url()
+  .regex(/^https?:\/\//, 'must be an http(s) URL')
+  .transform((value) => value.replace(/\/+$/, ''))
+
+/** Signing in through Keycloak (OpenID Connect) and keeping server-side sessions. */
+export const authEnvSchema = z.object({
+  PUBLIC_WEB_URL: httpUrl,
+  OIDC_ISSUER: httpUrl,
+  OIDC_CLIENT_ID: z.string().min(1),
+  OIDC_CLIENT_SECRET: z.string().min(16),
+  SESSION_TTL_HOURS: z.coerce.number().int().min(1).max(72).default(12),
+})
+
+/** The service account the application uses to create client users in Keycloak. */
+export const keycloakAdminEnvSchema = z.object({
+  KEYCLOAK_URL: httpUrl,
+  KEYCLOAK_REALM: z.string().min(1),
+  KEYCLOAK_ADMIN_CLIENT_ID: z.string().min(1),
+  KEYCLOAK_ADMIN_CLIENT_SECRET: z.string().min(16),
+})
+
+/** Master-realm administrator; used only by the realm setup and bootstrap tools. */
+export const keycloakSetupEnvSchema = keycloakAdminEnvSchema.extend({
+  PUBLIC_KEYCLOAK_URL: httpUrl,
+  KEYCLOAK_MASTER_USER: z.string().min(1),
+  KEYCLOAK_MASTER_PASSWORD: z.string().min(8),
+  PUBLIC_WEB_URL: httpUrl,
+  OIDC_CLIENT_ID: z.string().min(1),
+  OIDC_CLIENT_SECRET: z.string().min(16),
+})
+
 export const apiEnvSchema = serverEnvSchema
   .extend({ API_PORT: port.default(54000) })
   .extend(appDatabaseEnvSchema.shape)
@@ -43,7 +75,13 @@ export const apiEnvSchema = serverEnvSchema
 export const webEnvSchema = serverEnvSchema
   .extend({ WEB_PORT: port.default(53000) })
   .extend(appDatabaseEnvSchema.shape)
+  .extend(authEnvSchema.shape)
+  .extend(keycloakAdminEnvSchema.shape)
+  .extend(storageEnvSchema.shape)
 
 export type StorageEnv = z.infer<typeof storageEnvSchema>
+export type AuthEnv = z.infer<typeof authEnvSchema>
+export type KeycloakAdminEnv = z.infer<typeof keycloakAdminEnvSchema>
+export type KeycloakSetupEnv = z.infer<typeof keycloakSetupEnvSchema>
 export type ApiEnv = z.infer<typeof apiEnvSchema>
 export type WebEnv = z.infer<typeof webEnvSchema>

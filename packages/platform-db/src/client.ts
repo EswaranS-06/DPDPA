@@ -28,3 +28,21 @@ export const withTenant = <Result>(
     await tx.execute(sql`select set_config('app.tenant_id', ${tenantId}, true)`)
     return work(tx)
   })
+
+/** Tenants a transaction may see: every tenant (firm-wide staff) or a fixed list. */
+export type TenantScope = 'all' | readonly string[]
+
+/**
+ * Runs work in a transaction that row-level security limits to the given tenants.
+ * An empty list sees no tenant rows at all.
+ */
+export const withTenants = <Result>(
+  db: Database,
+  scope: TenantScope,
+  work: (tx: Transaction) => Promise<Result>,
+): Promise<Result> =>
+  db.transaction(async (tx) => {
+    if (scope === 'all') await tx.execute(sql`select set_config('app.all_tenants', 'on', true)`)
+    else await tx.execute(sql`select set_config('app.tenant_ids', ${scope.join(',')}, true)`)
+    return work(tx)
+  })

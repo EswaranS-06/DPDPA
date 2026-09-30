@@ -2,7 +2,7 @@ import { isoDate } from '@duatf/core-utils'
 import {
   createCallerFactory,
   notFound,
-  publicProcedure,
+  authedProcedure,
   router,
   type ApiContext,
 } from '@duatf/platform-trpc'
@@ -38,18 +38,18 @@ const isoDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD')
 const shortText = z.string().trim().max(200)
 
 export const frameworkLibraryRouter = router({
-  release: publicProcedure.query(async ({ ctx }) => {
+  release: authedProcedure.query(async ({ ctx }) => {
     const release = await releaseOf(ctx)
     return { version: release.version, publishedAt: release.publishedAt }
   }),
 
-  summary: publicProcedure
+  summary: authedProcedure
     .input(z.object({ asOf: isoDateSchema.optional() }).optional())
     .query(async ({ ctx, input }) =>
       getSummary(ctx.db, await releaseOf(ctx), input?.asOf ?? isoDate(new Date())),
     ),
 
-  obligations: publicProcedure
+  obligations: authedProcedure
     .input(
       z
         .object({
@@ -63,7 +63,7 @@ export const frameworkLibraryRouter = router({
     )
     .query(async ({ ctx, input }) => listObligations(ctx.db, await releaseOf(ctx), input ?? {})),
 
-  obligation: publicProcedure
+  obligation: authedProcedure
     .input(byCode)
     .query(
       async ({ ctx, input }) =>
@@ -71,7 +71,7 @@ export const frameworkLibraryRouter = router({
         notFound(`Obligation ${input.code}`),
     ),
 
-  controls: publicProcedure
+  controls: authedProcedure
     .input(
       z
         .object({
@@ -83,7 +83,7 @@ export const frameworkLibraryRouter = router({
     )
     .query(async ({ ctx, input }) => listControls(ctx.db, await releaseOf(ctx), input ?? {})),
 
-  control: publicProcedure
+  control: authedProcedure
     .input(byCode)
     .query(
       async ({ ctx, input }) =>
@@ -91,9 +91,9 @@ export const frameworkLibraryRouter = router({
         notFound(`Control ${input.code}`),
     ),
 
-  domains: publicProcedure.query(async ({ ctx }) => listDomains(ctx.db, await releaseOf(ctx))),
+  domains: authedProcedure.query(async ({ ctx }) => listDomains(ctx.db, await releaseOf(ctx))),
 
-  domain: publicProcedure
+  domain: authedProcedure
     .input(byCode)
     .query(
       async ({ ctx, input }) =>
@@ -101,9 +101,9 @@ export const frameworkLibraryRouter = router({
         notFound(`Domain ${input.code}`),
     ),
 
-  law: publicProcedure.query(async ({ ctx }) => listLaw(ctx.db, await releaseOf(ctx))),
+  law: authedProcedure.query(async ({ ctx }) => listLaw(ctx.db, await releaseOf(ctx))),
 
-  instrument: publicProcedure
+  instrument: authedProcedure
     .input(byCode)
     .query(
       async ({ ctx, input }) =>
@@ -111,9 +111,9 @@ export const frameworkLibraryRouter = router({
         notFound(`${input.code}`),
     ),
 
-  sectors: publicProcedure.query(async ({ ctx }) => listSectors(ctx.db, await releaseOf(ctx))),
+  sectors: authedProcedure.query(async ({ ctx }) => listSectors(ctx.db, await releaseOf(ctx))),
 
-  sector: publicProcedure
+  sector: authedProcedure
     .input(byCode)
     .query(
       async ({ ctx, input }) =>
@@ -121,11 +121,11 @@ export const frameworkLibraryRouter = router({
         notFound(`Sector ${input.code}`),
     ),
 
-  processes: publicProcedure
+  processes: authedProcedure
     .input(z.object({ sector: z.string().max(8).optional() }).optional())
     .query(async ({ ctx, input }) => listProcesses(ctx.db, await releaseOf(ctx), input ?? {})),
 
-  process: publicProcedure
+  process: authedProcedure
     .input(byCode)
     .query(
       async ({ ctx, input }) =>
@@ -133,15 +133,15 @@ export const frameworkLibraryRouter = router({
         notFound(`Process ${input.code}`),
     ),
 
-  dataElements: publicProcedure.query(async ({ ctx }) =>
+  dataElements: authedProcedure.query(async ({ ctx }) =>
     listDataElements(ctx.db, await releaseOf(ctx)),
   ),
 
-  vocabularies: publicProcedure.query(async ({ ctx }) =>
+  vocabularies: authedProcedure.query(async ({ ctx }) =>
     listVocabularies(ctx.db, await releaseOf(ctx)),
   ),
 
-  vocabulary: publicProcedure
+  vocabulary: authedProcedure
     .input(byCode)
     .query(
       async ({ ctx, input }) =>
@@ -149,9 +149,9 @@ export const frameworkLibraryRouter = router({
         notFound(`Vocabulary ${input.code}`),
     ),
 
-  playbooks: publicProcedure.query(async ({ ctx }) => listPlaybooks(ctx.db, await releaseOf(ctx))),
+  playbooks: authedProcedure.query(async ({ ctx }) => listPlaybooks(ctx.db, await releaseOf(ctx))),
 
-  playbook: publicProcedure
+  playbook: authedProcedure
     .input(z.object({ slug: z.string().min(1).max(80) }))
     .query(
       async ({ ctx, input }) =>
@@ -159,7 +159,7 @@ export const frameworkLibraryRouter = router({
         notFound(`Playbook ${input.slug}`),
     ),
 
-  search: publicProcedure
+  search: authedProcedure
     .input(z.object({ query: z.string().trim().min(1).max(200) }))
     .query(async ({ ctx, input }) => search(ctx.db, await releaseOf(ctx), input.query)),
 })

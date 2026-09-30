@@ -202,344 +202,377 @@ phases:
             source: oracle
 
   - id: C3
-    title: Authentication, tenancy, audit
+    title: 'Identity and access'
     release: R0
     reviews: [security]
     subphases:
       - id: C3.1
-        title: Keycloak OIDC and dev fallback
-        state: planned
+        title: 'Keycloak realm, clients, password policy, MFA'
+        state: active
         tests:
           - id: TC-C3.1-01
-            title: Dev auth mode refuses to start in production
-            expected: startup error
+            title: 'Realm setup is idempotent and the issuer is the LAN URL of realm duatf'
+            expected: 'same realm and clients after two runs; issuer http://192.168.0.110:58080/realms/duatf'
             source: literal
       - id: C3.2
-        title: Tenants, memberships, permissions, separation of duties
-        state: planned
+        title: 'OIDC login and logout, server-side sessions'
+        state: active
         tests:
           - id: TC-C3.2-01
-            title: Permission matrix enforced for every role and capability
-            expected: 100% match
-            source: golden
+            title: 'Sessions are stored only as hashes; expired or revoked sessions are refused'
+            expected: 'no raw token stored; expired and revoked refused'
+            source: literal
           - id: TC-C3.2-02
-            title: Preparer approving own item is refused and audited
-            expected: HTTP 403 + audit entry
+            title: 'The login callback rejects a mismatched state'
+            expected: 'callback refused'
             source: literal
       - id: C3.3
-        title: Hash-chained audit log
-        state: planned
+        title: 'Roles, permission matrix, client and department scoping'
+        state: active
         tests:
           - id: TC-C3.3-01
-            title: Tampering one audit row breaks chain verification at that row
-            expected: failure at the tampered row
+            title: 'Every role x capability equals the documented matrix'
+            expected: '100% match'
+            source: golden
+          - id: TC-C3.3-02
+            title: 'Auditor refused on an unassigned client; department owner refused outside their department'
+            expected: 'refused'
+            source: literal
+          - id: TC-C3.3-03
+            title: "A client user can never read another client's rows (RLS)"
+            expected: '0 rows'
             source: literal
       - id: C3.4
-        title: Notifications
-        state: planned
-        tests: []
+        title: 'Hash-chained audit log'
+        state: active
+        tests:
+          - id: TC-C3.4-01
+            title: 'Tampering with one audit row breaks verification at that row'
+            expected: 'failure at the tampered row'
+            source: literal
       - id: C3.5
-        title: Web shell with login and tenant switcher
-        state: planned
+        title: 'App shell, role-aware navigation, first admin'
+        state: active
         tests:
           - id: TC-C3.5-01
-            title: Sign in, switch tenant, see only that tenant's data
-            expected: E2E pass
-            source: literal
+            title: 'Login through Keycloak from a LAN machine lands on the role home page'
+            expected: 'signed in'
+            source: manual
+            kind: manual
 
   - id: C4
-    title: Rules engine
+    title: 'Knowledge base and question bank'
     release: R1
-    reviews: [legal_sme, tech_lead]
+    reviews: [legal_sme]
     subphases:
       - id: C4.1
-        title: v1 evaluator
+        title: 'Single knowledge-base page'
         state: planned
         tests:
           - id: TC-C4.1-01
-            title: DemoPay applicable counts on release 1.0.0
-            expected: 46, 67, 63, 54, 64, 67
+            title: 'Every knowledge-base section returns items and any item resolves by code'
+            expected: 'all sections non-empty; items resolve'
             source: oracle
       - id: C4.2
-        title: Differential harness
+        title: 'Release 1.1.0 with question bank and SPDI sunset'
         state: planned
         tests:
           - id: TC-C4.2-01
-            title: 594 of 594 rows identical to the Python engine
-            expected: 0 differences
+            title: 'Release 1.1.0 carries every 1.0.0 row unchanged'
+            expected: 'equal counts per table'
             source: oracle
           - id: TC-C4.2-02
-            title: 10,000 random contexts identical to the Python engine
-            expected: 0 differences
+            title: 'One question per control, each with references, evidence and a recommendation'
+            expected: 'questions = controls, all complete'
             source: oracle
+          - id: TC-C4.2-03
+            title: 'LNK-SPDI-01 live on 12 May 2027, not on 13 May 2027'
+            expected: 'true, false'
+            source: literal
       - id: C4.3
-        title: v0.2 evaluator
+        title: 'Evidence suggestions'
         state: planned
         tests:
           - id: TC-C4.3-01
-            title: Six stress scenarios match the signed expected files
-            expected: match
-            source: sme
-          - id: TC-C4.3-07
-            title: Readiness and compliance labels follow as_of
-            expected: readiness before, compliance from 2027-05-13
-            source: literal
-      - id: C4.4
-        title: Explanations and overrides
-        state: planned
-        tests:
-          - id: TC-C4.4-01
-            title: Every N/A row has a reason; only approved overrides change results
-            expected: 100%; audited
-            source: literal
-      - id: C4.5
-        title: Incremental recompute
-        state: planned
-        tests:
-          - id: TC-C4.5-01
-            title: Recompute performance
-            expected: full < 10 s; single change p95 < 1 s
-            source: literal
-          - id: TC-C4.5-02
-            title: Deterministic output
-            expected: identical hash over 100 runs
+            title: 'Suggestions are split into required, recommended and supporting with no duplicates'
+            expected: 'three disjoint lists'
             source: literal
 
   - id: C5
-    title: Client graph
+    title: 'Clients and organisation'
     release: R1
-    reviews: [assessor]
+    reviews: [lead_auditor]
     subphases:
       - id: C5.1
-        title: Graph schema and API
+        title: 'Client onboarding'
         state: planned
         tests:
           - id: TC-C5.1-01
-            title: A shared system is stored once and its finding is visible from every activity
-            expected: 1 row; 30 activities
+            title: 'Onboarding validates required fields and gives a unique client code'
+            expected: 'field errors; unique code'
+            source: literal
+      - id: C5.2
+        title: 'Departments'
+        state: planned
+        tests:
+          - id: TC-C5.2-01
+            title: 'Department codes are unique within a client'
+            expected: 'duplicate refused'
             source: literal
       - id: C5.3
-        title: Workshop mode
+        title: 'Client users and invitations'
         state: planned
         tests:
           - id: TC-C5.3-01
-            title: Support staff outside India sets cross_border and prompts a flow
-            expected: flag set; flow prompt
+            title: 'Inviting creates one app user with a role scoped to the client; a repeat invite does not duplicate'
+            expected: '1 user, 1 role'
             source: literal
-      - id: C5.5
-        title: Import and DemoPay tenant
+      - id: C5.4
+        title: 'Firm staff assignment'
         state: planned
         tests:
-          - id: TC-C5.5-01
-            title: DemoPay tenant object counts equal the seed example
-            expected: 6, 6, 7, 13, 6, 5, 4, 4
-            source: oracle
-      - id: C5.6
-        title: Completeness checks
-        state: planned
-        tests:
-          - id: TC-C5.6-01
-            title: DemoPay completeness flags CUS-001 consent basis without a consent purpose
-            expected: flagged
-            source: golden
+          - id: TC-C5.4-01
+            title: 'Firm admin sees all clients; auditor sees assigned clients only'
+            expected: 'filtered lists'
+            source: literal
 
   - id: C6
-    title: Engagement and scoping
+    title: 'Assessment execution'
     release: R1
-    reviews: [legal_sme]
+    reviews: [lead_auditor]
     subphases:
+      - id: C6.1
+        title: 'Assessment cycles'
+        state: planned
+        tests:
+          - id: TC-C6.1-01
+            title: 'A new assessment pins the release and creates one item per question'
+            expected: 'items = questions'
+            source: oracle
       - id: C6.2
-        title: Scoping questionnaire and facts
+        title: 'Items and department assignment'
         state: planned
         tests:
           - id: TC-C6.2-01
-            title: Answers map to facts and tracks
-            expected: Q17 third_schedule, Q9 CM track, Q7 processor track
-            source: golden
-          - id: TC-C6.2-02
-            title: DemoPay answers reproduce ORG-DEMO profile
-            expected: equal
-            source: golden
-      - id: C6.5
-        title: Profile approval
+            title: "A department owner can answer only their department's items"
+            expected: 'refused elsewhere'
+            source: literal
+      - id: C6.3
+        title: 'Answers'
         state: planned
         tests:
-          - id: TC-C6.5-01
-            title: Compliance-mode run blocked on unapproved profile
-            expected: blocked
+          - id: TC-C6.3-01
+            title: 'Not applicable needs a reason; answers map to compliance states'
+            expected: 'mapping holds'
             source: literal
+      - id: C6.4
+        title: 'Review and progress'
+        state: planned
+        tests:
+          - id: TC-C6.4-01
+            title: 'Progress and compliance percentages equal the fixture'
+            expected: 'fixture values'
+            source: golden
 
   - id: C7
-    title: Testing and review
+    title: 'Evidence'
     release: R1
-    reviews: [assessor, legal_sme]
+    reviews: [lead_auditor]
     subphases:
+      - id: C7.1
+        title: 'Upload and storage'
+        state: planned
+        tests:
+          - id: TC-C7.1-01
+            title: 'Upload stores SHA-256; downloads only via a short-lived link for authorised users'
+            expected: 'hash matches; unauthorised refused'
+            source: literal
+      - id: C7.2
+        title: 'Links to items, findings and actions'
+        state: planned
+        tests:
+          - id: TC-C7.2-01
+            title: 'One evidence item links to several questions'
+            expected: 'shown on each'
+            source: literal
+      - id: C7.3
+        title: 'Review and expiry'
+        state: planned
+        tests:
+          - id: TC-C7.3-01
+            title: 'Accept or reject needs a reviewer other than the uploader'
+            expected: 'uploader refused'
+            source: literal
       - id: C7.4
-        title: Assurance validator and review
+        title: 'Evidence repository'
         state: planned
-        tests:
-          - id: TC-C7.4-01
-            title: Inquiry-only test with maturity 3 is rejected
-            expected: rejected
-            source: literal
-      - id: C7.5
-        title: Status derivation
-        state: planned
-        tests:
-          - id: TC-C7.5-01
-            title: Derivation truth table
-            expected: 12 of 12
-            source: golden
-          - id: TC-C7.5-02
-            title: One criterion change propagates to the entity index
-            expected: under 2 s, audited
-            source: literal
+        tests: []
 
   - id: C8
-    title: Gaps, findings, risk, roadmap
+    title: 'Findings, gaps and risks'
     release: R1
-    reviews: [legal_sme, assessor]
+    reviews: [legal_sme, lead_auditor]
     subphases:
+      - id: C8.1
+        title: 'Gap rules and findings'
+        state: planned
+        tests:
+          - id: TC-C8.1-01
+            title: 'No opens exactly one finding; Yes closes it with history'
+            expected: '1 open, then closed'
+            source: literal
       - id: C8.2
-        title: Finding composer
+        title: 'Risk register and scoring'
         state: planned
         tests:
           - id: TC-C8.2-01
-            title: CTL-NOT-01 failing at PUR-DEMO-001 gives one finding covering OBL-NOT-01..04
-            expected: 1 finding
-            source: golden
+            title: 'Score = L x I with configurable bands'
+            expected: '4 Low, 5 Medium, 9 Medium, 10 High, 16 High, 17 Critical, 25 Critical'
+            source: literal
       - id: C8.3
-        title: Risk engine
+        title: 'Recommendations from the knowledge base'
         state: planned
         tests:
           - id: TC-C8.3-01
-            title: FND-DEMO-001 scores 15 High
-            expected: L5 x I3 = 15
-            source: golden
-          - id: TC-C8.3-02
-            title: Band boundaries
-            expected: 4 Low, 5 Medium, 9 Medium, 10 High, 16 High, 17 Critical, 25 Critical
-            source: literal
-      - id: C8.E2E
-        title: End-to-end assessment
-        state: planned
-        tests:
-          - id: TC-C8.E2E-01
-            title: DemoPay from scoping to a report-ready finding list
-            expected: E2E pass
-            source: literal
+            title: "A finding carries its question's recommendation and references"
+            expected: 'present'
+            source: oracle
 
   - id: C9
-    title: Remediation
+    title: 'Remediation and re-assessment'
     release: R2
-    reviews: [assessor]
+    reviews: [lead_auditor]
     subphases:
       - id: C9.1
-        title: Actions, retest, risk acceptance, reminders
+        title: 'Actions'
         state: planned
         tests:
-          - id: TC-C9-01
-            title: Passing retest closes the finding and recomputes roll-up
-            expected: closed
+          - id: TC-C9.1-01
+            title: 'Only allowed status transitions are accepted'
+            expected: 'invalid refused'
             source: literal
-          - id: TC-C9-02
-            title: Critical risk acceptance by DPO-level user is refused
-            expected: refused
+      - id: C9.2
+        title: 'Verification'
+        state: planned
+        tests:
+          - id: TC-C9.2-01
+            title: 'Closing without evidence or by the owner is refused'
+            expected: 'refused'
             source: literal
-          - id: TC-C9-03
-            title: One reminder at target minus 7 days
-            expected: 1
+      - id: C9.3
+        title: 'Re-assessment'
+        state: planned
+        tests:
+          - id: TC-C9.3-01
+            title: 'A re-assessment copies scope and links to the previous cycle'
+            expected: 'copied and linked'
             source: literal
 
   - id: C10
-    title: Operations registers
+    title: 'Dashboards and client sharing'
     release: R2
-    reviews: [legal_sme]
+    reviews: [lead_auditor]
     subphases:
       - id: C10.1
-        title: Rights, breach, DPIA, vendors, regulatory change, commencement job
+        title: 'Firm portfolio dashboard'
         state: planned
         tests:
-          - id: TC-C10-01
-            title: Rights request received 2027-06-01 is due 2027-08-30
-            expected: 2027-08-30
-            source: literal
-          - id: TC-C10-02
-            title: Breach aware 2027-06-10 10:00 IST is due to CERT-In at 16:00 IST
-            expected: 2027-06-10 16:00 IST
-            source: literal
-          - id: TC-C10-03
-            title: On 2027-05-13 readiness gaps become compliance gaps and SPDI stops being live
-            expected: converted; SPDI not live
+          - id: TC-C10.1-01
+            title: 'Dashboard figures equal direct counts'
+            expected: 'equal'
+            source: oracle
+      - id: C10.2
+        title: 'Client dashboard and portal'
+        state: planned
+        tests:
+          - id: TC-C10.2-01
+            title: 'A client user is sent to their own client and cannot open another'
+            expected: 'redirected; refused'
             source: literal
 
   - id: C11
-    title: Reporting
+    title: 'Reports'
     release: R2
     reviews: [legal_sme]
     subphases:
       - id: C11.1
-        title: Dashboards, reports, exports, audit viewer
+        title: 'Excel exports'
         state: planned
         tests:
-          - id: TC-C11-01
-            title: Same snapshot gives the same content hash
-            expected: equal
-            source: literal
-          - id: TC-C11-02
-            title: Report citing an unverified item is blocked
-            expected: blocked
-            source: literal
-          - id: TC-C11-03
-            title: Disclaimer, release, snapshot hash and as_of on every report
-            expected: present
+          - id: TC-C11.1-01
+            title: 'Risk-register workbook has one row per risk with every column'
+            expected: 'rows = risks'
+            source: oracle
+      - id: C11.2
+        title: 'Printable reports'
+        state: planned
+        tests:
+          - id: TC-C11.2-01
+            title: 'Executive report shows required sections, release and date'
+            expected: 'present'
             source: literal
 
   - id: C12
-    title: Hardening
+    title: 'Hardening'
     release: R3
     reviews: [security]
     subphases:
       - id: C12.1
-        title: Isolation, load, restore, ClamAV, accessibility, self-assessment
+        title: 'Isolation, load, restore, ClamAV, accessibility'
         state: planned
         tests:
           - id: TC-C12-01
-            title: No cross-tenant access across all routes
-            expected: 0
+            title: 'No cross-tenant access across all routes'
+            expected: '0'
             source: literal
           - id: TC-C12-02
-            title: API p95 under load
-            expected: under 300 ms at 50 users
+            title: 'API p95 under load'
+            expected: 'under 300 ms at 50 users'
             source: literal
           - id: TC-C12-03
-            title: Restore drill
-            expected: under 4 h; audit chain verifies
+            title: 'Restore drill'
+            expected: 'under 4 h; audit chain verifies'
             source: literal
 
   - id: C13
-    title: Pilots and production on the server
+    title: 'Pilots and production'
     release: R3
     reviews: [leadership]
     subphases:
       - id: C13.1
-        title: Production profile, pilots, measurement, 1.0
+        title: 'Production profile, pilots, 1.0'
         state: planned
         tests:
           - id: TC-C13-01
-            title: Pilot coverage of operative sections
-            expected: 100%
+            title: 'Pilot findings per root cause'
+            expected: 'at most 1.2'
             source: literal
           - id: TC-C13-02
-            title: Findings per root cause
-            expected: at most 1.2
-            source: literal
-          - id: TC-C13-03
-            title: Inter-assessor agreement
-            expected: at least 90%
-            source: literal
-          - id: TC-C13-04
-            title: UAT sign-off
-            expected: signed
+            title: 'UAT sign-off'
+            expected: 'signed'
             source: manual
             kind: manual
+
+  - id: C14
+    title: 'ROPA, data inventory and DIA (V2)'
+    release: R3
+    reviews: [legal_sme]
+    subphases:
+      - id: C14.1
+        title: 'Processing activities, ROPA, DIA, applicability engine'
+        state: planned
+        tests:
+          - id: TC-C14-01
+            title: 'DemoPay applicable counts on release 1.0.0 equal the Python engine'
+            expected: '46, 67, 63, 54, 64, 67'
+            source: oracle
+
+  - id: C15
+    title: 'Vendors (V3)'
+    release: R3
+    reviews: [lead_auditor]
+    subphases:
+      - id: C15.1
+        title: 'Vendor register, questionnaire, risk'
+        state: planned
+        tests: []

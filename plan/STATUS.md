@@ -11,17 +11,19 @@ Gate: **passing**
 | C0 | Repository and tooling | R0 | TESTS PASSING | tech_lead pending |
 | C1 | Infrastructure and database core | R0 | TESTS PASSING | architect pending |
 | C2 | Framework in the database | R0 | TESTS PASSING | legal_sme pending, tech_lead pending |
-| C3 | Authentication, tenancy, audit | R0 | PLANNED | security pending |
-| C4 | Rules engine | R1 | PLANNED | legal_sme pending, tech_lead pending |
-| C5 | Client graph | R1 | PLANNED | assessor pending |
-| C6 | Engagement and scoping | R1 | PLANNED | legal_sme pending |
-| C7 | Testing and review | R1 | PLANNED | assessor pending, legal_sme pending |
-| C8 | Gaps, findings, risk, roadmap | R1 | PLANNED | legal_sme pending, assessor pending |
-| C9 | Remediation | R2 | PLANNED | assessor pending |
-| C10 | Operations registers | R2 | PLANNED | legal_sme pending |
-| C11 | Reporting | R2 | PLANNED | legal_sme pending |
+| C3 | Identity and access | R0 | IN PROGRESS | security pending |
+| C4 | Knowledge base and question bank | R1 | PLANNED | legal_sme pending |
+| C5 | Clients and organisation | R1 | PLANNED | lead_auditor pending |
+| C6 | Assessment execution | R1 | PLANNED | lead_auditor pending |
+| C7 | Evidence | R1 | PLANNED | lead_auditor pending |
+| C8 | Findings, gaps and risks | R1 | PLANNED | legal_sme pending, lead_auditor pending |
+| C9 | Remediation and re-assessment | R2 | PLANNED | lead_auditor pending |
+| C10 | Dashboards and client sharing | R2 | PLANNED | lead_auditor pending |
+| C11 | Reports | R2 | PLANNED | legal_sme pending |
 | C12 | Hardening | R3 | PLANNED | security pending |
-| C13 | Pilots and production on the server | R3 | PLANNED | leadership pending |
+| C13 | Pilots and production | R3 | PLANNED | leadership pending |
+| C14 | ROPA, data inventory and DIA (V2) | R3 | PLANNED | legal_sme pending |
+| C15 | Vendors (V3) | R3 | PLANNED | lead_auditor pending |
 
 ## Tests in active sub-phases
 
@@ -52,5 +54,13 @@ Gate: **passing**
 | TC-C2.5-03 | C2.5 | Triggers are described in plain English | literal cases | literal | PASS |
 | TC-C2.5-04 | C2.5 | Search finds obligations and law by code, citation and words | "Rule 7" finds R07 and OBL-BRE-* | literal | PASS |
 | TC-C2.5-05 | C2.5 | In-force counts by date equal the seed | 7 on 2026-09-30, 13 on 2026-11-13, 99 on 2027-05-13 | oracle | PASS |
+| TC-C3.1-01 | C3.1 | Realm setup is idempotent and the issuer is the LAN URL of realm duatf | same realm and clients after two runs; issuer http://192.168.0.110:58080/realms/duatf | literal | PASS |
+| TC-C3.2-01 | C3.2 | Sessions are stored only as hashes; expired or revoked sessions are refused | no raw token stored; expired and revoked refused | literal | PASS |
+| TC-C3.2-02 | C3.2 | The login callback rejects a mismatched state | callback refused | literal | PASS |
+| TC-C3.3-01 | C3.3 | Every role x capability equals the documented matrix | 100% match | golden | PASS |
+| TC-C3.3-02 | C3.3 | Auditor refused on an unassigned client; department owner refused outside their department | refused | literal | PASS |
+| TC-C3.3-03 | C3.3 | A client user can never read another client's rows (RLS) | 0 rows | literal | PASS |
+| TC-C3.4-01 | C3.4 | Tampering with one audit row breaks verification at that row | failure at the tampered row | literal | PASS |
+| TC-C3.5-01 | C3.5 | Login through Keycloak from a LAN machine lands on the role home page | signed in | manual | MANUAL-PENDING |
 
-47 further tests are planned in later sub-phases.
+36 further tests are planned in later sub-phases.

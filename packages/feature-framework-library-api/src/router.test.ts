@@ -20,12 +20,19 @@ const linkedCodes = (note: string, listName: string) => {
   return [...block.matchAll(/\[\[([A-Z]+-[A-Z0-9-]+)/g)].map((match) => match[1] ?? '')
 }
 
+const reader = {
+  userId: 'reader',
+  email: 'reader@example.test',
+  displayName: 'Reader',
+  assignments: [{ role: 'auditor' as const, clientId: null, departmentId: null }],
+}
+
 let handle: DatabaseHandle
 let api: FrameworkLibraryApi
 
 beforeAll(() => {
   handle = createDatabase(env.TEST_APP_DATABASE_URL, { max: 3 })
-  api = createFrameworkLibraryApi({ db: handle.db })
+  api = createFrameworkLibraryApi({ db: handle.db, principal: reader })
 })
 afterAll(() => handle.close())
 

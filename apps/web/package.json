@@ -10,12 +10,14 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "@duatf/core-access": "workspace:*",
     "@duatf/core-config": "workspace:*",
     "@duatf/core-ui": "workspace:*",
     "@duatf/core-utils": "workspace:*",
     "@duatf/feature-framework-library": "workspace:*",
     "@duatf/feature-framework-library-api": "workspace:*",
     "@duatf/platform-db": "workspace:*",
+    "@duatf/platform-identity": "workspace:*",
     "@duatf/platform-trpc": "workspace:*",
     "@trpc/server": "catalog:",
     "next": "catalog:",
