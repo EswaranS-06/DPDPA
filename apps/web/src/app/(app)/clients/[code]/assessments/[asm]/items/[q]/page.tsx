@@ -6,16 +6,26 @@ import {
   getItem,
   NotFoundError,
   listDepartments,
+  listEvidence,
+  listItemEvidence,
 } from '@duatf/feature-compliance-api'
 import { describeApplicability, kbHref } from '@duatf/feature-framework-library-api'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ComplianceChip, ReviewChip } from '@/components/assessment/AssessmentBits'
+import { EvidenceTable } from '@/components/evidence/EvidenceTable'
+import { LinkEvidenceForm, UploadEvidenceForm } from '@/components/forms/EvidenceForms'
+import formStyles from '@/components/forms/forms.module.css'
 import { AnswerForm, AssignForm, ReviewForm } from '@/components/forms/AssessmentForms'
 import { loadClient } from '@/server/clients'
 import { serviceContext } from '@/server/services'
 import styles from '../../../../../clients.module.css'
+import {
+  linkEvidenceAction,
+  unlinkEvidenceAction,
+  uploadEvidenceAction,
+} from '../../../../evidence/actions'
 import { answerItemAction, assignItemsAction, reviewItemAction } from '../../../actions'
 
 export const dynamic = 'force-dynamic'
@@ -69,6 +79,17 @@ export default async function Page({ params }: Props) {
         ? 'This assessment is under review; only answers sent back can be changed.'
         : undefined
   const departments = canAssign ? await listDepartments(ctx, client.id) : []
+  const canUpload = can(ctx.principal, 'evidence.upload', scope)
+  const [attached, repository] = await Promise.all([
+    listItemEvidence(ctx, client.id, item.id),
+    canUpload ? listEvidence(ctx, client.id) : Promise.resolve([]),
+  ])
+  const evidenceTarget = {
+    clientId: client.id,
+    clientCode: client.code,
+    returnPath: `${base}/items/${question.code}`,
+  }
+  const unlink = unlinkEvidenceAction.bind(null, evidenceTarget)
 
   return (
     <article className={styles.section} aria-labelledby="question-text">
@@ -126,6 +147,48 @@ export default async function Page({ params }: Props) {
                 </p>
               </>
             )}
+          </section>
+
+          <section className={styles.section} aria-labelledby="evidence-title">
+            <h3 id="evidence-title" className={styles.subTitle}>
+              Evidence
+            </h3>
+            {attached.length === 0 ? (
+              <p className={styles.muted}>No evidence attached yet.</p>
+            ) : (
+              <EvidenceTable
+                rows={attached}
+                clientCode={client.code}
+                action={
+                  canUpload
+                    ? (row) => (
+                        <form action={unlink}>
+                          <input type="hidden" name="evidenceId" value={row.id} />
+                          <input type="hidden" name="itemId" value={item.id} />
+                          <button type="submit" className={formStyles.linkish}>
+                            Unlink
+                          </button>
+                        </form>
+                      )
+                    : undefined
+                }
+              />
+            )}
+            {canUpload && assessment.status !== 'completed' ? (
+              <div className={`${styles.section} ${styles.panel}`}>
+                <UploadEvidenceForm
+                  action={uploadEvidenceAction.bind(null, evidenceTarget)}
+                  itemId={item.id}
+                />
+                <LinkEvidenceForm
+                  action={linkEvidenceAction.bind(null, evidenceTarget)}
+                  itemId={item.id}
+                  options={repository
+                    .filter((row) => !attached.some((linked) => linked.id === row.id))
+                    .map((row) => ({ value: row.id, label: `${row.code} ${row.title}` }))}
+                />
+              </div>
+            ) : null}
           </section>
 
           {item.reviewState !== 'not_reviewed' ? (

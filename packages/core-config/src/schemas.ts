@@ -23,6 +23,8 @@ export const storageEnvSchema = z.object({
   S3_SECRET_KEY: z.string().min(8),
   S3_BUCKET_EVIDENCE: z.string().min(3),
   S3_BUCKET_REPORTS: z.string().min(3),
+  /** Address of the object store as other machines see it; used in download links. */
+  S3_PUBLIC_ENDPOINT: z.url().optional(),
 })
 
 export const serverEnvSchema = z.object({

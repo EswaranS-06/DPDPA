@@ -69,3 +69,31 @@
 .danger:hover {
   border-color: var(--color-severe);
 }
+
+.fileField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.fileLabel {
+  font-weight: 600;
+  font-size: var(--text-sm);
+}
+
+.fileField input[type='file'] {
+  padding: 0.4rem;
+  font: inherit;
+  font-size: var(--text-sm);
+  background: var(--color-sheet);
+  border: 1px dashed var(--color-rule-strong);
+  border-radius: var(--radius-control);
+}
+
+.fieldError {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-severe);
+}

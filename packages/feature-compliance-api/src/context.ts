@@ -21,11 +21,23 @@ export type UserProvisioner = {
   setEnabled: (accountId: string, enabled: boolean) => Promise<void>
 }
 
-/** Everything a service call needs: the database, who is acting, and account provisioning. */
+/** Where evidence files live (MinIO in production). */
+export type EvidenceStorage = {
+  put: (
+    key: string,
+    content: Buffer,
+    contentType: string,
+  ) => Promise<{ sha256: string; size: number }>
+  signedUrl: (key: string, seconds: number, fileName: string) => Promise<string>
+  remove: (key: string) => Promise<void>
+}
+
+/** Everything a service call needs: the database, who is acting, accounts and file storage. */
 export type ServiceContext = {
   db: Database
   principal: Principal
   provisioner: UserProvisioner
+  storage?: EvidenceStorage
 }
 
 /** Runs work limited (by row-level security) to the clients the user may see. */

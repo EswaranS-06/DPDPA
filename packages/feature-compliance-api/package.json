@@ -14,6 +14,7 @@
     "@duatf/core-utils": "workspace:*",
     "@duatf/platform-db": "workspace:*",
     "@duatf/platform-identity": "workspace:*",
+    "@duatf/platform-storage": "workspace:*",
     "zod": "catalog:"
   },
   "devDependencies": {

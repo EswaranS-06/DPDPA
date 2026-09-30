@@ -381,7 +381,7 @@ phases:
     subphases:
       - id: C7.1
         title: 'Upload and storage'
-        state: planned
+        state: active
         tests:
           - id: TC-C7.1-01
             title: 'Upload stores SHA-256; downloads only via a short-lived link for authorised users'
@@ -389,7 +389,7 @@ phases:
             source: literal
       - id: C7.2
         title: 'Links to items, findings and actions'
-        state: planned
+        state: active
         tests:
           - id: TC-C7.2-01
             title: 'One evidence item links to several questions'
@@ -397,7 +397,7 @@ phases:
             source: literal
       - id: C7.3
         title: 'Review and expiry'
-        state: planned
+        state: active
         tests:
           - id: TC-C7.3-01
             title: 'Accept or reject needs a reviewer other than the uploader'
@@ -405,8 +405,12 @@ phases:
             source: literal
       - id: C7.4
         title: 'Evidence repository'
-        state: planned
-        tests: []
+        state: active
+        tests:
+          - id: TC-C7.4-01
+            title: 'The repository filters by status and flags evidence past its valid-until date'
+            expected: 'filtered; expired flagged'
+            source: literal
 
   - id: C8
     title: 'Findings, gaps and risks'

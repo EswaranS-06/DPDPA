@@ -1,6 +1,8 @@
 import { AccessDeniedError } from '@duatf/core-access'
 import {
   keycloakProvisioner,
+  objectEvidenceStorage,
+  type EvidenceStorage,
   NotFoundError,
   RuleError,
   ValidationError,
@@ -11,6 +13,7 @@ import {
   createKeycloakAdmin,
   type KeycloakAdmin,
 } from '@duatf/platform-identity'
+import { createObjectStore } from '@duatf/platform-storage'
 import { requireSession, type Session } from './auth'
 import type { FormState } from '@/lib/formState'
 import { database, env } from './runtime'
@@ -19,6 +22,17 @@ export type { FormState } from '@/lib/formState'
 
 declare global {
   var duatfKeycloakAdmin: KeycloakAdmin | undefined
+  var duatfEvidenceStorage: EvidenceStorage | undefined
+}
+
+const evidenceStorage = (): EvidenceStorage => {
+  if (!globalThis.duatfEvidenceStorage) {
+    const settings = env()
+    globalThis.duatfEvidenceStorage = objectEvidenceStorage(
+      createObjectStore(settings, settings.S3_BUCKET_EVIDENCE),
+    )
+  }
+  return globalThis.duatfEvidenceStorage
 }
 
 const keycloakAdmin = (): KeycloakAdmin => {
@@ -45,6 +59,7 @@ export const serviceContext = async (): Promise<ServiceContext & { session: Sess
     db: database().db,
     principal: session.principal,
     provisioner: keycloakProvisioner(keycloakAdmin(), env().KEYCLOAK_REALM),
+    storage: evidenceStorage(),
   }
 }
 
