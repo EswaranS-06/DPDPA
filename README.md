@@ -27,16 +27,35 @@ It is a working compliance framework, not legal advice.
 ```text
 apps/web          Next.js app: routes mount feature screens
 apps/backend      Fastify API: health, tRPC, (later) workers and clocks
-packages/core-*   platform-agnostic: config, utils, ui (design tokens, primitives)
-packages/platform-*  database (Drizzle, RLS, migrations), tRPC context, object storage
-packages/feature-*   framework library UI and its API
+packages/core-*   platform-agnostic: config, utils, access (roles, capabilities), ui (tokens, forms)
+packages/platform-*  database (Drizzle, RLS, migrations), identity (Keycloak, sessions), tRPC, storage
+packages/feature-framework-library*  knowledge base page and its API
+packages/feature-compliance-api      clients, assessments, evidence, findings, risks, remediation,
+                                     dashboards and reports (services used by the web app)
 tools/            seed import, traceability, lint rules, test support
-seed/             DUATF vault: one-time import input and parity fixture
+seed/             DUATF vault (release 1.0.0 input) and question-bank/questions.yaml (release 1.1.0)
 infra/            docker compose, env generator, app runner
 plan/             plan.yaml (tests per sub-phase), STATUS.md, manual results, reviews
 ```
 
 Dependencies only point downward: `apps -> feature-* -> platform-* -> core-*`. The lint rules enforce this.
+
+## What the application does (V1)
+
+| Area | Where | Notes |
+|---|---|---|
+| Sign-in | `/login` | Keycloak realm `duatf`: password + authenticator app; server-side sessions |
+| Portfolio | `/` | Every visible client: latest assessment, gaps, serious risks, overdue actions |
+| Clients | `/clients` | Onboarding profile, departments, client users (one-time password), Xyberu team |
+| Assessments | client > Assessments | One item per question of the pinned release; answers, review, progress |
+| Evidence | client > Evidence | SHA-256, five-minute download links, review, expiry |
+| Findings and risks | client > Findings, Risks | Gap rule, L x I scoring with configurable bands, DPO risk acceptance |
+| Remediation | client > Remediation | Nine-status workflow, owner cannot verify or close, re-assessment |
+| Reports | client > Reports | Excel compliance workbook; printable executive report |
+| Knowledge base | `/knowledge-base` | Law, obligations, controls, question bank and reference lists on one page |
+| Administration | `/admin/staff`, `/admin/risk-bands` | Firm administrators only |
+
+Client users see only their own organisation (row-level security plus capability checks).
 
 ## First-time setup (on the server)
 
