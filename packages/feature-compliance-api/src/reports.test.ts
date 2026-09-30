@@ -18,12 +18,8 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { answerItem, createAssessment, listItems } from './assessments'
 import { createClient } from './clients'
 import type { ServiceContext } from './context'
-import {
-  buildComplianceWorkbook,
-  EXECUTIVE_SECTIONS,
-  executiveReport,
-  RISK_REGISTER_COLUMNS,
-} from './reports'
+import { EXECUTIVE_SECTIONS, executiveReport } from './reports'
+import { buildComplianceWorkbook, RISK_REGISTER_COLUMNS, WORKBOOK_SHEETS } from './workbooks'
 
 const env = parseEnv(testDatabaseEnvSchema)
 
@@ -86,11 +82,14 @@ describe('Excel exports', () => {
       bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer,
     )
     expect(book.worksheets.map((sheet) => sheet.name)).toEqual([
+      'Dashboard',
+      'Departments',
       'Risk register',
       'Findings',
       'Remediation',
       'Answers',
     ])
+    expect(book.worksheets.map((sheet) => sheet.name)).toEqual([...WORKBOOK_SHEETS.client])
     const sheet = book.getWorksheet('Risk register')
     const header = (sheet?.getRow(1).values as unknown[]).slice(1)
     expect(header).toEqual([...RISK_REGISTER_COLUMNS])

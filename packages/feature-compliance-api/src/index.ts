@@ -93,6 +93,7 @@ export {
   listFindings,
   getFinding,
   syncFinding,
+  closeRemediatedFinding,
   type FindingFilters,
   type FindingRow,
   type FindingDetail,
@@ -131,15 +132,23 @@ export {
 export {
   portfolio,
   clientFigures,
+  departmentBreakdown,
+  departmentDashboard,
   homeFor,
+  NO_DEPARTMENT,
   type Portfolio,
   type PortfolioRow,
   type ClientFigures,
+  type DomainProgress,
+  type DepartmentBreakdown,
+  type DepartmentFigureRow,
+  type DepartmentDashboard,
 } from './dashboard'
+export { executiveReport, EXECUTIVE_SECTIONS, type ExecutiveReport } from './reports'
 export {
   buildComplianceWorkbook,
-  executiveReport,
+  buildPortfolioWorkbook,
+  buildDepartmentWorkbook,
   RISK_REGISTER_COLUMNS,
-  EXECUTIVE_SECTIONS,
-  type ExecutiveReport,
-} from './reports'
+  WORKBOOK_SHEETS,
+} from './workbooks'

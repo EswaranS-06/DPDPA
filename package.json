@@ -26,6 +26,7 @@
     "kb:release": "tsx tools/seed-import/src/releaseCli.ts",
     "kc:setup": "tsx tools/keycloak-setup/src/cli.ts",
     "admin:bootstrap": "tsx tools/keycloak-setup/src/bootstrapCli.ts",
+    "demo:load": "tsx tools/demo-data/src/cli.ts",
     "test": "pnpm db:test:reset && vitest run",
     "test:ci": "pnpm db:test:reset && vitest run --reporter=default --reporter=json --outputFile.json=reports/vitest.json",
     "trace": "tsx tools/traceability/src/cli.ts",

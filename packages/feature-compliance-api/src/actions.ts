@@ -29,6 +29,7 @@ import {
 import { z } from 'zod'
 import { createAssessment } from './assessments'
 import { audit, inClient, type ServiceContext } from './context'
+import { closeRemediatedFinding } from './findings'
 import {
   NotFoundError,
   optionalDate,
@@ -307,6 +308,7 @@ export const transitionAction = async (
       entityId: current.code,
       detail: { from: current.status, note: input.note ?? null },
     })
+    if (step.to === 'closed') await closeRemediatedFinding(tx, ctx, clientId, current.findingId)
     return step.to
   })
 }
@@ -388,6 +390,7 @@ export type ActionFilters = {
   ownerUserId?: string
   overdue?: boolean
   findingId?: string
+  departmentId?: string
 }
 
 const actionColumns = {
@@ -427,6 +430,9 @@ export const listActions = async (
           filters.status ? eq(remediationAction.status, filters.status) : undefined,
           filters.ownerUserId ? eq(remediationAction.ownerUserId, filters.ownerUserId) : undefined,
           filters.findingId ? eq(remediationAction.findingId, filters.findingId) : undefined,
+          filters.departmentId
+            ? eq(remediationAction.departmentId, filters.departmentId)
+            : undefined,
         ),
       )
       .orderBy(asc(remediationAction.dueDate), desc(remediationAction.updatedAt)),

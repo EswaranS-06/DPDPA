@@ -663,6 +663,40 @@ importers:
         specifier: 'catalog:'
         version: 6.0.3
 
+  tools/demo-data:
+    dependencies:
+      '@duatf/core-access':
+        specifier: workspace:*
+        version: link:../../packages/core-access
+      '@duatf/core-config':
+        specifier: workspace:*
+        version: link:../../packages/core-config
+      '@duatf/feature-compliance-api':
+        specifier: workspace:*
+        version: link:../../packages/feature-compliance-api
+      '@duatf/platform-db':
+        specifier: workspace:*
+        version: link:../../packages/platform-db
+      '@duatf/platform-identity':
+        specifier: workspace:*
+        version: link:../../packages/platform-identity
+      '@duatf/platform-storage':
+        specifier: workspace:*
+        version: link:../../packages/platform-storage
+      exceljs:
+        specifier: 'catalog:'
+        version: 4.4.0
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.20.4
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+      vitest:
+        specifier: 'catalog:'
+        version: 5.0.2(@types/node@22.20.4)(vite@8.3.1(@types/node@22.20.4)(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1))
+
   tools/keycloak-setup:
     dependencies:
       '@duatf/core-config':

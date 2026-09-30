@@ -6,7 +6,9 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { AssessmentStatusChip, ProgressBar } from '@/components/assessment/AssessmentBits'
 import { ClientStatusChip } from '@/components/ClientChips'
-import { BandChip } from '@/components/risk/RiskBits'
+import { DomainMatrix, DueActions } from '@/components/dashboard/DashboardBits'
+import dashStyles from '@/components/dashboard/DashboardBits.module.css'
+import { BandChip, Heatmap } from '@/components/risk/RiskBits'
 import { serviceContext } from '@/server/services'
 import styles from './home.module.css'
 
@@ -28,6 +30,7 @@ export default async function Page() {
 
   const severe = view.bands.filter((band) => band.tone === 'severe')
   const roles = [...new Set(principal.assignments.map((assignment) => ROLE_LABEL[assignment.role]))]
+  const canExport = view.rows.some((row) => can(principal, 'report.export', { clientId: row.id }))
 
   return (
     <div className={styles.page}>
@@ -39,12 +42,19 @@ export default async function Page() {
             : 'No role has been given to you yet. Ask your DUATF administrator.'
         }
       >
+        {canExport ? (
+          <a href="/reports/overall" className={buttonClass('secondary')} rel="nofollow">
+            Download overall workbook
+          </a>
+        ) : null}
         {can(principal, 'client.create') ? (
           <Link href="/clients/new" className={buttonClass()}>
             Onboard client
           </Link>
         ) : null}
       </PageHeader>
+
+      <h2 className={styles.heading}>Overall dashboard</h2>
 
       <dl className={styles.totals}>
         <div>
@@ -89,7 +99,7 @@ export default async function Page() {
 
       <section aria-labelledby="portfolio" className={styles.section}>
         <h2 id="portfolio" className={styles.heading}>
-          Portfolio
+          Clients
         </h2>
         {view.rows.length === 0 ? (
           <EmptyState title="No clients yet.">
@@ -185,6 +195,40 @@ export default async function Page() {
           />
         )}
       </section>
+
+      {view.rows.length ? (
+        <section aria-labelledby="domains" className={styles.section}>
+          <h2 id="domains" className={styles.heading}>
+            Compliance by domain
+          </h2>
+          <p className={styles.note}>
+            Each client&apos;s latest assessment: Yes plus half of Partial, over the answered
+            questions of the domain.
+          </p>
+          <DomainMatrix rows={view.rows} domains={view.domains} />
+        </section>
+      ) : null}
+
+      {view.rows.length ? (
+        <section aria-labelledby="risk-work" className={styles.section}>
+          <div className={dashStyles.twoUp}>
+            <div>
+              <h2 id="risk-work" className={styles.heading}>
+                Open risks, all clients
+              </h2>
+              <Heatmap grid={view.heatmap} bands={view.bands} />
+            </div>
+            <div>
+              <h2 className={styles.heading}>Actions due next</h2>
+              {view.dueActions.length ? (
+                <DueActions rows={view.dueActions} />
+              ) : (
+                <p className={styles.note}>No unfinished remediation actions.</p>
+              )}
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <section aria-labelledby="start" className={styles.section}>
         <h2 id="start" className={styles.heading}>

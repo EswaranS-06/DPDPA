@@ -1,6 +1,6 @@
 # DUATF: DPDP Unified Assessment & Tracking Framework
 
-This is a web application for running DPDP Act 2023 and DPDP Rules 2025 assessments: assess, collect, review, identify gaps, track and document. It is built by Xyberu Cybersecurity Services.
+This is a web application for running DPDP Act 2023 and DPDP Rules 2025 assessments: assess, collect, review, identify gaps, track and document. It is built by ComplyX Cybersecurity Services.
 
 It is a working compliance framework, not legal advice.
 
@@ -45,17 +45,29 @@ Dependencies only point downward: `apps -> feature-* -> platform-* -> core-*`. T
 | Area | Where | Notes |
 |---|---|---|
 | Sign-in | `/login` | Keycloak realm `duatf`: password + authenticator app; server-side sessions |
-| Portfolio | `/` | Every visible client: latest assessment, gaps, serious risks, overdue actions |
-| Clients | `/clients` | Onboarding profile, departments, client users (one-time password), Xyberu team |
+| Overall dashboard | `/` | Every visible client: latest assessment, gaps, serious risks, overdue actions, compliance by domain, risk heatmap, actions due next |
+| Clients | `/clients` | Onboarding profile, departments, client users (one-time password), ComplyX team; client dashboard with figures by department |
+| Departments | client > Departments > a department | Department dashboard: progress, what needs attention, findings, risks, actions, evidence |
 | Assessments | client > Assessments | One item per question of the pinned release; answers, review, progress |
 | Evidence | client > Evidence | SHA-256, five-minute download links, review, expiry |
 | Findings and risks | client > Findings, Risks | Gap rule, L x I scoring with configurable bands, DPO risk acceptance |
 | Remediation | client > Remediation | Nine-status workflow, owner cannot verify or close, re-assessment |
-| Reports | client > Reports | Excel compliance workbook; printable executive report |
+| Reports | `/`, client > Reports, a department | Excel workbooks at three levels (overall, client, department), each opening on a dashboard sheet; printable executive report |
 | Knowledge base | `/knowledge-base` | Law, obligations, controls, question bank and reference lists on one page |
 | Administration | `/admin/staff`, `/admin/risk-bands` | Firm administrators only |
 
 Client users see only their own organisation (row-level security plus capability checks).
+
+### Demo clients
+
+`pnpm demo:load` loads two fictitious clients so the whole flow can be explored. Every change goes through the same services as the web app, and the events are dated over the past months:
+
+| Client | Story |
+|---|---|
+| **Nadall** (`NADALL`), a multi-speciality hospital | Seven departments. Baseline assessment completed and fully reviewed four months ago (30% compliance); 16 remediation actions in every workflow state (closed, remediated, under review, rejected, overdue, accepted risk); a re-assessment under way that resolves fixed gaps and carries open ones forward (71% on the questions answered so far). |
+| **AMMA** (`AMMA`), a CBSE school | Seven departments. First assessment in progress: most questions answered, some reviewed, two sent back; a critical gap on verifiable parental consent; evidence awaiting review; overdue actions. |
+
+The demo people (a DPO, a viewer and department owners per client, and two ComplyX auditors) use `.example` addresses and have no sign-in accounts. To see the app as one of them, open the client's **People** tab as the firm administrator and press **New one-time password** next to that person; Keycloak then asks for a new password and an authenticator app. Running `pnpm demo:load` again replaces the two clients (never a real client with the same ID); `pnpm demo:load --remove` deletes them. The audit log keeps the real load time.
 
 ## First-time setup (on the server)
 
@@ -84,6 +96,7 @@ pnpm build && bash infra/run-app.sh start
 | `pnpm dev:web` / `pnpm dev:api` | Development servers on 0.0.0.0 |
 | `pnpm kc:setup` | Creates or updates the Keycloak realm `duatf` and its clients |
 | `pnpm admin:bootstrap --email … --name …` | Creates (or resets) a firm administrator |
+| `pnpm demo:load` / `pnpm demo:load --remove` | Loads (or removes) the Nadall and AMMA demo clients |
 
 ## How tests prove the plan
 

@@ -2,6 +2,7 @@ import { can } from '@duatf/core-access'
 import { Chip, DataTable, EmptyState } from '@duatf/core-ui'
 import { listDepartments } from '@duatf/feature-compliance-api'
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { DepartmentForm } from '@/components/forms/PeopleForms'
 import formStyles from '@/components/forms/forms.module.css'
 import { loadClient } from '@/server/clients'
@@ -27,7 +28,8 @@ export default async function Page({ params }: { params: Promise<{ code: string 
         </h2>
         <p className={styles.sectionIntro}>
           Assessment questions are assigned to departments, and department owners answer for their
-          own department only.
+          own department only. Open a department for its dashboard: progress, what needs attention,
+          findings, risks, actions and evidence.
         </p>
         {departments.length === 0 ? (
           <EmptyState title="No departments yet.">
@@ -48,7 +50,12 @@ export default async function Page({ params }: { params: Promise<{ code: string 
                 header: 'Department',
                 render: (row) => (
                   <span className={styles.personCell}>
-                    <strong>{row.name}</strong>
+                    <Link
+                      href={`/clients/${client.code}/departments/${row.code}`}
+                      className={styles.clientName}
+                    >
+                      {row.name}
+                    </Link>
                     {row.description ? (
                       <span className={styles.muted}>{row.description}</span>
                     ) : null}

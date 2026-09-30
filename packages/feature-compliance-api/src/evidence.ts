@@ -326,7 +326,7 @@ const evidenceColumns = {
 const withExpiry = <Row extends { validUntil: string | null }>(rows: Row[], today: string) =>
   rows.map((row) => ({ ...row, expired: row.validUntil !== null && row.validUntil < today }))
 
-export type EvidenceFilters = { status?: EvidenceStatus; text?: string }
+export type EvidenceFilters = { status?: EvidenceStatus; text?: string; departmentId?: string }
 
 /** The client's evidence repository, newest first. */
 export const listEvidence = async (
@@ -345,6 +345,7 @@ export const listEvidence = async (
         and(
           eq(evidence.tenantId, clientId),
           filters.status ? eq(evidence.status, filters.status) : undefined,
+          filters.departmentId ? eq(evidence.departmentId, filters.departmentId) : undefined,
           filters.text
             ? or(
                 ilike(evidence.title, `%${filters.text.replace(/[\\%_]/g, '\\$&')}%`),

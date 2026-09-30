@@ -1,0 +1,133 @@
+.report {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  max-width: 60rem;
+  padding: var(--space-6);
+  background: var(--color-sheet);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-sheet);
+}
+
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.cover {
+  padding-bottom: var(--space-5);
+  border-bottom: 3px solid var(--color-accent);
+}
+
+.kicker {
+  margin: 0;
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-accent);
+}
+
+.title {
+  margin: var(--space-2) 0 var(--space-1);
+  font-size: var(--text-2xl);
+  font-stretch: var(--width-wide);
+  line-height: 1.1;
+}
+
+.subtitle {
+  margin: 0 0 var(--space-4);
+  font-family: var(--font-serif);
+  font-size: var(--text-md);
+  color: var(--color-pencil);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.facts dt {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-pencil);
+}
+
+.facts dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  break-inside: avoid-page;
+}
+
+.section h2 {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-stretch: var(--width-wide);
+}
+
+.section p {
+  margin: 0;
+  max-width: 72ch;
+  font-family: var(--font-serif);
+  line-height: 1.65;
+}
+
+.findings {
+  margin: 0;
+  padding-left: 1.3rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.findings li {
+  break-inside: avoid;
+}
+
+.findingHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.small {
+  font-size: var(--text-sm);
+  color: var(--color-pencil);
+}
+
+.riskRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  align-items: flex-start;
+}
+
+.plain {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+@media print {
+  .report {
+    max-width: none;
+    padding: 0;
+    border: 0;
+  }
+
+  .section h2 {
+    break-after: avoid;
+  }
+}
