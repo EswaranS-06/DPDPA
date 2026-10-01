@@ -75,5 +75,10 @@ export default defineConfig([
       ...reactHooks.configs.recommended.rules,
     },
   },
+  {
+    // The playbook site's page script runs in the browser.
+    files: ['tools/playbook/src/site/**/*.js'],
+    languageOptions: { globals: { ...globals.browser } },
+  },
   ...boundaryConfigs(repoRoot),
 ])

@@ -22,6 +22,7 @@ Gate: **passing**
 | C11 | Reports | R2 | TESTS PASSING | legal_sme pending |
 | C16 | Interface redesign (design system 2.0) | R2 | IN PROGRESS | lead_auditor pending |
 | C17 | Knowledge base editor and content | R2 | IN PROGRESS | firm_admin pending |
+| C18 | Playbook: guided tours of every task | R2 | IN PROGRESS | firm_admin pending |
 | C12 | Hardening | R3 | PLANNED | security pending |
 | C13 | Pilots and production | R3 | PLANNED | leadership pending |
 | C14 | ROPA, data inventory and DIA (V2) | R3 | PLANNED | legal_sme pending |
@@ -116,5 +117,11 @@ Gate: **passing**
 | TC-C17.3-01 | C17.3 | Release page, draft view and entry forms render at 1440 and 390 px, light and dark | no overlap, no console errors; a client DPO sees no draft | manual | PASS |
 | TC-C17.4-01 | C17.4 | Every drafted entry is accepted by the editor, labelled for legal review and breaks no reference | 41 entries and the engine-flags fix; all awaiting review as AI drafts; no new problems | literal | PASS |
 | TC-C17.5-01 | C17.5 | ComplyX reviews the drafted entries and publishes release 1.2.0 | reviewed, edited or removed; published | manual | MANUAL-PENDING |
+| TC-C18.1-01 | C18.1 | Each task names who can do it exactly as the permission matrix allows, with well-formed steps | equal to core-access for every capability; hands-on step last; no empty group | oracle | PASS |
+| TC-C18.1-02 | C18.1 | Search finds tasks by title, keyword and word start | onboard, upload, evid, risk, excel, dark mode; every title finds its task first | literal | PASS |
+| TC-C18.2-01 | C18.2 | The guide reuses the tab it opened and opens a new one only when none is left | DUATF tab reused; sign-in tab reused; empty tab used; new tab only when all closed | literal | PASS |
+| TC-C18.3-01 | C18.3 | Every tour reaches its end or its hands-on step against the live app, without saving | 43 of 43 | manual | PASS |
+| TC-C18.4-01 | C18.4 | Show me opens a visible Chrome on DUATF, waits for sign-in and a second task reuses the tab | window opens; sign-in wait; tab reused | manual | PASS |
+| TC-C18.4-02 | C18.4 | ComplyX signs in and follows a task to its end in the guide window | done | manual | MANUAL-PENDING |
 
 10 further tests are planned in later sub-phases.

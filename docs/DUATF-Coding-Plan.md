@@ -414,6 +414,25 @@ Built after C16, at ComplyX's request: staff add and edit the knowledge base's r
 | TC-C17.4-01 | Every drafted entry is accepted by the editor, labelled for review and breaks no reference | literal |
 | TC-C17.5-01 | ComplyX reviews the drafted entries and publishes release 1.2.0 | manual |
 
+### C18: Playbook, guided tours of every task (R2)
+Built after C17, at ComplyX's request: a separate site on port 53001 that lists every DUATF task in groups with a search bar; each task's button drives a visible Chrome window through the task in DUATF, reusing the guide window's tab when one is open. Decisions are in ADR-0005; the code is `tools/playbook`.
+
+| Sub | Build |
+|---|---|
+| C18.1 | The catalogue: 43 tasks in 10 groups (start here, clients, departments and people, assessments, evidence, findings and risk, remediation, dashboards and reports, knowledge base, administration), each with who can do it, its steps and search words |
+| C18.2 | The guide: Playwright drives the installed Chrome with its own profile; a card inside DUATF highlights each target and explains the step; "Show me" plays, "Guide me" waits; every tour stops at its hands-on step |
+| C18.3 | `pnpm playbook:check` walks every tour headless against DUATF as the right kind of user, without saving |
+| C18.4 | The bundle for the ComplyX computer (`node tools/playbook/src/bundle.ts <folder>`, then "Start playbook.cmd") and the first headed runs |
+
+| Test | Expected | Source |
+|---|---|---|
+| TC-C18.1-01 | Each task names who can do it exactly as the permission matrix allows, with well-formed steps | oracle |
+| TC-C18.1-02 | Search finds tasks by title, keyword and word start | literal |
+| TC-C18.2-01 | The guide reuses the tab it opened and opens a new one only when none is left | literal |
+| TC-C18.3-01 | Every tour reaches its end or its hands-on step against the live app, without saving | manual |
+| TC-C18.4-01 | Show me opens a visible Chrome on DUATF, waits for sign-in, and a second task reuses the tab | manual |
+| TC-C18.4-02 | ComplyX signs in and follows a task to its end in the guide window | manual |
+
 ### C12: Hardening (R3) and C13: Pilots and production (R3)
 Unchanged in intent: isolation tests for every route, load test, restore drill, ClamAV, accessibility, self-assessment; then pilots and 1.0.
 

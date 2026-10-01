@@ -12,6 +12,7 @@ const TOOLS = [
   '@duatf/keycloak-setup',
   '@duatf/demo-data',
   '@duatf/kb-content',
+  '@duatf/playbook',
 ]
 const DEEP_IMPORT = {
   group: ['@duatf/*/src', '@duatf/*/src/**'],
