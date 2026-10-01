@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "@duatf/core-access": "workspace:*",
     "@duatf/core-utils": "workspace:*",
     "@duatf/platform-db": "workspace:*",
     "@duatf/platform-trpc": "workspace:*",

@@ -84,6 +84,7 @@ flowchart LR
 - **Seed patches** are versioned, idempotent data migrations in `platform-db/seed-patches/`. They carry the v0.2 changes, are reviewed like code and applied by CLI.
 - Published releases are **immutable**. Cycles pin a release. Upgrading a cycle shows an impact preview.
 - After release 1.1.0, the vault copy is kept only as the parity fixture. All framework maintenance happens in Framework Admin.
+- Since C17, the reference sections (lawful bases, data elements, vocabularies, process templates, sector overlays, playbooks) are edited in the app: changes collect in a draft release that a firm administrator reviews and publishes (`/knowledge-base/draft`, ADR-0004).
 
 ## 4. Coding phases
 
@@ -390,6 +391,28 @@ Built after C11 and before C12, from the ComplyX design brief: light-first moder
 | TC-C16.6-01 | A refusal names the action, the reader's role and the roles that may do it | literal |
 | TC-C16.7-01 | Screens render at three widths in three themes without overlap or console errors | manual |
 | TC-C16.7-02 | ComplyX signs off the new design on the live app | manual |
+
+### C17: Knowledge base editor and content (R2)
+Built after C16, at ComplyX's request: staff add and edit the knowledge base's reference sections themselves, and the gaps are filled with drafted entries for legal review. Decisions are in ADR-0004.
+
+| Sub | Build |
+|---|---|
+| C17.1 | Draft releases: start a draft as a copy of the published release, publish it (the old one is superseded) or discard it; one draft at a time; publishing refused with new broken references or unacknowledged unreviewed entries |
+| C17.2 | Entries in six sections (lawful bases, data elements, vocabularies, process templates, sector overlays, playbooks): add, edit, remove, with a change log and legal review status per entry; suggested obligations for processes |
+| C17.3 | Screens: a release bar on the knowledge base (published or draft view), Add and Edit in the draft view, the release page (`/knowledge-base/draft`) and one form per section |
+| C17.4 | `pnpm kb:content`: 41 AI-drafted entries and an engine-flag fix, added to the open draft and labelled for legal review |
+| C17.5 | ComplyX reviews the drafted entries and publishes release 1.2.0 |
+
+| Test | Expected | Source |
+|---|---|---|
+| TC-C17.1-01 | A draft starts as an exact copy of the published release, one at a time | oracle |
+| TC-C17.1-02 | Publishing needs a change, the review acknowledgement and no new broken references | literal |
+| TC-C17.2-01 | Each editable section adds, edits and removes entries, with the change log and review status | literal |
+| TC-C17.2-02 | Suggested obligations follow the obligation triggers | oracle |
+| TC-C17.2-03 | Only editors read the draft; everyone else reads the published release | literal |
+| TC-C17.3-01 | Editor screens render at 1440 and 390 px, light and dark; a client DPO sees no draft | manual |
+| TC-C17.4-01 | Every drafted entry is accepted by the editor, labelled for review and breaks no reference | literal |
+| TC-C17.5-01 | ComplyX reviews the drafted entries and publishes release 1.2.0 | manual |
 
 ### C12: Hardening (R3) and C13: Pilots and production (R3)
 Unchanged in intent: isolation tests for every route, load test, restore drill, ClamAV, accessibility, self-assessment; then pilots and 1.0.

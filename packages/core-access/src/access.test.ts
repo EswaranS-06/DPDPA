@@ -31,6 +31,8 @@ const GOLDEN: Record<Capability, string> = {
   'report.export': 'YYYY.Y',
   'audit.view': 'YY.Y..',
   'kb.view': 'YYYYYY',
+  'kb.edit': 'YY....',
+  'kb.publish': 'Y.....',
 }
 
 const CLIENT = 'client-a'

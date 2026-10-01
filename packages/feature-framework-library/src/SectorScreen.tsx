@@ -2,13 +2,17 @@ import { kbHref } from '@duatf/feature-framework-library-api'
 import { Chip, Citation, DataTable, MarginRow, PageHeader } from '@duatf/core-ui'
 import type { FrameworkLibraryApi } from '@duatf/feature-framework-library-api'
 import Link from 'next/link'
+import { EditEntryLink, ReviewChip, reviewsOf } from './components/EditBits'
 import { orNotFound } from './orNotFound'
 import styles from './screens.module.css'
 
-type Props = { api: FrameworkLibraryApi; code: string }
+type Props = { api: FrameworkLibraryApi; code: string; editing?: boolean }
 
-export const SectorScreen = async ({ api, code }: Props) => {
-  const item = await orNotFound(api.sector({ code }))
+export const SectorScreen = async ({ api, code, editing = false }: Props) => {
+  const [item, reviews] = await Promise.all([
+    orNotFound(api.sector({ code })),
+    reviewsOf(api, 'sectors'),
+  ])
   const unverified = item.retention.filter(
     (row) => row.confidence.toLowerCase() === 'verify',
   ).length
@@ -19,7 +23,14 @@ export const SectorScreen = async ({ api, code }: Props) => {
         kicker={<Citation>SEC-{item.code}</Citation>}
         title={item.title}
         lede={item.covers}
-      />
+        actions={
+          editing ? (
+            <EditEntryLink section="sectors" code={item.code} variant="button" />
+          ) : undefined
+        }
+      >
+        <ReviewChip review={reviews.get(item.code)} />
+      </PageHeader>
 
       <div>
         <MarginRow margin="Regulators">

@@ -11,6 +11,7 @@ const TOOLS = [
   '@duatf/lint-rules',
   '@duatf/keycloak-setup',
   '@duatf/demo-data',
+  '@duatf/kb-content',
 ]
 const DEEP_IMPORT = {
   group: ['@duatf/*/src', '@duatf/*/src/**'],

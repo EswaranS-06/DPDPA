@@ -429,7 +429,53 @@ export const question = pgTable(
   ],
 )
 
-/** Child tables guarded by the published-release trigger. */
+export type KbReviewStatus = 'awaiting_review' | 'reviewed'
+/** Who wrote an entry's current wording: ComplyX staff in the editor, or an AI-drafted content pass. */
+export type KbEntryOrigin = 'staff' | 'assistant'
+
+/**
+ * Legal review of entries added or changed through the knowledge-base editor. Entries imported
+ * from the vault have no row. Copied into each new release, so the status travels with the entry.
+ */
+export const kbEntryReview = pgTable(
+  'kb_entry_review',
+  {
+    releaseId: releaseRef(),
+    section: text('section').notNull(),
+    code: text('code').notNull(),
+    status: text('status').$type<KbReviewStatus>().notNull().default('awaiting_review'),
+    origin: text('origin').$type<KbEntryOrigin>().notNull(),
+    changedBy: text('changed_by').notNull(),
+    changedAt: timestamp('changed_at', { withTimezone: true }).notNull().defaultNow(),
+    reviewedBy: text('reviewed_by'),
+    reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+    reviewNote: text('review_note'),
+  },
+  (table) => [
+    primaryKey({
+      name: 'kb_entry_review_pk',
+      columns: [table.releaseId, table.section, table.code],
+    }),
+  ],
+)
+
+export type KbChangeKind = 'added' | 'edited' | 'removed' | 'reviewed'
+
+/** What was changed in a draft release, by whom and when. Frozen with the release; never copied. */
+export const kbChange = pgTable('kb_change', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  releaseId: releaseRef(),
+  section: text('section').notNull(),
+  code: text('code').notNull(),
+  title: text('title').notNull(),
+  change: text('change').$type<KbChangeKind>().notNull(),
+  detail: text('detail'),
+  actorUserId: uuid('actor_user_id'),
+  actorName: text('actor_name').notNull(),
+  at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
+})
+
+/** Child tables guarded by the published-release trigger (kb_change is guarded too, not copied). */
 export const FRAMEWORK_CHILD_TABLES = [
   'instrument',
   'lawful_basis',
@@ -453,4 +499,5 @@ export const FRAMEWORK_CHILD_TABLES = [
   'playbook_doc',
   'notification_entry',
   'question',
+  'kb_entry_review',
 ] as const

@@ -10,3 +10,4 @@ export {
   type SelectOption,
 } from './Form'
 export { SubmitButton } from './SubmitButton'
+export { CheckboxGroup, type CheckboxOption } from './CheckboxGroup'

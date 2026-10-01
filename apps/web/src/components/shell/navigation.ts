@@ -94,6 +94,18 @@ const SEGMENT_LABEL: Record<string, string> = {
   new: 'Onboard client',
 }
 
+// Below /knowledge-base: the release pages and the editor's sections.
+const KB_SEGMENT_LABEL: Record<string, string> = {
+  draft: 'Releases',
+  bases: 'Lawful bases',
+  'data-elements': 'Data elements',
+  vocabularies: 'Vocabularies',
+  processes: 'Process catalogue',
+  sectors: 'Sector overlays',
+  playbooks: 'Playbooks',
+  new: 'New entry',
+}
+
 /** Where the reader is, from the path: Clients / Nadall / Findings / FND-NADALL-004. */
 export const crumbsFor = (pathname: string, navigation: Navigation): Crumb[] => {
   const parts = pathname.split('/').filter(Boolean).map(decodeURIComponent)
@@ -115,6 +127,12 @@ export const crumbsFor = (pathname: string, navigation: Navigation): Crumb[] => 
     if (previous === 'clients' && index === 1 && part !== 'new') {
       const client = navigation.clients.find((row) => row.code === part.toUpperCase())
       crumbs.push({ label: client?.name ?? part.toUpperCase(), href })
+      return
+    }
+    if (parts[0] === 'knowledge-base' && index > 0) {
+      // A section crumb opens that section of the knowledge base itself.
+      const section = index === 2 && part !== 'new' ? `/knowledge-base?section=${part}` : href
+      crumbs.push({ label: KB_SEGMENT_LABEL[part] ?? part, href: section })
       return
     }
     crumbs.push({ label: SEGMENT_LABEL[part] ?? part, href })

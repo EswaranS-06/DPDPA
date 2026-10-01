@@ -6,6 +6,8 @@ import { initTRPC, TRPCError } from '@trpc/server'
 export type ApiContext = {
   db: Database
   principal: Principal | null
+  /** Read the open knowledge-base draft instead of the published release (editors only). */
+  kbDraft?: boolean
 }
 
 const t = initTRPC.context<ApiContext>().create()

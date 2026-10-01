@@ -1,0 +1,83 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.list {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.entry {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  align-items: flex-start;
+}
+
+.muted {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.intro {
+  margin: 0;
+  max-width: var(--measure);
+  color: var(--color-text-secondary);
+}
+
+.notes {
+  white-space: pre-line;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.picker a {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.picker a:hover {
+  border-color: var(--color-primary);
+}
+
+.pickerCode {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.editorLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 20rem;
+  gap: var(--space-6);
+  align-items: start;
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+@media (max-width: 1100px) {
+  .editorLayout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

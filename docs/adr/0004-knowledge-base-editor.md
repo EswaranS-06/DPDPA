@@ -1,0 +1,17 @@
+# ADR-0004: Knowledge base editor and drafted content (C17)
+
+Date: 1 Oct 2026. Status: accepted by the build; the drafted entries await ComplyX legal review (TC-C17.5-01).
+
+ComplyX asked to add entries to the knowledge base themselves (lawful bases, data elements, vocabularies, process catalogue and the other reference sections), and for the gaps to be filled. They chose: an editor and drafted content, changes collected in a draft release that is reviewed and published, and the reference sections only.
+
+| # | Decision | Why | Consequence |
+|---|---|---|---|
+| 1 | **Edits go into a draft release; a firm administrator publishes it** | Published releases are immutable and assessments pin the release they started on; a release must keep meaning a fixed body of content | One draft at a time, started as an exact copy of the published release (questions included). Publishing supersedes the old release; running assessments are untouched |
+| 2 | **Six reference sections are editable**: lawful bases, data elements, vocabularies, process templates, sector overlays (with their laws and retention periods), playbooks | ComplyX chose the reference sections; obligations, controls, questions, domains and the law are linked to each other and to scoring | Editing the law itself stays out of the editor; it would need the release tooling and SME review of the question bank |
+| 3 | **`kb.edit` for firm administrators and lead auditors; `kb.publish` (review and publish) for firm administrators** | Lead auditors know the content; publishing changes what every client sees | Two capabilities in `core-access`; the golden permission test covers them |
+| 4 | **Every added or changed entry is labelled "awaiting legal review"** until a firm administrator marks it reviewed; AI-drafted entries say so | ComplyX's accuracy bar: nothing new should look like checked law | `kb_entry_review` travels with each release; publishing with unreviewed entries needs an explicit acknowledgement, and they keep the label |
+| 5 | **A change log per release** (`kb_change`): who added, edited, removed or reviewed what, and when | Releases must be traceable | The log is frozen with the release by the same guard trigger as the content |
+| 6 | **Codes never change after an entry is added; removal is refused while something refers to the entry** | Processes, obligation triggers, questions, clients and past releases refer to codes | The editor shows why an entry cannot be removed (for example the processes using a sector) |
+| 7 | **Publishing is refused when the draft adds broken references** | A process naming a missing basis, sector or obligation would mislead assessors | Problems already in the published release do not block; new ones do |
+| 8 | **Suggested obligations for a process come from the obligation triggers** (lawful bases and facts, all conditions of one trigger together; role triggers and other laws left out) | Ticking 60 obligations by hand invites mistakes; the vault's processes list DPDP obligations only | "Suggest obligations" ticks them; the assessor adjusts before saving |
+| 9 | **Drafted content cites the obligations already in the knowledge base** | Each claim in a new playbook or vocabulary can be checked against an existing entry and the official text | `pnpm kb:content` adds 41 entries and restores two engine-flag names (`decision_or_disclosure`, `consent_manager_used`) whose underscores were lost on import; it starts a draft if none is open and never publishes |

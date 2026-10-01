@@ -636,6 +636,66 @@ phases:
             source: manual
             kind: manual
 
+  - id: C17
+    title: 'Knowledge base editor and content'
+    release: R2
+    reviews: [firm_admin]
+    subphases:
+      - id: C17.1
+        title: 'Draft releases: start, publish, discard'
+        state: active
+        tests:
+          - id: TC-C17.1-01
+            title: 'A draft starts as an exact copy of the published release, one at a time'
+            expected: 'every child table equal row for row; second draft refused; published rows locked'
+            source: oracle
+          - id: TC-C17.1-02
+            title: 'Publishing needs a change, the review acknowledgement and no new broken references'
+            expected: 'refused for a lead auditor, without changes, unacknowledged or with a dangling basis; then published, old release superseded'
+            source: literal
+      - id: C17.2
+        title: 'Entries: lawful bases, data elements, vocabularies, processes, sectors, playbooks'
+        state: active
+        tests:
+          - id: TC-C17.2-01
+            title: 'Each editable section adds, edits and removes entries, with the change log and review status'
+            expected: 'saved values read back; added and edited logged; awaiting review; removal refused while referenced'
+            source: literal
+          - id: TC-C17.2-02
+            title: 'Suggested obligations follow the obligation triggers'
+            expected: 'equal to the triggers read directly'
+            source: oracle
+          - id: TC-C17.2-03
+            title: 'Only editors read the draft; everyone else reads the published release'
+            expected: 'lead auditor and firm admin see the draft; a client viewer the published release'
+            source: literal
+      - id: C17.3
+        title: 'Editor screens and visual review'
+        state: active
+        tests:
+          - id: TC-C17.3-01
+            title: 'Release page, draft view and entry forms render at 1440 and 390 px, light and dark'
+            expected: 'no overlap, no console errors; a client DPO sees no draft'
+            source: manual
+            kind: manual
+      - id: C17.4
+        title: 'AI-drafted content for the reference sections'
+        state: active
+        tests:
+          - id: TC-C17.4-01
+            title: 'Every drafted entry is accepted by the editor, labelled for legal review and breaks no reference'
+            expected: '41 entries and the engine-flags fix; all awaiting review as AI drafts; no new problems'
+            source: literal
+      - id: C17.5
+        title: 'Legal review and publication of release 1.2.0'
+        state: active
+        tests:
+          - id: TC-C17.5-01
+            title: 'ComplyX reviews the drafted entries and publishes release 1.2.0'
+            expected: 'reviewed, edited or removed; published'
+            source: manual
+            kind: manual
+
   - id: C12
     title: 'Hardening'
     release: R3

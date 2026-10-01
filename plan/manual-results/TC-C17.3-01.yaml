@@ -1,0 +1,17 @@
+id: TC-C17.3-01
+result: pass
+by: claude (for EswaranS-06)
+date: '2026-10-01'
+evidence: >-
+  Preview build (NEXT_DIST_DIR=.next-preview) on 127.0.0.1:53110 against the live draft 1.2.0,
+  opened in headless Chromium with server-side QA sessions (deleted afterwards): the knowledge base
+  in published and draft view (overview, lawful bases, data elements, process catalogue and a
+  process, a sector overlay, two vocabularies, a playbook), the release page, the add-process
+  sector picker and form, "Suggest obligations" (22 ticked for consent and children's data, nothing
+  saved), and the edit forms for a process, a sector, a vocabulary in dark theme and a lawful basis
+  at 390 px; as a firm administrator with the lead auditor role and as AMMA's client DPO. Every page
+  returned 200 with no console errors; the DPO saw the published release and no release bar.
+  Fixed during review: long other-law citations overlapping obligation titles, a cramped review
+  panel, a release page made too long by the full change log, and suggestions that pulled in
+  obligations from other laws.
+notes: Legal review and publication of the drafted entries is TC-C17.5-01.

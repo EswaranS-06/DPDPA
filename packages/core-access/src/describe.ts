@@ -29,6 +29,8 @@ export const CAPABILITY_LABEL: Record<Capability, string> = {
   'report.export': 'download workbooks and reports',
   'audit.view': 'view the audit log',
   'kb.view': 'open the knowledge base',
+  'kb.edit': 'edit the knowledge base draft',
+  'kb.publish': 'review and publish knowledge base releases',
 }
 
 export type Denial = {

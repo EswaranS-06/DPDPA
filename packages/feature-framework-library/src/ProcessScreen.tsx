@@ -7,12 +7,13 @@ import {
 } from '@duatf/feature-framework-library-api'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
+import { EditEntryLink, ReviewChip, reviewsOf } from './components/EditBits'
 import { ObligationRow } from './components/ObligationRow'
 import { sentence } from './consts/labels'
 import { orNotFound } from './orNotFound'
 import styles from './screens.module.css'
 
-type Props = { api: FrameworkLibraryApi; code: string; today: string }
+type Props = { api: FrameworkLibraryApi; code: string; today: string; editing?: boolean }
 
 const ChipList = ({
   items,
@@ -31,13 +32,30 @@ const ChipList = ({
     <span className={styles.muted}>None recorded</span>
   )
 
-export const ProcessScreen = async ({ api, code, today }: Props) => {
-  const item = await orNotFound(api.process({ code }))
+export const ProcessScreen = async ({ api, code, today, editing = false }: Props) => {
+  const [item, law, reviews] = await Promise.all([
+    orNotFound(api.process({ code })),
+    api.law(),
+    reviewsOf(api, 'processes'),
+  ])
+  // Bases added in the editor have no hand-written label; their stored name is used instead.
+  const names = new Map(law.bases.map((basis) => [basis.code, basis.name]))
+  const labelOf = (basis: string) =>
+    basisLabel(basis) === basis ? (names.get(basis) ?? basis) : basisLabel(basis)
   return (
     <div className={styles.page}>
-      <PageHeader kicker={<Citation>{item.code}</Citation>} title={item.title}>
+      <PageHeader
+        kicker={<Citation>{item.code}</Citation>}
+        title={item.title}
+        actions={
+          editing ? (
+            <EditEntryLink section="processes" code={item.code} variant="button" />
+          ) : undefined
+        }
+      >
         <Chip>{item.sectorName}</Chip>
         <Chip>{item.department}</Chip>
+        <ReviewChip review={reviews.get(item.code)} />
       </PageHeader>
 
       {item.assessorNote ? <p className={styles.note}>{item.assessorNote}</p> : null}
@@ -68,9 +86,7 @@ export const ProcessScreen = async ({ api, code, today }: Props) => {
         <MarginRow margin="Usual lawful basis">
           <ChipList
             items={item.typicalLawfulBasis}
-            render={(basis) => (
-              <Link href={`${kbHref('bases')}#${basis}`}>{basisLabel(basis)}</Link>
-            )}
+            render={(basis) => <Link href={`${kbHref('bases')}#${basis}`}>{labelOf(basis)}</Link>}
           />
         </MarginRow>
         <MarginRow margin="Facts to confirm">

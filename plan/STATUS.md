@@ -21,6 +21,7 @@ Gate: **passing**
 | C10 | Dashboards and client sharing | R2 | TESTS PASSING | lead_auditor pending |
 | C11 | Reports | R2 | TESTS PASSING | legal_sme pending |
 | C16 | Interface redesign (design system 2.0) | R2 | IN PROGRESS | lead_auditor pending |
+| C17 | Knowledge base editor and content | R2 | IN PROGRESS | firm_admin pending |
 | C12 | Hardening | R3 | PLANNED | security pending |
 | C13 | Pilots and production | R3 | PLANNED | leadership pending |
 | C14 | ROPA, data inventory and DIA (V2) | R3 | PLANNED | legal_sme pending |
@@ -107,5 +108,13 @@ Gate: **passing**
 | TC-C16.6-01 | C16.6 | A refusal names the action, the reader role and the roles that may do it | action, your role, who can | literal | PASS |
 | TC-C16.7-01 | C16.7 | Screens render at 1440, 1024 and 390 px in light, dark and high contrast | no overlap, no clipped text, no console errors | manual | PASS |
 | TC-C16.7-02 | C16.7 | ComplyX signs off the new design on the live app | signed | manual | MANUAL-PENDING |
+| TC-C17.1-01 | C17.1 | A draft starts as an exact copy of the published release, one at a time | every child table equal row for row; second draft refused; published rows locked | oracle | PASS |
+| TC-C17.1-02 | C17.1 | Publishing needs a change, the review acknowledgement and no new broken references | refused for a lead auditor, without changes, unacknowledged or with a dangling basis; then published, old release superseded | literal | PASS |
+| TC-C17.2-01 | C17.2 | Each editable section adds, edits and removes entries, with the change log and review status | saved values read back; added and edited logged; awaiting review; removal refused while referenced | literal | PASS |
+| TC-C17.2-02 | C17.2 | Suggested obligations follow the obligation triggers | equal to the triggers read directly | oracle | PASS |
+| TC-C17.2-03 | C17.2 | Only editors read the draft; everyone else reads the published release | lead auditor and firm admin see the draft; a client viewer the published release | literal | PASS |
+| TC-C17.3-01 | C17.3 | Release page, draft view and entry forms render at 1440 and 390 px, light and dark | no overlap, no console errors; a client DPO sees no draft | manual | PASS |
+| TC-C17.4-01 | C17.4 | Every drafted entry is accepted by the editor, labelled for legal review and breaks no reference | 41 entries and the engine-flags fix; all awaiting review as AI drafts; no new problems | literal | PASS |
+| TC-C17.5-01 | C17.5 | ComplyX reviews the drafted entries and publishes release 1.2.0 | reviewed, edited or removed; published | manual | MANUAL-PENDING |
 
 10 further tests are planned in later sub-phases.
