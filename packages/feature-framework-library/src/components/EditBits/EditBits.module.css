@@ -1,0 +1,20 @@
+.editLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: var(--text-sm);
+  font-weight: 550;
+  color: var(--color-link);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.editLink:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.block {
+  display: block;
+  margin-top: var(--space-1);
+}

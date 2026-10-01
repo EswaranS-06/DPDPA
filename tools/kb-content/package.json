@@ -1,0 +1,24 @@
+{
+  "name": "@duatf/kb-content",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@duatf/core-access": "workspace:*",
+    "@duatf/core-config": "workspace:*",
+    "@duatf/core-utils": "workspace:*",
+    "@duatf/feature-framework-library-api": "workspace:*",
+    "@duatf/platform-db": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

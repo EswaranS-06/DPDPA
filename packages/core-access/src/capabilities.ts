@@ -90,6 +90,8 @@ export const CAPABILITIES = {
     'department_owner',
     'client_viewer',
   ]),
+  'kb.edit': define('firm', ['firm_admin', 'lead_auditor']),
+  'kb.publish': define('firm', ['firm_admin']),
 } as const satisfies Record<string, { scope: Scope; roles: readonly Role[] }>
 
 export type Capability = keyof typeof CAPABILITIES

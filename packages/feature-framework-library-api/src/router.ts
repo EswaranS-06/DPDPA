@@ -1,3 +1,4 @@
+import { can } from '@duatf/core-access'
 import { isoDate } from '@duatf/core-utils'
 import {
   createCallerFactory,
@@ -32,10 +33,22 @@ import {
   listVocabularies,
   search,
 } from './queries'
-import { KB_LIST_SECTIONS } from './refs'
+import { EDITABLE_SECTIONS, KB_LIST_SECTIONS } from './refs'
+import { openDraft, releaseReviews } from './releases'
 
-const releaseOf = async (ctx: ApiContext) =>
-  (await currentRelease(ctx.db)) ?? notFound('A published framework release')
+/**
+ * The release a request reads: the published one, or the open draft for an editor who asked
+ * to see it (ctx.kbDraft). Everyone else always reads the published release.
+ */
+const releaseOf = async (ctx: ApiContext) => {
+  if (ctx.kbDraft && ctx.principal && can(ctx.principal, 'kb.edit')) {
+    const draft = await openDraft(ctx.db)
+    if (draft) {
+      return { id: draft.id, version: draft.version, publishedAt: null, source: draft.source }
+    }
+  }
+  return (await currentRelease(ctx.db)) ?? notFound('A published framework release')
+}
 
 const byCode = z.object({ code: z.string().min(1).max(80) })
 const isoDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD')
@@ -46,6 +59,17 @@ export const frameworkLibraryRouter = router({
     const release = await releaseOf(ctx)
     return { version: release.version, publishedAt: release.publishedAt }
   }),
+
+  /** Entries of an editable section that were added or changed in the editor, with review status. */
+  reviews: authedProcedure
+    .input(z.object({ section: z.enum(EDITABLE_SECTIONS) }))
+    .query(async ({ ctx, input }) =>
+      (await releaseReviews(ctx.db, (await releaseOf(ctx)).id, input.section)).map((row) => ({
+        code: row.code,
+        status: row.status,
+        origin: row.origin,
+      })),
+    ),
 
   summary: authedProcedure
     .input(z.object({ asOf: isoDateSchema.optional() }).optional())

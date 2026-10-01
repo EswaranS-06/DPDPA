@@ -36,6 +36,39 @@ export const KB_SECTION_LABEL: Record<KbSection, string> = {
 
 export const KB_PATH = '/knowledge-base'
 
+/** Sections ComplyX staff can add to and edit in a draft release; the law itself is not. */
+export const EDITABLE_SECTIONS = [
+  'bases',
+  'data-elements',
+  'vocabularies',
+  'processes',
+  'sectors',
+  'playbooks',
+] as const satisfies readonly KbListSection[]
+
+export type EditableSection = (typeof EDITABLE_SECTIONS)[number]
+
+export const isEditableSection = (value: string | undefined): value is EditableSection =>
+  (EDITABLE_SECTIONS as readonly string[]).includes(value ?? '')
+
+/** One entry of each editable section, as in "Add a lawful basis". */
+export const ENTRY_NOUN: Record<EditableSection, string> = {
+  bases: 'lawful basis',
+  'data-elements': 'data element',
+  vocabularies: 'vocabulary',
+  processes: 'process template',
+  sectors: 'sector overlay',
+  playbooks: 'playbook',
+}
+
+/** Where editors add to and change the open draft release. */
+export const KB_DRAFT_PATH = `${KB_PATH}/draft`
+
+export const draftEntryHref = (section: EditableSection, code?: string): string =>
+  code
+    ? `${KB_DRAFT_PATH}/${section}/${encodeURIComponent(code)}`
+    : `${KB_DRAFT_PATH}/${section}/new`
+
 export const isKbSection = (value: string | undefined): value is KbSection =>
   (KB_SECTIONS as readonly string[]).includes(value ?? '')
 

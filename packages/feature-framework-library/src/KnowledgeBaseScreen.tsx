@@ -46,7 +46,13 @@ export type KnowledgeBaseParams = {
   text?: string
 }
 
-type Props = { api: FrameworkLibraryApi; today: string; params: KnowledgeBaseParams }
+type Props = {
+  api: FrameworkLibraryApi
+  today: string
+  params: KnowledgeBaseParams
+  /** True while an editor views the open draft: editable sections show Add and Edit. */
+  editing?: boolean
+}
 
 // Sections whose items open on their own; the others are single lists.
 const detailOf = (
@@ -54,6 +60,7 @@ const detailOf = (
   item: string,
   api: FrameworkLibraryApi,
   today: string,
+  editing: boolean,
 ): ReactNode => {
   switch (section) {
     case 'law':
@@ -67,13 +74,13 @@ const detailOf = (
     case 'domains':
       return <DomainScreen api={api} code={item} today={today} />
     case 'sectors':
-      return <SectorScreen api={api} code={item} />
+      return <SectorScreen api={api} code={item} editing={editing} />
     case 'processes':
-      return <ProcessScreen api={api} code={item} today={today} />
+      return <ProcessScreen api={api} code={item} today={today} editing={editing} />
     case 'vocabularies':
-      return <VocabularyScreen api={api} code={item} />
+      return <VocabularyScreen api={api} code={item} editing={editing} />
     case 'playbooks':
-      return <PlaybookScreen api={api} slug={item} />
+      return <PlaybookScreen api={api} slug={item} editing={editing} />
     default:
       return undefined
   }
@@ -84,6 +91,7 @@ const indexOf = (
   api: FrameworkLibraryApi,
   today: string,
   params: KnowledgeBaseParams,
+  editing: boolean,
 ): ReactNode => {
   switch (section) {
     case 'overview':
@@ -91,7 +99,7 @@ const indexOf = (
     case 'law':
       return <LawIndexScreen api={api} today={today} />
     case 'bases':
-      return <LawfulBasesScreen api={api} />
+      return <LawfulBasesScreen api={api} editing={editing} />
     case 'obligations':
       return <ObligationIndexScreen api={api} today={today} params={params} />
     case 'controls':
@@ -101,15 +109,15 @@ const indexOf = (
     case 'domains':
       return <DomainIndexScreen api={api} />
     case 'sectors':
-      return <SectorIndexScreen api={api} />
+      return <SectorIndexScreen api={api} editing={editing} />
     case 'processes':
-      return <ProcessIndexScreen api={api} sector={params.sector} />
+      return <ProcessIndexScreen api={api} sector={params.sector} editing={editing} />
     case 'data-elements':
-      return <DataElementIndexScreen api={api} />
+      return <DataElementIndexScreen api={api} editing={editing} />
     case 'vocabularies':
-      return <VocabularyIndexScreen api={api} />
+      return <VocabularyIndexScreen api={api} editing={editing} />
     case 'playbooks':
-      return <PlaybookIndexScreen api={api} />
+      return <PlaybookIndexScreen api={api} editing={editing} />
   }
 }
 
@@ -117,11 +125,11 @@ const indexOf = (
  * The whole knowledge base on one page: law, obligations, controls, the question bank and the
  * reference lists. The section, the open item and any search live in the address.
  */
-export const KnowledgeBaseScreen = ({ api, today, params }: Props) => {
+export const KnowledgeBaseScreen = ({ api, today, params, editing = false }: Props) => {
   const query = params.q?.trim().slice(0, 200)
   const section: KbSection = isKbSection(params.section) ? params.section : 'overview'
   const item = params.item?.slice(0, 80)
-  const detail = !query && item ? detailOf(section, item, api, today) : undefined
+  const detail = !query && item ? detailOf(section, item, api, today, editing) : undefined
   return (
     <div className={styles.kb}>
       <KbBar section={query ? undefined : section} query={query} />
@@ -137,7 +145,7 @@ export const KnowledgeBaseScreen = ({ api, today, params }: Props) => {
           {detail}
         </>
       ) : (
-        indexOf(section, api, today, params)
+        indexOf(section, api, today, params, editing)
       )}
     </div>
   )

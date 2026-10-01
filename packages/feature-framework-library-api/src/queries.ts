@@ -29,6 +29,7 @@ import {
   type ObligationTrigger,
   type QuestionApplicability,
 } from '@duatf/platform-db'
+import { plainExplanation } from './entryBodies'
 import type { KbListSection } from './refs'
 
 export type Release = { id: string; version: string; publishedAt: Date | null; source: string }
@@ -369,11 +370,18 @@ export const listLaw = async (db: Database, release: Release) => {
     .from(instrument)
     .where(eq(instrument.releaseId, release.id))
     .orderBy(asc(instrument.kind), asc(instrument.code))
-  const bases = await db
-    .select({ code: lawfulBasis.code, name: lawfulBasis.name, reference: lawfulBasis.reference })
-    .from(lawfulBasis)
-    .where(eq(lawfulBasis.releaseId, release.id))
-    .orderBy(asc(lawfulBasis.code))
+  const bases = (
+    await db
+      .select({
+        code: lawfulBasis.code,
+        name: lawfulBasis.name,
+        reference: lawfulBasis.reference,
+        bodyMd: lawfulBasis.bodyMd,
+      })
+      .from(lawfulBasis)
+      .where(eq(lawfulBasis.releaseId, release.id))
+      .orderBy(asc(lawfulBasis.code))
+  ).map(({ bodyMd, ...row }) => ({ ...row, explanation: plainExplanation(bodyMd) }))
   return { instruments, bases }
 }
 

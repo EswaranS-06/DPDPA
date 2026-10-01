@@ -14,9 +14,18 @@ export const DescriptionList = ({
   columns = 3,
 }: {
   items: DescriptionItem[]
-  columns?: 2 | 3
+  /** 1 for narrow side panels. */
+  columns?: 1 | 2 | 3
 }) => (
-  <dl className={columns === 2 ? `${styles.list} ${styles.two}` : styles.list}>
+  <dl
+    className={
+      columns === 1
+        ? `${styles.list} ${styles.one}`
+        : columns === 2
+          ? `${styles.list} ${styles.two}`
+          : styles.list
+    }
+  >
     {items.map((item) => (
       <div key={item.label} className={item.wide ? styles.wide : undefined}>
         <dt>{item.label}</dt>

@@ -24,4 +24,6 @@ export {
   buttonClass,
   type ButtonVariant,
   type SelectOption,
+  CheckboxGroup,
+  type CheckboxOption,
 } from './components/Form'
