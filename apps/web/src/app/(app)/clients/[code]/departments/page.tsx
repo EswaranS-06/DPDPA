@@ -1,6 +1,7 @@
 import { can } from '@duatf/core-access'
-import { Chip, DataTable, EmptyState } from '@duatf/core-ui'
+import { Chip, DataTable, EmptyState, PageHeader, Panel } from '@duatf/core-ui'
 import { listDepartments } from '@duatf/feature-compliance-api'
+import { CircleCheck, CircleMinus, Network } from 'lucide-react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { DepartmentForm } from '@/components/forms/PeopleForms'
@@ -22,97 +23,88 @@ export default async function Page({ params }: { params: Promise<{ code: string 
 
   return (
     <>
-      <section className={styles.section} aria-labelledby="departments-title">
-        <h2 id="departments-title" className={styles.sectionTitle}>
-          Departments
-        </h2>
-        <p className={styles.sectionIntro}>
-          Assessment questions are assigned to departments, and department owners answer for their
-          own department only. Open a department for its dashboard: progress, what needs attention,
-          findings, risks, actions and evidence.
-        </p>
-        {departments.length === 0 ? (
-          <EmptyState title="No departments yet.">
-            {canManage ? 'Add the first department below.' : null}
-          </EmptyState>
-        ) : (
-          <DataTable
-            rows={departments}
-            rowKey={(row) => row.id}
-            columns={[
-              {
-                key: 'code',
-                header: 'Code',
-                render: (row) => <span className={styles.code}>{row.fullCode}</span>,
-              },
-              {
-                key: 'name',
-                header: 'Department',
-                render: (row) => (
+      <PageHeader
+        title="Departments"
+        lede="Assessment questions are assigned to departments, and department owners answer for their own department only. Open a department for its dashboard."
+      />
+      {departments.length === 0 ? (
+        <EmptyState icon={Network} title="No departments yet">
+          {canManage
+            ? 'Add the departments that hold personal data: HR, IT, customer service and so on. Questions are then assigned to them.'
+            : 'The audit team or the DPO adds departments.'}
+        </EmptyState>
+      ) : (
+        <DataTable
+          rows={departments}
+          rowKey={(row) => row.id}
+          columns={[
+            {
+              key: 'name',
+              header: 'Department',
+              render: (row) => (
+                <span className={styles.personCell}>
+                  <Link
+                    href={`/clients/${client.code}/departments/${row.code}`}
+                    className={styles.clientName}
+                  >
+                    {row.name}
+                  </Link>
+                  <span className={`code ${styles.muted}`}>{row.fullCode}</span>
+                  {row.description ? <span className={styles.muted}>{row.description}</span> : null}
+                </span>
+              ),
+            },
+            {
+              key: 'head',
+              header: 'Head',
+              render: (row) =>
+                row.headName || row.headEmail ? (
                   <span className={styles.personCell}>
-                    <Link
-                      href={`/clients/${client.code}/departments/${row.code}`}
-                      className={styles.clientName}
-                    >
-                      {row.name}
-                    </Link>
-                    {row.description ? (
-                      <span className={styles.muted}>{row.description}</span>
-                    ) : null}
+                    {row.headName}
+                    {row.headEmail ? <span className={styles.muted}>{row.headEmail}</span> : null}
                   </span>
+                ) : (
+                  <span className={styles.muted}>Not recorded</span>
                 ),
-              },
-              {
-                key: 'head',
-                header: 'Head',
-                render: (row) =>
-                  row.headName || row.headEmail ? (
-                    <span className={styles.personCell}>
-                      {row.headName}
-                      {row.headEmail ? <span className={styles.muted}>{row.headEmail}</span> : null}
-                    </span>
-                  ) : (
-                    '—'
-                  ),
-              },
-              {
-                key: 'status',
-                header: 'Status',
-                render: (row) =>
-                  row.active ? <Chip tone="live">Active</Chip> : <Chip>Inactive</Chip>,
-              },
-              ...(canManage
-                ? [
-                    {
-                      key: 'actions',
-                      header: <span className="visually-hidden">Actions</span>,
-                      render: (row: (typeof departments)[number]) => (
-                        <form action={toggle}>
-                          <input type="hidden" name="departmentId" value={row.id} />
-                          <input
-                            type="hidden"
-                            name="active"
-                            value={row.active ? 'false' : 'true'}
-                          />
-                          <button type="submit" className={formStyles.linkish}>
-                            {row.active ? 'Deactivate' : 'Reactivate'}
-                          </button>
-                        </form>
-                      ),
-                    },
-                  ]
-                : []),
-            ]}
-          />
-        )}
-      </section>
+            },
+            {
+              key: 'status',
+              header: 'Status',
+              render: (row) =>
+                row.active ? (
+                  <Chip tone="success" icon={CircleCheck}>
+                    Active
+                  </Chip>
+                ) : (
+                  <Chip icon={CircleMinus}>Inactive</Chip>
+                ),
+            },
+            ...(canManage
+              ? [
+                  {
+                    key: 'actions',
+                    header: <span className="visually-hidden">Actions</span>,
+                    label: '',
+                    render: (row: (typeof departments)[number]) => (
+                      <form action={toggle}>
+                        <input type="hidden" name="departmentId" value={row.id} />
+                        <input type="hidden" name="active" value={row.active ? 'false' : 'true'} />
+                        <button type="submit" className={formStyles.linkish}>
+                          {row.active ? 'Deactivate' : 'Reactivate'}
+                          <span className="visually-hidden"> {row.name}</span>
+                        </button>
+                      </form>
+                    ),
+                  },
+                ]
+              : []),
+          ]}
+        />
+      )}
       {canManage ? (
-        <section className={`${styles.section} ${styles.panel}`} aria-labelledby="add-department">
-          <h2 id="add-department" className={styles.sectionTitle}>
-            Add a department
-          </h2>
+        <Panel title="Add a department" titleId="add-department">
           <DepartmentForm action={createDepartmentAction.bind(null, client.id, client.code)} />
-        </section>
+        </Panel>
       ) : null}
     </>
   )

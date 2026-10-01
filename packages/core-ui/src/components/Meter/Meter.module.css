@@ -1,0 +1,62 @@
+.meter {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 8rem;
+}
+
+.track {
+  position: relative;
+  flex: 1;
+  height: 0.5rem;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--chart-track);
+}
+
+.fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-neutral-solid);
+}
+
+.good .fill {
+  background: var(--chart-yes);
+}
+
+.fair .fill {
+  background: var(--chart-partial);
+}
+
+.poor .fill {
+  background: var(--chart-no);
+}
+
+.value {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.3rem;
+  min-width: 3.75rem;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+}
+
+.goodText svg {
+  color: var(--color-success-text);
+}
+
+.fairText svg {
+  color: var(--color-warning-text);
+}
+
+.poorText svg {
+  color: var(--color-danger-text);
+}
+
+.noneText {
+  color: var(--color-text-muted);
+}

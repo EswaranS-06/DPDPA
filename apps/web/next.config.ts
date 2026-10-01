@@ -4,6 +4,8 @@ import type { NextConfig } from 'next'
 const repoRoot = fileURLToPath(new URL('../..', import.meta.url))
 
 const config: NextConfig = {
+  // A separate build folder lets a preview build run beside the live one (NEXT_DIST_DIR=.next-preview).
+  distDir: process.env.NEXT_DIST_DIR ?? '.next',
   poweredByHeader: false,
   reactStrictMode: true,
   outputFileTracingRoot: repoRoot,
@@ -32,7 +34,6 @@ const config: NextConfig = {
   redirects: () =>
     Promise.resolve([
       { source: '/library', destination: '/knowledge-base', permanent: true },
-      { source: '/search', destination: '/knowledge-base', permanent: true },
       {
         source: '/library/law/bases',
         destination: '/knowledge-base?section=bases',

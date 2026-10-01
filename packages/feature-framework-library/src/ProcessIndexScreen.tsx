@@ -27,7 +27,7 @@ export const ProcessIndexScreen = async ({ api, sector }: Props) => {
       <nav aria-label="Filter by sector">
         <ul className={styles.sectorLinks}>
           <li>
-            <Chip tone={sector ? 'neutral' : 'accent'}>
+            <Chip tone={sector ? 'neutral' : 'brand'}>
               <Link href={kbHref('processes')} aria-current={sector ? undefined : 'page'}>
                 All {all.length}
               </Link>
@@ -35,7 +35,7 @@ export const ProcessIndexScreen = async ({ api, sector }: Props) => {
           </li>
           {sectorCodes.map((code) => (
             <li key={code}>
-              <Chip tone={sector === code ? 'accent' : 'neutral'}>
+              <Chip tone={sector === code ? 'brand' : 'neutral'}>
                 <Link
                   href={kbHref('processes', undefined, { sector: code })}
                   aria-current={sector === code ? 'page' : undefined}

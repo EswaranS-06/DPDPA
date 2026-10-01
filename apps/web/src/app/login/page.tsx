@@ -1,4 +1,6 @@
+import { Callout } from '@duatf/core-ui'
 import { safeReturnTo } from '@duatf/platform-identity'
+import { KeyRound, LogIn } from 'lucide-react'
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { currentSession } from '@/server/auth'
@@ -28,20 +30,35 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
   return (
     <main id="main" className={styles.page}>
       <div className={styles.card}>
-        <p className={styles.mark}>DUATF</p>
-        <h1 className={styles.title}>DPDP compliance tracking</h1>
+        <div className={styles.brand}>
+          <span className={styles.logo} aria-hidden="true">
+            D
+          </span>
+          <span className={styles.brandText}>
+            <span className={styles.brandName}>DUATF</span>
+            <span className={styles.brandBy}>by ComplyX</span>
+          </span>
+        </div>
+        <h1 className={styles.title}>Sign in to DUATF</h1>
         <p className={styles.lede}>
-          Assessments, evidence, findings and remediation for ComplyX clients. Sign in with your
-          DUATF account; you will be asked for your authenticator code.
+          DPDP compliance assessments, evidence, findings and remediation for ComplyX clients.
         </p>
         {message ? (
-          <p className={code === 'signed_out' ? styles.info : styles.error} role="status">
-            {message}
-          </p>
+          <Callout
+            tone={code === 'signed_out' ? 'success' : 'danger'}
+            role={code === 'signed_out' ? 'status' : 'alert'}
+          >
+            <p>{message}</p>
+          </Callout>
         ) : null}
         <a className={styles.button} href={`/auth/login?next=${encodeURIComponent(next)}`}>
-          Sign in
+          <LogIn size={18} aria-hidden="true" />
+          Sign in with your DUATF account
         </a>
+        <p className={styles.note}>
+          <KeyRound size={14} aria-hidden="true" />
+          You will be asked for the code from your authenticator app.
+        </p>
         <p className={styles.small}>
           ComplyX Cybersecurity Services. A working compliance framework, not legal advice.
         </p>

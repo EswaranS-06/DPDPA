@@ -17,10 +17,12 @@ import {
   lt,
   ne,
   nextCode,
+  notExists,
   notInArray,
   question,
   remediationAction,
   risk,
+  sql,
   tenant,
   type ActionStatus,
   type Answer,
@@ -410,6 +412,8 @@ export type FindingFilters = {
   domain?: string
   /** A department id (the department of the finding's question), or "none" for unassigned. */
   departmentId?: string
+  /** Only findings with no remediation action planned. */
+  withoutActions?: boolean
 }
 
 const findingColumns = {
@@ -456,6 +460,14 @@ export const listFindings = async (
           filters.status ? eq(finding.status, filters.status) : undefined,
           filters.assessmentId ? eq(finding.assessmentId, filters.assessmentId) : undefined,
           filters.domain ? eq(finding.domainCode, filters.domain) : undefined,
+          filters.withoutActions
+            ? notExists(
+                tx
+                  .select({ one: sql`1` })
+                  .from(remediationAction)
+                  .where(eq(remediationAction.findingId, finding.id)),
+              )
+            : undefined,
           filters.departmentId === 'none'
             ? isNull(assessmentItem.departmentId)
             : filters.departmentId

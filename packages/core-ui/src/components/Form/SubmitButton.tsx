@@ -2,13 +2,14 @@
 
 import type { ReactNode } from 'react'
 import { useFormStatus } from 'react-dom'
-import styles from './Form.module.css'
+import { buttonClass, type ButtonVariant } from './Form'
 
 type SubmitButtonProps = {
   children: ReactNode
   /** Text while the form is being sent. */
   pendingText?: string
-  variant?: 'primary' | 'secondary' | 'danger'
+  variant?: ButtonVariant
+  size?: 'md' | 'sm'
   /** Server action for this button only (formAction). */
   formAction?: (formData: FormData) => void | Promise<void>
   name?: string
@@ -20,6 +21,7 @@ export const SubmitButton = ({
   children,
   pendingText = 'Saving…',
   variant = 'primary',
+  size = 'md',
   formAction,
   name,
   value,
@@ -30,10 +32,11 @@ export const SubmitButton = ({
       type="submit"
       disabled={pending}
       aria-disabled={pending}
+      aria-busy={pending}
       formAction={formAction}
       name={name}
       value={value}
-      className={`${styles.button} ${styles[variant]}`}
+      className={buttonClass(variant, size)}
     >
       {pending ? pendingText : children}
     </button>

@@ -11,7 +11,7 @@ export const ACTOR_LABEL: Record<string, string> = {
 
 /** Act Schedule penalty items, as used by the obligation penalty tiers. */
 export const PENALTY: Record<string, { amount: string; basis: string; tone: ChipTone }> = {
-  P1: { amount: 'Up to ₹250 crore', basis: 'security safeguards, s.8(5)', tone: 'severe' },
+  P1: { amount: 'Up to ₹250 crore', basis: 'security safeguards, s.8(5)', tone: 'danger' },
   P2: { amount: 'Up to ₹200 crore', basis: 'breach intimation, s.8(6)', tone: 'neutral' },
   P3: { amount: 'Up to ₹200 crore', basis: "children's data, s.9", tone: 'neutral' },
   P4: {

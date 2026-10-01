@@ -1,4 +1,4 @@
-import { AccessDeniedError } from '@duatf/core-access'
+import { AccessDeniedError, CAPABILITIES, CAPABILITY_LABEL, ROLE_LABEL } from '@duatf/core-access'
 import {
   keycloakProvisioner,
   objectEvidenceStorage,
@@ -77,11 +77,15 @@ export const failure = (error: unknown, values?: Record<string, string>): FormSt
   if (error instanceof ValidationError) {
     return { status: 'error', message: error.message, fieldErrors: error.fieldErrors, values }
   }
-  if (
-    error instanceof RuleError ||
-    error instanceof AccessDeniedError ||
-    error instanceof NotFoundError
-  ) {
+  if (error instanceof AccessDeniedError) {
+    const allowed = CAPABILITIES[error.capability].roles.map((role) => ROLE_LABEL[role])
+    return {
+      status: 'error',
+      message: `You don't have permission to ${CAPABILITY_LABEL[error.capability]}. This is done by: ${allowed.join(', ')}.`,
+      values,
+    }
+  }
+  if (error instanceof RuleError || error instanceof NotFoundError) {
     return { status: 'error', message: error.message, values }
   }
   console.error('Unexpected error in a form action', error)

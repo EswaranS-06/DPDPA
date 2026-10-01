@@ -49,3 +49,6 @@ coverage/
 *.tsbuildinfo
 next-env.d.ts
 .run/
+
+# Preview builds of the web app (NEXT_DIST_DIR=.next-preview)
+.next-preview/

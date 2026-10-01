@@ -18,3 +18,4 @@ export {
   type Assignment,
   type AccessScope,
 } from './can'
+export { CAPABILITY_LABEL, describeDenial, type Denial } from './describe'

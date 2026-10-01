@@ -560,6 +560,82 @@ phases:
             expected: 'department only'
             source: literal
 
+  - id: C16
+    title: 'Interface redesign (design system 2.0)'
+    release: R2
+    reviews: [lead_auditor]
+    subphases:
+      - id: C16.1
+        title: 'Foundations: tokens, Inter, Lucide icons, status language'
+        state: active
+        tests:
+          - id: TC-C16.1-01
+            title: 'Every text and control colour meets WCAG AA in light, dark and high contrast'
+            expected: 'no pair below 4.5:1 (text) or 3:1 (controls); dark blocks identical'
+            source: oracle
+          - id: TC-C16.1-02
+            title: 'Every database state has a label, a tone and an icon'
+            expected: 'no missing or stray entry'
+            source: oracle
+      - id: C16.2
+        title: 'App shell: grouped sidebar, breadcrumbs, display settings, phone drawer'
+        state: active
+        tests:
+          - id: TC-C16.2-01
+            title: 'The sidebar offers each role only the sections it may open'
+            expected: 'firm, client and admin sections per role; client breadcrumbs'
+            source: literal
+      - id: C16.3
+        title: 'Dashboards: needs your attention, compliance posture with its working'
+        state: active
+        tests:
+          - id: TC-C16.3-01
+            title: 'What needs attention equals direct counts, per role'
+            expected: 'equal; only what each role can act on'
+            source: oracle
+          - id: TC-C16.3-02
+            title: 'The working shown beside the posture reproduces the figure'
+            expected: 'equal for every mix of answers'
+            source: oracle
+      - id: C16.4
+        title: 'Requirement pages: legal reference, commencement, evidence trail, remediation path'
+        state: active
+        tests:
+          - id: TC-C16.4-01
+            title: 'A provision reads as in force, starting in so many days, or stopped'
+            expected: 'Starts 13 November 2026, in 43 days (on 1 Oct 2026)'
+            source: literal
+      - id: C16.5
+        title: 'Search everywhere (Ctrl K)'
+        state: active
+        tests:
+          - id: TC-C16.5-01
+            title: 'Search finds records by code or title, only in clients the user can open'
+            expected: 'own client only; by code; short query empty'
+            source: literal
+      - id: C16.6
+        title: 'Empty, error, permission and loading states'
+        state: active
+        tests:
+          - id: TC-C16.6-01
+            title: 'A refusal names the action, the reader role and the roles that may do it'
+            expected: 'action, your role, who can'
+            source: literal
+      - id: C16.7
+        title: 'Visual review and sign-off'
+        state: active
+        tests:
+          - id: TC-C16.7-01
+            title: 'Screens render at 1440, 1024 and 390 px in light, dark and high contrast'
+            expected: 'no overlap, no clipped text, no console errors'
+            source: manual
+            kind: manual
+          - id: TC-C16.7-02
+            title: 'ComplyX signs off the new design on the live app'
+            expected: 'signed'
+            source: manual
+            kind: manual
+
   - id: C12
     title: 'Hardening'
     release: R3

@@ -6,7 +6,13 @@ if (existsSync('.env')) process.loadEnvFile('.env')
 export default defineConfig({
   test: {
     include: ['{apps,packages,tools}/**/src/**/*.test.{ts,tsx}'],
-    exclude: ['**/node_modules/**', '**/.next/**', '**/dist/**', 'apps/e2e/**'],
+    exclude: [
+      '**/node_modules/**',
+      '**/.next/**',
+      '**/.next-preview/**',
+      '**/dist/**',
+      'apps/e2e/**',
+    ],
     environment: 'node',
     testTimeout: 60_000,
     hookTimeout: 120_000,

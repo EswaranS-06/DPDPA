@@ -3,19 +3,20 @@ import type { Progress } from './progress'
 import { ratingFor, type Band } from './risks'
 
 // Colours of the DUATF design tokens, as Excel ARGB values.
+/** The design system's light palette (docs/design/DUATF-Design-System.md), as Excel ARGB. */
 export const XL = {
-  accent: 'FF4F2E9C',
-  accentSoft: 'FFEEE9F8',
-  live: 'FF2D7A4C',
-  liveSoft: 'FFE3F1E8',
-  pending: 'FF9A5A00',
-  pendingSoft: 'FFFBF0DD',
-  severe: 'FFA8261B',
-  severeSoft: 'FFFBE7E5',
-  folio: 'FFF4F5F2',
-  rule: 'FFD9DDE1',
-  ink: 'FF1B2230',
-  pencil: 'FF5A6273',
+  accent: 'FF4F46E5',
+  accentSoft: 'FFEEF2FF',
+  live: 'FF067647',
+  liveSoft: 'FFECFDF3',
+  pending: 'FFB54708',
+  pendingSoft: 'FFFFFAEB',
+  severe: 'FFB42318',
+  severeSoft: 'FFFEF3F2',
+  folio: 'FFF1F5F9',
+  rule: 'FFE2E8F0',
+  ink: 'FF0F172A',
+  pencil: 'FF475569',
   white: 'FFFFFFFF',
 } as const
 

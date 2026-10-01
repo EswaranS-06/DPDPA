@@ -1,96 +1,85 @@
-import { Chip, type ChipTone } from '@duatf/core-ui'
-import {
-  ASSESSMENT_STATUS_LABEL,
-  COMPLIANCE_LABEL,
-  REVIEW_LABEL,
-  type Progress,
-} from '@duatf/feature-compliance-api'
+import { Stat, StatGrid } from '@duatf/core-ui'
+import type { Progress } from '@duatf/feature-compliance-api'
 import type { AssessmentStatus, ComplianceState, ReviewState } from '@duatf/platform-db'
+import {
+  CircleAlert,
+  CircleCheck,
+  CircleDashed,
+  CircleX,
+  Minus,
+  type LucideIcon,
+} from 'lucide-react'
+import { Status } from '@/components/status'
 import styles from './AssessmentBits.module.css'
 
-const STATUS_TONE: Record<AssessmentStatus, ChipTone> = {
-  draft: 'neutral',
-  in_progress: 'accent',
-  in_review: 'pending',
-  completed: 'live',
-}
-
-const STATE_TONE: Record<ComplianceState, ChipTone> = {
-  compliant: 'live',
-  potential_gap: 'pending',
-  gap: 'severe',
-  excluded: 'neutral',
-  pending: 'neutral',
-}
-
-const REVIEW_TONE: Record<ReviewState, ChipTone> = {
-  not_reviewed: 'neutral',
-  accepted: 'live',
-  returned: 'severe',
-}
-
 export const AssessmentStatusChip = ({ status }: { status: AssessmentStatus }) => (
-  <Chip tone={STATUS_TONE[status]}>{ASSESSMENT_STATUS_LABEL[status]}</Chip>
+  <Status kind="assessment" value={status} />
 )
 
 export const ComplianceChip = ({ state }: { state: ComplianceState }) => (
-  <Chip tone={STATE_TONE[state]}>{COMPLIANCE_LABEL[state]}</Chip>
+  <Status kind="compliance" value={state} />
 )
 
 export const ReviewChip = ({ review }: { review: ReviewState }) =>
-  review === 'not_reviewed' ? null : <Chip tone={REVIEW_TONE[review]}>{REVIEW_LABEL[review]}</Chip>
+  review === 'not_reviewed' ? null : <Status kind="review" value={review} />
 
-const SEGMENTS = [
-  { key: 'compliant', label: 'Compliant', className: styles.compliant },
-  { key: 'potentialGap', label: 'Potential gap', className: styles.potential },
-  { key: 'gap', label: 'Gap', className: styles.gap },
-  { key: 'excluded', label: 'Not applicable', className: styles.excluded },
-] as const
-
-/** One bar per assessment: answered questions coloured by outcome, the rest left empty. */
-export const ProgressBar = ({ progress, label }: { progress: Progress; label?: string }) => {
-  const summary = SEGMENTS.map(
-    (segment) => `${progress[segment.key]} ${segment.label.toLowerCase()}`,
-  )
-    .concat(`${progress.pending} not assessed`)
-    .join(', ')
-  return (
-    <div className={styles.barWrap}>
-      <div className={styles.bar} role="img" aria-label={`${label ? `${label}: ` : ''}${summary}`}>
-        {SEGMENTS.map((segment) =>
-          progress[segment.key] > 0 ? (
-            <span
-              key={segment.key}
-              className={`${styles.segment} ${segment.className}`}
-              style={{ flexGrow: progress[segment.key] }}
-              title={`${segment.label}: ${progress[segment.key]}`}
-            />
-          ) : null,
-        )}
-        {progress.pending > 0 ? (
-          <span
-            className={styles.segment}
-            style={{ flexGrow: progress.pending }}
-            title={`Not assessed: ${progress.pending}`}
-          />
-        ) : null}
-      </div>
-    </div>
-  )
+type Segment = {
+  key: 'compliant' | 'potentialGap' | 'gap' | 'excluded' | 'pending'
+  label: string
+  className: string | undefined
+  icon: LucideIcon
 }
 
-export const Legend = () => (
+/** The five outcomes of a question, in reading order. Answers left to right, then the rest. */
+export const SEGMENTS: readonly Segment[] = [
+  { key: 'compliant', label: 'Yes', className: styles.yes, icon: CircleCheck },
+  { key: 'potentialGap', label: 'Partial', className: styles.partial, icon: CircleAlert },
+  { key: 'gap', label: 'No', className: styles.no, icon: CircleX },
+  { key: 'excluded', label: 'Not applicable', className: styles.na, icon: Minus },
+  { key: 'pending', label: 'Not answered', className: styles.pending, icon: CircleDashed },
+]
+
+const describe = (progress: Progress) =>
+  SEGMENTS.map((segment) => `${progress[segment.key]} ${segment.label.toLowerCase()}`).join(', ')
+
+/** One bar per set of questions: answers by outcome, then what is not answered yet. */
+export const ProgressBar = ({
+  progress,
+  label,
+  size = 'normal',
+}: {
+  progress: Progress
+  label?: string
+  size?: 'normal' | 'large'
+}) => (
+  <div
+    className={size === 'large' ? `${styles.bar} ${styles.large}` : styles.bar}
+    role="img"
+    aria-label={`${label ? `${label}: ` : ''}${describe(progress)}`}
+  >
+    {SEGMENTS.map((segment) =>
+      progress[segment.key] > 0 ? (
+        <span
+          key={segment.key}
+          className={`${styles.segment} ${segment.className ?? ''}`}
+          style={{ flexGrow: progress[segment.key] }}
+          title={`${segment.label}: ${progress[segment.key]}`}
+        />
+      ) : null,
+    )}
+  </div>
+)
+
+/** The key to ProgressBar; with counts when a progress is given. */
+export const Legend = ({ progress }: { progress?: Progress }) => (
   <ul className={styles.legend}>
     {SEGMENTS.map((segment) => (
       <li key={segment.key}>
-        <span className={`${styles.swatch} ${segment.className}`} aria-hidden="true" />
+        <span className={`${styles.swatch} ${segment.className ?? ''}`} aria-hidden="true" />
         {segment.label}
+        {progress ? <span className={styles.legendCount}>{progress[segment.key]}</span> : null}
       </li>
     ))}
-    <li>
-      <span className={styles.swatch} aria-hidden="true" />
-      Not assessed
-    </li>
   </ul>
 )
 
@@ -98,32 +87,28 @@ const shown = (value: number | null) => (value === null ? '—' : `${value}%`)
 
 /** The headline numbers of an assessment. */
 export const Metrics = ({ progress }: { progress: Progress }) => (
-  <dl className={styles.metrics}>
-    <div>
-      <dt>Answered</dt>
-      <dd>{shown(progress.progressPct)}</dd>
-      <span className={styles.metricNote}>
-        {progress.answered} of {progress.total} questions
-      </span>
-    </div>
-    <div>
-      <dt>Compliance</dt>
-      <dd>{shown(progress.compliancePct)}</dd>
-      <span className={styles.metricNote}>Yes, plus half of Partial, over answered in scope</span>
-    </div>
-    <div>
-      <dt>Gaps</dt>
-      <dd>{progress.gap + progress.potentialGap}</dd>
-      <span className={styles.metricNote}>
-        {progress.gap} gaps, {progress.potentialGap} potential
-      </span>
-    </div>
-    <div>
-      <dt>Reviewed</dt>
-      <dd>{shown(progress.reviewedPct)}</dd>
-      <span className={styles.metricNote}>
-        {progress.accepted} accepted, {progress.returned} sent back
-      </span>
-    </div>
-  </dl>
+  <StatGrid label="Assessment figures">
+    <Stat
+      label="Answered"
+      value={shown(progress.progressPct)}
+      note={`${progress.answered} of ${progress.total} questions`}
+    />
+    <Stat
+      label="Compliance posture"
+      value={shown(progress.compliancePct)}
+      note="Yes plus half of Partial, over answered questions in scope"
+    />
+    <Stat
+      label="Gaps"
+      value={progress.gap + progress.potentialGap}
+      note={`${progress.gap} gaps, ${progress.potentialGap} potential`}
+      tone={progress.gap > 0 ? 'danger' : 'default'}
+    />
+    <Stat
+      label="Reviewed"
+      value={shown(progress.reviewedPct)}
+      note={`${progress.accepted} accepted, ${progress.returned} sent back`}
+      tone={progress.returned > 0 ? 'warning' : 'default'}
+    />
+  </StatGrid>
 )

@@ -1,7 +1,8 @@
 import { can } from '@duatf/core-access'
 import { formatDay } from '@duatf/core-utils'
-import { DataTable, EmptyState } from '@duatf/core-ui'
+import { DataTable, EmptyState, Meter, PageHeader, Panel } from '@duatf/core-ui'
 import { listAssessments } from '@duatf/feature-compliance-api'
+import { ClipboardList } from 'lucide-react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { AssessmentStatusChip, Legend, ProgressBar } from '@/components/assessment/AssessmentBits'
@@ -23,82 +24,89 @@ export default async function Page({ params }: { params: Promise<{ code: string 
 
   return (
     <>
-      <section className={styles.section} aria-labelledby="assessments-title">
-        <h2 id="assessments-title" className={styles.sectionTitle}>
-          Assessments
-        </h2>
-        <p className={styles.sectionIntro}>
-          Each assessment asks every question in the knowledge base release it was started on. No
-          and Partial answers become gaps; the question&apos;s recommendation goes with them.
-        </p>
-        {assessments.length === 0 ? (
-          <EmptyState title="No assessment yet.">
-            {canCreate ? 'Start the first one below.' : null}
-          </EmptyState>
-        ) : (
-          <>
-            <DataTable
-              rows={assessments}
-              rowKey={(row) => row.id}
-              columns={[
-                {
-                  key: 'title',
-                  header: 'Assessment',
-                  render: (row) => (
-                    <span className={styles.personCell}>
-                      <Link
-                        href={`/clients/${client.code}/assessments/${row.code}`}
-                        className={styles.clientName}
-                      >
-                        {row.title}
-                      </Link>
-                      <span className={styles.muted}>
-                        {row.code} · knowledge base {row.releaseVersion}
-                      </span>
+      <PageHeader
+        title="Assessments"
+        lede="Each assessment asks every question of the knowledge base release it starts on. No and Partial answers become findings, each with the recommended action."
+      />
+      {assessments.length === 0 ? (
+        <EmptyState icon={ClipboardList} title="No assessment yet">
+          {canCreate
+            ? 'Start the first one below. Questions are then assigned to departments, answered with evidence and reviewed.'
+            : 'The audit team starts assessments. You will see them here once one is open.'}
+        </EmptyState>
+      ) : (
+        <section className={styles.section} aria-label="All assessments">
+          <DataTable
+            rows={assessments}
+            rowKey={(row) => row.id}
+            columns={[
+              {
+                key: 'title',
+                header: 'Assessment',
+                render: (row) => (
+                  <span className={styles.personCell}>
+                    <Link
+                      href={`/clients/${client.code}/assessments/${row.code}`}
+                      className={styles.clientName}
+                    >
+                      {row.title}
+                    </Link>
+                    <span className={styles.muted}>
+                      <span className="code">{row.code}</span>, knowledge base release{' '}
+                      {row.releaseVersion}
                     </span>
-                  ),
-                },
-                {
-                  key: 'status',
-                  header: 'Status',
-                  render: (row) => <AssessmentStatusChip status={row.status} />,
-                },
-                {
-                  key: 'progress',
-                  header: 'Progress',
-                  width: '26%',
-                  render: (row) => (
-                    <span className={styles.personCell}>
-                      <ProgressBar progress={row.progress} label={row.title} />
-                      <span className={styles.muted}>
-                        {row.progress.answered} of {row.progress.total} answered
-                      </span>
+                  </span>
+                ),
+              },
+              {
+                key: 'status',
+                header: 'Status',
+                render: (row) => <AssessmentStatusChip status={row.status} />,
+              },
+              {
+                key: 'progress',
+                header: 'Answers',
+                width: '24%',
+                render: (row) => (
+                  <span className={styles.personCell}>
+                    <ProgressBar progress={row.progress} label={row.title} />
+                    <span className={styles.muted}>
+                      {row.progress.answered} of {row.progress.total} answered
                     </span>
+                  </span>
+                ),
+              },
+              {
+                key: 'compliance',
+                header: 'Posture',
+                width: '18%',
+                render: (row) => (
+                  <Meter value={row.progress.compliancePct} label={`${row.title} posture`} />
+                ),
+              },
+              {
+                key: 'due',
+                header: 'Due',
+                priority: 'low',
+                render: (row) =>
+                  row.dueDate ? (
+                    formatDay(row.dueDate)
+                  ) : (
+                    <span className={styles.muted}>No date</span>
                   ),
-                },
-                {
-                  key: 'compliance',
-                  header: 'Compliance',
-                  align: 'end',
-                  render: (row) =>
-                    row.progress.compliancePct === null ? '—' : `${row.progress.compliancePct}%`,
-                },
-                {
-                  key: 'due',
-                  header: 'Due',
-                  render: (row) => (row.dueDate ? formatDay(row.dueDate) : '—'),
-                },
-              ]}
-            />
-            <Legend />
-          </>
-        )}
-      </section>
+              },
+            ]}
+          />
+          <Legend />
+        </section>
+      )}
       {canCreate ? (
-        <section className={`${styles.section} ${styles.panel}`} aria-labelledby="new-assessment">
-          <h2 id="new-assessment" className={styles.sectionTitle}>
-            Start an assessment
-          </h2>
+        <Panel title="Start an assessment" titleId="new-assessment">
+          <p className={`${styles.flush} ${styles.sectionIntro}`}>
+            The assessment uses the current knowledge base release. A re-assessment of a completed
+            cycle is started from that cycle&apos;s page, so earlier answers and findings carry
+            over.
+          </p>
           <NewAssessmentForm
             action={createAssessmentAction.bind(null, client.id, client.code)}
             defaults={{
@@ -107,7 +115,7 @@ export default async function Page({ params }: { params: Promise<{ code: string 
               periodEnd: client.assessmentPeriodEnd ?? '',
             }}
           />
-        </section>
+        </Panel>
       ) : null}
     </>
   )

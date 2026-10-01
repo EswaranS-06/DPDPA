@@ -1,0 +1,17 @@
+id: TC-C16.7-01
+result: pass
+by: claude (for EswaranS-06)
+date: '2026-10-01'
+evidence: >-
+  Preview build (NEXT_DIST_DIR=.next-preview) on 127.0.0.1:53110 against the demo data, opened in
+  headless Chromium with server-side QA sessions (deleted afterwards). 52 captures over three runs: overview,
+  clients, client overview, assessments, assessment, question, findings, finding, risk register,
+  remediation, action, evidence, evidence file, departments, department dashboard, people, reports,
+  executive report, knowledge base overview and question, search, search palette, user menu,
+  permission notice and not found; at 1440, 1024 and 390 px; light, dark and high contrast;
+  comfortable and compact density; as a lead auditor, a client DPO and a department owner. Every
+  page returned 200 except the intended 404s (an unknown finding, and AMMA's DPO opening Nadall);
+  no console errors. Fixed during review: clashing date labels on the regulatory clock, a stray
+  breadcrumb separator on phones, plural wording, and 404 statuses lost to a route-level loading
+  boundary.
+notes: Design sign-off by ComplyX is TC-C16.7-02.

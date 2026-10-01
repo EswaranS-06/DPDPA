@@ -15,5 +15,5 @@
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "next.config.ts"],
-  "exclude": ["node_modules", ".next"]
+  "exclude": ["node_modules", ".next", ".next-preview"]
 }

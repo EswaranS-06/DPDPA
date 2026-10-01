@@ -10,59 +10,91 @@
 .legend {
   margin-bottom: var(--space-2);
   padding: 0;
-  font-weight: 600;
   font-size: var(--text-sm);
+  font-weight: 550;
 }
 
 .option {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 0 var(--space-2);
   align-items: center;
+  gap: 0.15rem var(--space-2);
   padding: var(--space-3);
-  background: var(--color-sheet);
-  border: 1px solid var(--color-rule-strong);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-control);
   cursor: pointer;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
 }
 
 .option:hover {
-  border-color: var(--color-accent);
+  border-color: var(--color-border-control);
 }
 
-.chosen {
-  border-color: var(--color-accent);
-  box-shadow: inset 0 0 0 1px var(--color-accent);
-  background: var(--color-accent-soft);
+.option:has(input:focus-visible) {
+  box-shadow: var(--focus-ring);
+}
+
+.chosen,
+.chosen:hover {
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary);
+  box-shadow: inset 0 0 0 1px var(--color-primary);
 }
 
 .option input {
   grid-row: 1 / span 2;
-  accent-color: var(--color-accent);
+  margin: 0;
+  accent-color: var(--color-primary);
+}
+
+.option input:focus-visible {
+  box-shadow: none;
 }
 
 .optionLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   font-weight: 600;
 }
 
 .optionNote {
   font-size: var(--text-xs);
-  color: var(--color-pencil);
+  color: var(--color-text-secondary);
+}
+
+.yes {
+  color: var(--color-success-text);
+}
+
+.partial {
+  color: var(--color-warning-text);
+}
+
+.no {
+  color: var(--color-danger-text);
+}
+
+.na {
+  color: var(--color-text-muted);
 }
 
 .answers:disabled .option {
   cursor: not-allowed;
-  opacity: 0.7;
+  opacity: 0.65;
 }
 
 .error {
   margin: 0;
-  color: var(--color-severe);
-  font-weight: 600;
   font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-danger-text);
 }
 
-@media (max-width: 700px) {
+@media (max-width: 760px) {
   .answers {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

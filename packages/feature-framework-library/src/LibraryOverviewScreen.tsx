@@ -2,7 +2,8 @@ import { kbHref } from '@duatf/feature-framework-library-api'
 import { formatDay, isoDate } from '@duatf/core-utils'
 import type { FrameworkLibraryApi } from '@duatf/feature-framework-library-api'
 import Link from 'next/link'
-import { buildLadder, CommencementLadder } from './components/CommencementLadder'
+import { buildLadder } from './components/CommencementLadder/ladder'
+import { RegulatoryClock } from './components/RegulatoryClock'
 import styles from './screens.module.css'
 
 type Props = { api: FrameworkLibraryApi; today: string }
@@ -56,18 +57,8 @@ export const LibraryOverviewScreen = async ({ api, today }: Props) => {
 
   return (
     <div className={styles.page}>
-      <section className={styles.section} aria-labelledby="overview-headline">
-        <h1 id="overview-headline" className={styles.headline}>
-          {ladder.headline}
-        </h1>
-        {ladder.upcoming ? (
-          <p className={styles.countdown}>
-            {ladder.upcoming} {ladder.countdown}
-          </p>
-        ) : null}
-      </section>
-
-      <CommencementLadder ladder={ladder} />
+      <h1 className="visually-hidden">Knowledge base</h1>
+      <RegulatoryClock ladder={ladder} release={release.version} />
 
       <section className={styles.section} aria-labelledby="domains-title">
         <h2 id="domains-title" className={styles.sectionTitle}>
@@ -82,7 +73,9 @@ export const LibraryOverviewScreen = async ({ api, today }: Props) => {
                   {domain.title}
                 </Link>
                 <span className={styles.indexMeta}>
-                  {domain.obligationCount} obligations, {domain.controlCount} controls
+                  {domain.obligationCount}{' '}
+                  {domain.obligationCount === 1 ? 'obligation' : 'obligations'},{' '}
+                  {domain.controlCount} {domain.controlCount === 1 ? 'control' : 'controls'}
                 </span>
               </span>
             </li>
@@ -111,8 +104,7 @@ export const LibraryOverviewScreen = async ({ api, today }: Props) => {
       <p className={styles.muted}>
         Framework release {release.version}
         {release.publishedAt ? `, published ${formatDay(isoDate(release.publishedAt))}` : ''}.
-        Commencement dates are computed from the Gazette and may shift by a day. This is a working
-        compliance framework, not legal advice.
+        Commencement dates are computed from the Gazette and may shift by a day.
       </p>
     </div>
   )

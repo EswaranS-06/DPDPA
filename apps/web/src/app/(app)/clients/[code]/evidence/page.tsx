@@ -1,16 +1,19 @@
 import { can } from '@duatf/core-access'
-import { buttonClass, EmptyState, SelectField, TextField } from '@duatf/core-ui'
+import { buttonClass, Disclosure, EmptyState, PageHeader, TextField } from '@duatf/core-ui'
 import {
   evidenceStatusCounts,
   listDepartments,
   listEvidence,
   type EvidenceFilters,
 } from '@duatf/feature-compliance-api'
-import { EVIDENCE_STATUSES, type EvidenceStatus } from '@duatf/platform-db'
+import { EVIDENCE_STATUSES } from '@duatf/platform-db'
+import { FileCheck, FilePlus } from 'lucide-react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { EvidenceTable } from '@/components/evidence/EvidenceTable'
+import { FilterTabs } from '@/components/FilterTabs'
 import { UploadEvidenceForm } from '@/components/forms/EvidenceForms'
+import { STATUS } from '@/components/status'
 import { loadClient } from '@/server/clients'
 import { firstValue, type SearchParams } from '@/server/searchParams'
 import { serviceContext } from '@/server/services'
@@ -20,12 +23,6 @@ import { uploadEvidenceAction } from './actions'
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = { title: 'Evidence' }
 
-const STATUS_LABEL: Record<EvidenceStatus, string> = {
-  pending_review: 'Awaiting review',
-  accepted: 'Accepted',
-  rejected: 'Rejected',
-}
-
 type Props = { params: Promise<{ code: string }>; searchParams: SearchParams }
 
 export default async function Page({ params, searchParams }: Props) {
@@ -34,7 +31,7 @@ export default async function Page({ params, searchParams }: Props) {
   const query = await searchParams
   const filters: EvidenceFilters = {
     status: EVIDENCE_STATUSES.find((status) => status === firstValue(query.status)),
-    text: firstValue(query.q)?.slice(0, 100),
+    text: firstValue(query.q)?.trim().slice(0, 100) || undefined,
   }
   const [rows, counts] = await Promise.all([
     listEvidence(ctx, client.id, filters),
@@ -46,60 +43,66 @@ export default async function Page({ params, searchParams }: Props) {
   })
   const departments = firmUploader ? await listDepartments(ctx, client.id) : []
   const base = `/clients/${client.code}/evidence`
+  const total = EVIDENCE_STATUSES.reduce((sum, status) => sum + counts[status], 0)
+  const withText = (href: string) =>
+    filters.text
+      ? `${href}${href.includes('?') ? '&' : '?'}q=${encodeURIComponent(filters.text)}`
+      : href
 
   return (
     <>
-      <section className={styles.section} aria-labelledby="evidence-title">
-        <h2 id="evidence-title" className={styles.sectionTitle}>
-          Evidence repository
-        </h2>
-        <p className={styles.sectionIntro}>
-          Every file is stored with its SHA-256 fingerprint. Downloads use a link that stops working
-          after five minutes, and every download is recorded. {counts.pending_review} awaiting
-          review, {counts.accepted} accepted, {counts.rejected} rejected.
-        </p>
-        <form method="get" action={base} className={styles.filters}>
+      <PageHeader
+        title="Evidence"
+        lede="Every file is stored with its SHA-256 fingerprint. Downloads use a link that stops working after five minutes, and every download is recorded in the audit log."
+      />
+      <section className={styles.section} aria-label="Evidence files">
+        <FilterTabs
+          label="Evidence by status"
+          tabs={[
+            { href: withText(base), label: 'All', count: total, current: !filters.status },
+            ...EVIDENCE_STATUSES.map((status) => ({
+              href: withText(`${base}?status=${status}`),
+              label: STATUS.evidence[status].label,
+              count: counts[status],
+              current: filters.status === status,
+            })),
+          ]}
+        />
+        <form method="get" action={base} className={styles.filters} role="search">
+          {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
           <TextField
-            label="Search"
+            label="Search evidence"
             name="q"
             type="search"
             defaultValue={filters.text}
             placeholder="Title, file name or code"
           />
-          <SelectField
-            label="Status"
-            name="status"
-            placeholder="Any status"
-            options={EVIDENCE_STATUSES.map((status) => ({
-              value: status,
-              label: STATUS_LABEL[status],
-            }))}
-            defaultValue={filters.status}
-          />
           <button type="submit" className={buttonClass('secondary')}>
-            Filter
+            Search
           </button>
-          {filters.status || filters.text ? (
-            <Link href={base} className={styles.muted}>
-              Show all
+          {filters.text ? (
+            <Link
+              href={filters.status ? `${base}?status=${filters.status}` : base}
+              className={buttonClass('ghost')}
+            >
+              Clear search
             </Link>
           ) : null}
         </form>
         {rows.length === 0 ? (
           <EmptyState
-            title={filters.status || filters.text ? 'No evidence matches.' : 'No evidence yet.'}
+            icon={FileCheck}
+            title={filters.status || filters.text ? 'No evidence matches' : 'No evidence yet'}
           >
-            Evidence is usually uploaded from a question, so it is linked to it straight away.
+            Evidence is usually uploaded from a question or a remediation action, so it is linked to
+            it straight away and reviewed by an auditor.
           </EmptyState>
         ) : (
           <EvidenceTable rows={rows} clientCode={client.code} />
         )}
       </section>
       {firmUploader ? (
-        <section className={`${styles.section} ${styles.panel}`} aria-labelledby="upload-title">
-          <h2 id="upload-title" className={styles.sectionTitle}>
-            Upload evidence
-          </h2>
+        <Disclosure summary="Upload evidence without a question" icon={FilePlus}>
           <UploadEvidenceForm
             action={uploadEvidenceAction.bind(null, {
               clientId: client.id,
@@ -110,7 +113,7 @@ export default async function Page({ params, searchParams }: Props) {
               .filter((row) => row.active)
               .map((row) => ({ value: row.id, label: row.name }))}
           />
-        </section>
+        </Disclosure>
       ) : null}
     </>
   )

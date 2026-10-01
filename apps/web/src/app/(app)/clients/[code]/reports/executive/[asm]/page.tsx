@@ -40,7 +40,7 @@ export default async function Page({ params }: Props) {
       </div>
 
       <header className={styles.cover}>
-        <p className={styles.kicker}>DPDP Act 2023 compliance assessment · executive report</p>
+        <p className={styles.kicker}>Executive report on a DPDP compliance assessment</p>
         <h1 className={styles.title}>{preparedFor.name}</h1>
         <p className={styles.subtitle}>
           {assessment.title} ({assessment.code})
@@ -122,7 +122,7 @@ export default async function Page({ params }: Props) {
                   {row.band ? <BandChip band={row.band} score={row.riskScore ?? undefined} /> : null}
                 </div>
                 <p className={styles.small}>
-                  <Citation>{row.code}</Citation> · question {row.questionCode} · control {row.controlCode}
+                  <Citation>{row.code}</Citation>, question {row.questionCode}, control {row.controlCode}
                 </p>
                 <p>{row.recommendation}</p>
               </li>

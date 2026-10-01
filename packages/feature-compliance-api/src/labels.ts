@@ -95,8 +95,8 @@ export const COMPLIANCE_LABEL: Record<ComplianceState, string> = {
   compliant: 'Compliant',
   potential_gap: 'Potential gap',
   gap: 'Gap',
-  excluded: 'Excluded',
-  pending: 'Pending',
+  excluded: 'Not applicable',
+  pending: 'Not assessed',
 }
 
 export const REVIEW_LABEL: Record<ReviewState, string> = {

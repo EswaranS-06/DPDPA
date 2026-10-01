@@ -1,95 +1,72 @@
-.barWrap {
-  min-width: 8rem;
-}
-
+/* Segmented outcome bar: 2px surface gaps between segments, the track shows what is left. */
 .bar {
   display: flex;
-  height: 0.6rem;
+  gap: 2px;
+  min-width: 8rem;
+  height: 0.5rem;
   overflow: hidden;
-  border-radius: 999px;
-  background: var(--color-rule);
+  border-radius: var(--radius-pill);
+}
+
+.large {
+  height: 0.75rem;
 }
 
 .segment {
   flex-basis: 0;
-  background: var(--color-rule);
+  min-width: 3px;
 }
 
-.compliant {
-  background: var(--color-live);
+.yes {
+  background: var(--chart-yes);
 }
 
-.potential {
-  background: #d99a2b;
+.partial {
+  background: var(--chart-partial);
 }
 
-.gap {
-  background: var(--color-severe);
+.no {
+  background: var(--chart-no);
 }
 
-.excluded {
-  background: var(--color-rule-strong);
+.na {
+  background: var(--chart-na);
+}
+
+.pending {
+  background: var(--chart-track);
 }
 
 .legend {
-  list-style: none;
-  margin: 0;
-  padding: 0;
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-1) var(--space-4);
+  margin: 0;
+  padding: 0;
   font-size: var(--text-xs);
-  color: var(--color-pencil);
+  color: var(--color-text-secondary);
+  list-style: none;
 }
 
 .legend li {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: 0.3rem;
 }
 
 .swatch {
   display: inline-block;
-  width: 0.7rem;
-  height: 0.7rem;
-  border-radius: 2px;
-  background: var(--color-rule);
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 3px;
 }
 
-.metrics {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
-  gap: var(--space-3);
-  margin: 0;
+.swatch.pending {
+  box-shadow: inset 0 0 0 1px var(--color-border-strong);
 }
 
-.metrics > div {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-  padding: var(--space-4);
-  background: var(--color-sheet);
-  border: 1px solid var(--color-rule);
-  border-radius: var(--radius-sheet);
-}
-
-.metrics dt {
-  font-size: var(--text-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--color-pencil);
-}
-
-.metrics dd {
-  margin: 0;
-  font-size: var(--text-xl);
-  font-stretch: var(--width-wide);
-  font-weight: 620;
-  line-height: 1.1;
+.legendCount {
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
-}
-
-.metricNote {
-  font-size: var(--text-xs);
-  color: var(--color-pencil);
+  color: var(--color-text);
 }

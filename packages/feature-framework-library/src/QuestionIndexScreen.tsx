@@ -20,7 +20,7 @@ const QuestionRow = ({ item }: { item: QuestionListItem }) => (
     </Link>
     <div className={styles.chips}>
       <ImpactChip weight={item.riskWeight} />
-      {item.applicability.always ? null : <Chip tone="pending">Conditional</Chip>}
+      {item.applicability.always ? null : <Chip tone="warning">Conditional</Chip>}
       <Chip>
         <Link href={kbHref('controls', item.controlCode)}>{item.controlCode}</Link>
       </Chip>
@@ -52,9 +52,9 @@ export const QuestionIndexScreen = async ({ api, params }: Props) => {
         lede="One question per control. Each is answered Yes, Partial, No or Not applicable; No and Partial answers raise findings with the recommendation shown on the question."
       >
         {drafts > 0 ? (
-          <Chip tone="pending">{drafts} awaiting legal review</Chip>
+          <Chip tone="warning">{drafts} awaiting legal review</Chip>
         ) : (
-          <Chip tone="live">Reviewed</Chip>
+          <Chip tone="success">Reviewed</Chip>
         )}
       </PageHeader>
 

@@ -66,3 +66,23 @@ export const summariseProgress = (counts: readonly StateCount[]): Progress => {
     ),
   }
 }
+
+/**
+ * The working behind compliancePct, as shown beside the figure: points (Yes plus half of
+ * Partial) over the questions in scope (Yes, Partial, No). Not applicable and unanswered
+ * questions are reported as left out.
+ */
+export const explainCompliance = (progress: Progress) => {
+  const scored = progress.compliant + progress.potentialGap + progress.gap
+  return {
+    yes: progress.compliant,
+    partial: progress.potentialGap,
+    no: progress.gap,
+    scored,
+    points: progress.compliant + progress.potentialGap / 2,
+    pct: percent(progress.compliant * 2 + progress.potentialGap, scored * 2),
+    notApplicable: progress.excluded,
+    notAnswered: progress.pending,
+  }
+}
+export type ComplianceWorking = ReturnType<typeof explainCompliance>

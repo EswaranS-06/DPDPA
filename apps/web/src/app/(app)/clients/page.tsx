@@ -2,6 +2,7 @@ import { can } from '@duatf/core-access'
 import { formatDay } from '@duatf/core-utils'
 import { buttonClass, DataTable, EmptyState, PageHeader } from '@duatf/core-ui'
 import { listClients } from '@duatf/feature-compliance-api'
+import { Building, Plus } from 'lucide-react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ApplicabilityChip, ClientStatusChip } from '@/components/ClientChips'
@@ -16,33 +17,34 @@ const period = (start: string | null, end: string | null) =>
     ? `${formatDay(start)} to ${formatDay(end)}`
     : start
       ? `From ${formatDay(start)}`
-      : '—'
+      : null
 
 export default async function Page() {
   const ctx = await serviceContext()
   const clients = await listClients(ctx)
   const canCreate = can(ctx.principal, 'client.create')
+  const onboard = canCreate ? (
+    <Link href="/clients/new" className={buttonClass()}>
+      <Plus size={16} aria-hidden="true" />
+      Onboard client
+    </Link>
+  ) : null
   return (
     <div className={styles.page}>
       <PageHeader
         title="Clients"
         lede={
           canCreate
-            ? 'Every client organisation you work on. Open one to manage its departments, people and assessments.'
+            ? 'Every organisation ComplyX assesses. Open one for its posture, assessments, findings and people.'
             : 'The organisations you have access to.'
         }
-      >
-        {canCreate ? (
-          <Link href="/clients/new" className={buttonClass()}>
-            Onboard client
-          </Link>
-        ) : null}
-      </PageHeader>
+        actions={onboard}
+      />
       {clients.length === 0 ? (
-        <EmptyState title="No clients yet.">
+        <EmptyState icon={Building} title="No clients yet" action={onboard}>
           {canCreate
-            ? 'Onboard the first client to start an engagement.'
-            : 'You have not been given access to a client yet. Ask your administrator.'}
+            ? 'Onboarding records the organisation profile and whether the DPDP Act applies. Departments, people and the first assessment follow.'
+            : 'You have not been given access to a client yet. Ask your DUATF administrator.'}
         </EmptyState>
       ) : (
         <DataTable
@@ -58,12 +60,12 @@ export default async function Page() {
                     {row.name}
                   </Link>
                   <span className={styles.muted}>
-                    {row.code} · {row.legalName}
+                    <span className="code">{row.code}</span>, {row.legalName}
                   </span>
                 </span>
               ),
             },
-            { key: 'industry', header: 'Industry', render: (row) => row.industry },
+            { key: 'industry', header: 'Industry', priority: 'low', render: (row) => row.industry },
             {
               key: 'status',
               header: 'Status',
@@ -83,7 +85,11 @@ export default async function Page() {
             {
               key: 'period',
               header: 'Assessment period',
-              render: (row) => period(row.assessmentPeriodStart, row.assessmentPeriodEnd),
+              priority: 'low',
+              render: (row) =>
+                period(row.assessmentPeriodStart, row.assessmentPeriodEnd) ?? (
+                  <span className={styles.muted}>Not set</span>
+                ),
             },
           ]}
         />

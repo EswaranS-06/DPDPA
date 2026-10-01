@@ -1,14 +1,25 @@
 import { can, CLIENT_ROLES, ROLE_DESCRIPTION, ROLE_LABEL } from '@duatf/core-access'
 import { formatIst } from '@duatf/core-utils'
-import { Chip, DataTable, EmptyState } from '@duatf/core-ui'
+import {
+  Chip,
+  DataTable,
+  DescriptionList,
+  Disclosure,
+  EmptyState,
+  PageHeader,
+  Panel,
+  SectionHeader,
+} from '@duatf/core-ui'
 import {
   listClientPeople,
   listDepartments,
   listFirmStaff,
   type Person,
 } from '@duatf/feature-compliance-api'
+import { KeyRound, UserPlus, Users } from 'lucide-react'
 import type { Metadata } from 'next'
 import { AccountControls, AssignStaffForm, InviteUserForm } from '@/components/forms/PeopleForms'
+import { Status } from '@/components/status'
 import { loadClient } from '@/server/clients'
 import { serviceContext } from '@/server/services'
 import { accountAction, assignStaffAction, inviteClientUserAction } from '../../actions'
@@ -16,12 +27,6 @@ import styles from '../../clients.module.css'
 
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = { title: 'People' }
-
-const STATUS_CHIP = {
-  active: <Chip tone="live">Active</Chip>,
-  invited: <Chip tone="pending">Invited, not signed in yet</Chip>,
-  disabled: <Chip tone="severe">Disabled</Chip>,
-} as const
 
 const roleText = (assignment: Person['assignments'][number]) =>
   `${ROLE_LABEL[assignment.role]}${assignment.departmentName ? `, ${assignment.departmentName}` : ''}`
@@ -60,24 +65,35 @@ export default async function Page({ params }: { params: Promise<{ code: string 
           render: (row) => (
             <span className={styles.roles}>
               {row.assignments.map((assignment) => (
-                <Chip key={assignment.assignmentId} tone="accent">
+                <Chip key={assignment.assignmentId} tone="brand">
                   {roleText(assignment)}
                 </Chip>
               ))}
             </span>
           ),
         },
-        { key: 'status', header: 'Account', render: (row) => STATUS_CHIP[row.status] },
+        {
+          key: 'status',
+          header: 'Account',
+          render: (row) => <Status kind="user" value={row.status} />,
+        },
         {
           key: 'last',
           header: 'Last sign-in',
-          render: (row) => (row.lastLoginAt ? formatIst(row.lastLoginAt) : '—'),
+          priority: 'low',
+          render: (row) =>
+            row.lastLoginAt ? (
+              formatIst(row.lastLoginAt)
+            ) : (
+              <span className={styles.muted}>Never</span>
+            ),
         },
         ...(canRemove || canManageAccount
           ? [
               {
                 key: 'actions',
                 header: <span className="visually-hidden">Actions</span>,
+                label: '',
                 render: (row: Person) => (
                   <AccountControls
                     action={account}
@@ -104,26 +120,40 @@ export default async function Page({ params }: { params: Promise<{ code: string 
 
   return (
     <>
+      <PageHeader
+        title="People"
+        lede={`Who can sign in for ${client.name}, and the ComplyX team on this engagement. Everyone signs in with a password and an authenticator app.`}
+      />
+
       <section className={styles.section} aria-labelledby="client-people">
-        <h2 id="client-people" className={styles.sectionTitle}>
-          {client.name} people
-        </h2>
-        <p className={styles.sectionIntro}>
-          {CLIENT_ROLES.map((role) => `${ROLE_LABEL[role]}: ${ROLE_DESCRIPTION[role]}`).join(' ')}
-        </p>
+        <SectionHeader
+          id="client-people"
+          title={`${client.name} people`}
+          count={people.clientUsers.length}
+        />
+        <Disclosure summary="What each client role can do" icon={KeyRound}>
+          <DescriptionList
+            columns={3}
+            items={CLIENT_ROLES.map((role) => ({
+              label: ROLE_LABEL[role],
+              value: ROLE_DESCRIPTION[role],
+            }))}
+          />
+        </Disclosure>
         {people.clientUsers.length === 0 ? (
-          <EmptyState title="Nobody from the client has access yet." />
+          <EmptyState icon={Users} title="Nobody from the client has access yet" size="quiet">
+            {canInvite
+              ? 'Invite the DPO first; they can then invite department owners.'
+              : 'The audit team invites the client DPO.'}
+          </EmptyState>
         ) : (
           table(people.clientUsers, canInvite, canInvite)
         )}
       </section>
 
       {canInvite ? (
-        <section className={`${styles.section} ${styles.panel}`} aria-labelledby="invite">
-          <h2 id="invite" className={styles.sectionTitle}>
-            Invite someone from {client.name}
-          </h2>
-          <p className={styles.sectionIntro}>
+        <Panel title={`Invite someone from ${client.name}`} titleId="invite">
+          <p className={`${styles.flush} ${styles.sectionIntro}`}>
             DUATF creates their sign-in and shows a one-time password once. At first sign-in they
             choose their own password and set up an authenticator app.
           </p>
@@ -134,15 +164,17 @@ export default async function Page({ params }: { params: Promise<{ code: string 
               .filter((row) => row.active)
               .map((row) => ({ value: row.id, label: `${row.name} (${row.code})` }))}
           />
-        </section>
+        </Panel>
       ) : null}
 
       <section className={styles.section} aria-labelledby="firm-team">
-        <h2 id="firm-team" className={styles.sectionTitle}>
-          ComplyX team
-        </h2>
+        <SectionHeader id="firm-team" title="ComplyX team" count={people.firmTeam.length} />
         {people.firmTeam.length === 0 ? (
-          <EmptyState title="No auditor is assigned to this client yet.">
+          <EmptyState
+            icon={UserPlus}
+            title="No auditor is assigned to this client yet"
+            size="quiet"
+          >
             Firm-wide staff can already see it.
           </EmptyState>
         ) : (
@@ -151,10 +183,7 @@ export default async function Page({ params }: { params: Promise<{ code: string 
       </section>
 
       {canAssign ? (
-        <section className={`${styles.section} ${styles.panel}`} aria-labelledby="assign">
-          <h2 id="assign" className={styles.sectionTitle}>
-            Add a staff member to this client
-          </h2>
+        <Panel title="Add a staff member to this client" titleId="assign">
           <AssignStaffForm
             action={assignStaffAction.bind(null, client.id, client.code)}
             staff={staff
@@ -164,7 +193,7 @@ export default async function Page({ params }: { params: Promise<{ code: string 
                 label: `${person.displayName} (${person.email})`,
               }))}
           />
-        </section>
+        </Panel>
       ) : null}
     </>
   )

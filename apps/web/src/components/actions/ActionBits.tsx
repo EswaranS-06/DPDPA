@@ -1,30 +1,19 @@
 import { formatDay } from '@duatf/core-utils'
-import { Chip, DataTable, type ChipTone } from '@duatf/core-ui'
+import { Chip, DataTable } from '@duatf/core-ui'
 import {
-  ACTION_STATUS_LABEL,
   listClientPeople,
   listDepartments,
   type ActionRow,
   type ServiceContext,
 } from '@duatf/feature-compliance-api'
 import type { ActionStatus } from '@duatf/platform-db'
+import { ClockAlert } from 'lucide-react'
 import Link from 'next/link'
 import styles from '@/app/(app)/clients/clients.module.css'
-
-const TONE: Record<ActionStatus, ChipTone> = {
-  open: 'neutral',
-  assigned: 'accent',
-  in_progress: 'accent',
-  pending_evidence: 'pending',
-  under_review: 'pending',
-  rejected: 'severe',
-  remediated: 'live',
-  closed: 'live',
-  accepted_risk: 'neutral',
-}
+import { Status } from '@/components/status'
 
 export const ActionStatusChip = ({ status }: { status: ActionStatus }) => (
-  <Chip tone={TONE[status]}>{ACTION_STATUS_LABEL[status]}</Chip>
+  <Status kind="action" value={status} />
 )
 
 export const ActionTable = ({ rows, clientCode }: { rows: ActionRow[]; clientCode: string }) => (
@@ -41,8 +30,8 @@ export const ActionTable = ({ rows, clientCode }: { rows: ActionRow[]; clientCod
               {row.title}
             </Link>
             <span className={styles.muted}>
-              {row.code} ·{' '}
-              <Link href={`/clients/${clientCode}/findings/${row.findingCode}`}>
+              <span className="code">{row.code}</span> for{' '}
+              <Link href={`/clients/${clientCode}/findings/${row.findingCode}`} className="code">
                 {row.findingCode}
               </Link>{' '}
               {row.findingTitle}
@@ -65,12 +54,16 @@ export const ActionTable = ({ rows, clientCode }: { rows: ActionRow[]; clientCod
         header: 'Due',
         render: (row) =>
           row.dueDate ? (
-            <span className={styles.roles}>
+            <span className={styles.personCell}>
               {formatDay(row.dueDate)}
-              {row.overdue ? <Chip tone="severe">Overdue</Chip> : null}
+              {row.overdue ? (
+                <Chip tone="danger" icon={ClockAlert}>
+                  Overdue
+                </Chip>
+              ) : null}
             </span>
           ) : (
-            '—'
+            <span className={styles.muted}>No date</span>
           ),
       },
       {
