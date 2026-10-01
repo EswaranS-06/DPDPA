@@ -12,14 +12,15 @@ Gate: **passing**
 | C1 | Infrastructure and database core | R0 | TESTS PASSING | architect pending |
 | C2 | Framework in the database | R0 | TESTS PASSING | legal_sme pending, tech_lead pending |
 | C3 | Identity and access | R0 | IN PROGRESS | security pending |
-| C4 | Knowledge base and question bank | R1 | PLANNED | legal_sme pending |
-| C5 | Clients and organisation | R1 | PLANNED | lead_auditor pending |
-| C6 | Assessment execution | R1 | PLANNED | lead_auditor pending |
-| C7 | Evidence | R1 | PLANNED | lead_auditor pending |
-| C8 | Findings, gaps and risks | R1 | PLANNED | legal_sme pending, lead_auditor pending |
-| C9 | Remediation and re-assessment | R2 | PLANNED | lead_auditor pending |
-| C10 | Dashboards and client sharing | R2 | PLANNED | lead_auditor pending |
-| C11 | Reports | R2 | PLANNED | legal_sme pending |
+| C4 | Knowledge base and question bank | R1 | TESTS PASSING | legal_sme pending |
+| C5 | Clients and organisation | R1 | TESTS PASSING | lead_auditor pending |
+| C6 | Assessment execution | R1 | TESTS PASSING | lead_auditor pending |
+| C7 | Evidence | R1 | TESTS PASSING | lead_auditor pending |
+| C8 | Findings, gaps and risks | R1 | TESTS PASSING | legal_sme pending, lead_auditor pending |
+| C9 | Remediation and re-assessment | R2 | TESTS PASSING | lead_auditor pending |
+| C10 | Dashboards and client sharing | R2 | TESTS PASSING | lead_auditor pending |
+| C11 | Reports | R2 | TESTS PASSING | legal_sme pending |
+| C16 | Interface redesign (design system 2.0) | R2 | IN PROGRESS | lead_auditor pending |
 | C12 | Hardening | R3 | PLANNED | security pending |
 | C13 | Pilots and production | R3 | PLANNED | leadership pending |
 | C14 | ROPA, data inventory and DIA (V2) | R3 | PLANNED | legal_sme pending |
@@ -62,5 +63,49 @@ Gate: **passing**
 | TC-C3.3-03 | C3.3 | A client user can never read another client's rows (RLS) | 0 rows | literal | PASS |
 | TC-C3.4-01 | C3.4 | Tampering with one audit row breaks verification at that row | failure at the tampered row | literal | PASS |
 | TC-C3.5-01 | C3.5 | Login through Keycloak from a LAN machine lands on the role home page | signed in | manual | MANUAL-PENDING |
+| TC-C4.1-01 | C4.1 | Every knowledge-base section returns items and any item resolves by code | all sections non-empty; items resolve | oracle | PASS |
+| TC-C4.2-01 | C4.2 | Release 1.1.0 carries every 1.0.0 row unchanged | equal counts per table | oracle | PASS |
+| TC-C4.2-02 | C4.2 | One question per control, each with references, evidence and a recommendation | questions = controls, all complete | oracle | PASS |
+| TC-C4.2-03 | C4.2 | LNK-SPDI-01 live on 12 May 2027, not on 13 May 2027 | true, false | literal | PASS |
+| TC-C4.3-01 | C4.3 | Suggestions are split into required, recommended and supporting with no duplicates | three disjoint lists | literal | PASS |
+| TC-C5.1-01 | C5.1 | Onboarding validates required fields and gives a unique client code | field errors; unique code | literal | PASS |
+| TC-C5.2-01 | C5.2 | Department codes are unique within a client | duplicate refused | literal | PASS |
+| TC-C5.3-01 | C5.3 | Inviting creates one app user with a role scoped to the client; a repeat invite does not duplicate | 1 user, 1 role | literal | PASS |
+| TC-C5.4-01 | C5.4 | Firm admin sees all clients; auditor sees assigned clients only | filtered lists | literal | PASS |
+| TC-C6.1-01 | C6.1 | A new assessment pins the release and creates one item per question | items = questions | oracle | PASS |
+| TC-C6.2-01 | C6.2 | A department owner can answer only their department's items | refused elsewhere | literal | PASS |
+| TC-C6.3-01 | C6.3 | Not applicable needs a reason; answers map to compliance states | mapping holds | literal | PASS |
+| TC-C6.4-01 | C6.4 | Progress and compliance percentages equal the fixture | fixture values | golden | PASS |
+| TC-C7.1-01 | C7.1 | Upload stores SHA-256; downloads only via a short-lived link for authorised users | hash matches; unauthorised refused | literal | PASS |
+| TC-C7.2-01 | C7.2 | One evidence item links to several questions | shown on each | literal | PASS |
+| TC-C7.3-01 | C7.3 | Accept or reject needs a reviewer other than the uploader | uploader refused | literal | PASS |
+| TC-C7.4-01 | C7.4 | The repository filters by status and flags evidence past its valid-until date | filtered; expired flagged | literal | PASS |
+| TC-C8.1-01 | C8.1 | No opens exactly one finding; Yes closes it with history | 1 open, then closed | literal | PASS |
+| TC-C8.2-01 | C8.2 | Score = L x I with configurable bands | 4 Low, 5 Medium, 9 Medium, 10 High, 16 High, 17 Critical, 25 Critical | literal | PASS |
+| TC-C8.3-01 | C8.3 | A finding carries its question's recommendation and references | present | oracle | PASS |
+| TC-C9.1-01 | C9.1 | Only allowed status transitions are accepted | invalid refused | literal | PASS |
+| TC-C9.2-01 | C9.2 | Closing without evidence or by the owner is refused | refused | literal | PASS |
+| TC-C9.3-01 | C9.3 | A re-assessment copies scope and links to the previous cycle | copied and linked | literal | PASS |
+| TC-C9.4-01 | C9.4 | Closing the last verified action closes the finding and its risk | closed as remediated | literal | PASS |
+| TC-C9.4-02 | C9.4 | A re-assessment resolves or carries forward earlier findings, counting each gap once | resolved; carried with actions and rating; no double count | literal | PASS |
+| TC-C10.1-01 | C10.1 | Dashboard figures equal direct counts | equal | oracle | PASS |
+| TC-C10.1-02 | C10.1 | Overall heatmap, compliance by domain and actions due equal direct counts | equal | oracle | PASS |
+| TC-C10.2-01 | C10.2 | A client user is sent to their own client and cannot open another | redirected; refused | literal | PASS |
+| TC-C10.3-01 | C10.3 | Department figures add up to the client and equal direct counts | sum = client; equal | oracle | PASS |
+| TC-C10.4-01 | C10.4 | The demo loads through the services, dated, and a reload replaces it | story figures; replaced | literal | PASS |
+| TC-C11.1-01 | C11.1 | Risk-register workbook has one row per risk with every column | rows = risks | oracle | PASS |
+| TC-C11.2-01 | C11.2 | Executive report shows required sections, release and date | present | literal | PASS |
+| TC-C11.3-01 | C11.3 | Overall workbook covers the clients the user may export, figures equal the dashboard | rows = clients; equal | oracle | PASS |
+| TC-C11.3-02 | C11.3 | Department workbook holds only that department records | department only | literal | PASS |
+| TC-C16.1-01 | C16.1 | Every text and control colour meets WCAG AA in light, dark and high contrast | no pair below 4.5:1 (text) or 3:1 (controls); dark blocks identical | oracle | PASS |
+| TC-C16.1-02 | C16.1 | Every database state has a label, a tone and an icon | no missing or stray entry | oracle | PASS |
+| TC-C16.2-01 | C16.2 | The sidebar offers each role only the sections it may open | firm, client and admin sections per role; client breadcrumbs | literal | PASS |
+| TC-C16.3-01 | C16.3 | What needs attention equals direct counts, per role | equal; only what each role can act on | oracle | PASS |
+| TC-C16.3-02 | C16.3 | The working shown beside the posture reproduces the figure | equal for every mix of answers | oracle | PASS |
+| TC-C16.4-01 | C16.4 | A provision reads as in force, starting in so many days, or stopped | Starts 13 November 2026, in 43 days (on 1 Oct 2026) | literal | PASS |
+| TC-C16.5-01 | C16.5 | Search finds records by code or title, only in clients the user can open | own client only; by code; short query empty | literal | PASS |
+| TC-C16.6-01 | C16.6 | A refusal names the action, the reader role and the roles that may do it | action, your role, who can | literal | PASS |
+| TC-C16.7-01 | C16.7 | Screens render at 1440, 1024 and 390 px in light, dark and high contrast | no overlap, no clipped text, no console errors | manual | PASS |
+| TC-C16.7-02 | C16.7 | ComplyX signs off the new design on the live app | signed | manual | MANUAL-PENDING |
 
-36 further tests are planned in later sub-phases.
+10 further tests are planned in later sub-phases.

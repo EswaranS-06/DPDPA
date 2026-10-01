@@ -14,6 +14,7 @@
     "@duatf/core-utils": "workspace:*",
     "@duatf/feature-framework-library-api": "workspace:*",
     "@duatf/platform-trpc": "workspace:*",
+    "lucide-react": "catalog:",
     "react-markdown": "catalog:",
     "remark-gfm": "catalog:"
   },

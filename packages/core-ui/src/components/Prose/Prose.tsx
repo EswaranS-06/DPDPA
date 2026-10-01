@@ -3,7 +3,7 @@ import styles from './Prose.module.css'
 
 type ProseProps = {
   children: ReactNode
-  /** "law" sets statutory text in the serif; "guide" keeps the interface sans. */
+  /** "law" sets statutory summaries as reading text with a rule beside them; "guide" is plain. */
   voice?: 'law' | 'guide'
 }
 

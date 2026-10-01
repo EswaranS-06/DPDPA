@@ -1,6 +1,6 @@
 import { can } from '@duatf/core-access'
 import { formatIst } from '@duatf/core-utils'
-import { Chip, Citation, MarginRow } from '@duatf/core-ui'
+import { Callout, Chip, Disclosure, EmptyState, PageHeader, Panel, Timeline } from '@duatf/core-ui'
 import {
   ANSWER_LABEL,
   getItem,
@@ -9,7 +9,18 @@ import {
   listEvidence,
   listItemEvidence,
 } from '@duatf/feature-compliance-api'
+import { LegalReference } from '@duatf/feature-framework-library'
 import { describeApplicability, kbHref } from '@duatf/feature-framework-library-api'
+import {
+  ArrowLeft,
+  ArrowRight,
+  FileCheck,
+  FilePlus,
+  RotateCcw,
+  Network,
+  PencilLine,
+  ShieldQuestionMark,
+} from 'lucide-react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -18,6 +29,8 @@ import { EvidenceTable } from '@/components/evidence/EvidenceTable'
 import { LinkEvidenceForm, UploadEvidenceForm } from '@/components/forms/EvidenceForms'
 import formStyles from '@/components/forms/forms.module.css'
 import { AnswerForm, AssignForm, ReviewForm } from '@/components/forms/AssessmentForms'
+import { Status } from '@/components/status'
+import { libraryApi, today } from '@/server/api'
 import { loadClient } from '@/server/clients'
 import { serviceContext } from '@/server/services'
 import styles from '../../../../../clients.module.css'
@@ -27,6 +40,7 @@ import {
   uploadEvidenceAction,
 } from '../../../../evidence/actions'
 import { answerItemAction, assignItemsAction, reviewItemAction } from '../../../actions'
+import local from './item.module.css'
 
 export const dynamic = 'force-dynamic'
 
@@ -36,7 +50,7 @@ export const generateMetadata = async ({ params }: Props): Promise<Metadata> => 
   title: decodeURIComponent((await params).q),
 })
 
-const EvidenceList = ({ items }: { items: string[] }) =>
+const EvidenceList = ({ items, empty }: { items: string[]; empty: string }) =>
   items.length ? (
     <ul className={styles.bullets}>
       {items.map((item) => (
@@ -44,8 +58,20 @@ const EvidenceList = ({ items }: { items: string[] }) =>
       ))}
     </ul>
   ) : (
-    <span className={styles.muted}>None</span>
+    <p className={`${styles.flush} ${styles.muted}`}>{empty}</p>
   )
+
+const HOW_ANSWERS_COUNT = [
+  { answer: 'Yes', outcome: 'Compliant, once the required evidence is accepted.' },
+  {
+    answer: 'Partial',
+    outcome: 'A potential gap: a finding is raised and the answer counts half.',
+  },
+  { answer: 'No', outcome: 'A gap: a finding is raised with the recommended action.' },
+  { answer: 'Not applicable', outcome: 'Left out of the score; a reason is required.' },
+]
+
+type TrailEntry = { at: Date; text: string }
 
 export default async function Page({ params }: Props) {
   const { code, asm, q } = await params
@@ -61,6 +87,11 @@ export default async function Page({ params }: Props) {
     throw error
   })
   const { item, question, assessment } = detail
+  const api = await libraryApi()
+  const [law, release] = await Promise.all([
+    api.question({ code: question.code }).catch(() => null),
+    api.release(),
+  ])
   const scope = { clientId: client.id, departmentId: item.departmentId }
   const base = `/clients/${client.code}/assessments/${assessment.code}`
   const target = {
@@ -74,9 +105,9 @@ export default async function Page({ params }: Props) {
   const canAssign = can(ctx.principal, 'assessment.assign', { clientId: client.id })
   const locked =
     assessment.status === 'completed'
-      ? 'This assessment is completed; answers are locked.'
+      ? 'This assessment is completed, so its answers are locked. A re-assessment starts a new cycle.'
       : assessment.status === 'in_review' && item.reviewState !== 'returned'
-        ? 'This assessment is under review; only answers sent back can be changed.'
+        ? 'This assessment is in review. Only answers sent back can be changed.'
         : undefined
   const departments = canAssign ? await listDepartments(ctx, client.id) : []
   const canUpload = can(ctx.principal, 'evidence.upload', scope)
@@ -91,50 +122,83 @@ export default async function Page({ params }: Props) {
   }
   const unlink = unlinkEvidenceAction.bind(null, evidenceTarget)
 
+  const trail: TrailEntry[] = [
+    ...(item.answeredAt
+      ? [
+          {
+            at: item.answeredAt,
+            text: `Answered ${ANSWER_LABEL[item.answer]} by ${item.answeredByName ?? 'someone'}`,
+          },
+        ]
+      : []),
+    ...attached.map((row) => ({
+      at: row.uploadedAt,
+      text: `${row.title} uploaded by ${row.uploadedByName ?? 'someone'}`,
+    })),
+    ...(item.reviewedAt && item.reviewState !== 'not_reviewed'
+      ? [
+          {
+            at: item.reviewedAt,
+            text: `${item.reviewState === 'accepted' ? 'Accepted' : 'Sent back'} by ${item.reviewedByName ?? 'a reviewer'}`,
+          },
+        ]
+      : []),
+  ].sort((a, b) => a.at.getTime() - b.at.getTime())
+
   return (
-    <article className={styles.section} aria-labelledby="question-text">
-      <nav aria-label="Breadcrumb" className={styles.muted}>
-        <Link href={base}>{assessment.title}</Link> / {question.domainCode} / {question.code}
-      </nav>
-      <header className={styles.header}>
-        <span className={styles.code}>
-          {question.code} ·{' '}
-          <Link href={kbHref('controls', question.controlCode)}>{question.controlCode}</Link>
-        </span>
-        <h2 id="question-text" className={styles.questionTitle}>
-          {question.text}
-        </h2>
-        <div className={styles.chips}>
-          <ComplianceChip state={item.complianceState} />
-          <ReviewChip review={item.reviewState} />
-          <Chip>{item.departmentName ?? 'Not assigned to a department'}</Chip>
-          <Chip
-            tone={
-              question.riskWeight >= 5 ? 'severe' : question.riskWeight >= 4 ? 'pending' : 'neutral'
-            }
-          >
-            Impact {question.riskWeight}/5
+    <>
+      <PageHeader
+        kicker={
+          <span className={local.kicker}>
+            <span className="code">{question.code}</span>
+            <span>
+              Control{' '}
+              <Link href={kbHref('controls', question.controlCode)} className="code">
+                {question.controlCode}
+              </Link>
+            </span>
+            <span>{law?.domain.title ?? question.domainCode}</span>
+          </span>
+        }
+        title={question.text}
+        lede={describeApplicability(question.applicability)}
+      >
+        <ComplianceChip state={item.complianceState} />
+        <ReviewChip review={item.reviewState} />
+        <Chip icon={Network}>{item.departmentName ?? 'No department yet'}</Chip>
+        <Chip
+          tone={
+            question.riskWeight >= 5 ? 'danger' : question.riskWeight >= 4 ? 'warning' : 'neutral'
+          }
+          title="Impact weight, from the penalty tier of the linked obligations"
+        >
+          Impact {question.riskWeight} of 5
+        </Chip>
+        {law?.reviewStatus === 'draft' ? (
+          <Chip tone="pending" icon={ShieldQuestionMark}>
+            Draft wording, awaiting legal review
           </Chip>
-        </div>
-        <p className={styles.sectionIntro}>{describeApplicability(question.applicability)}</p>
-      </header>
+        ) : null}
+      </PageHeader>
 
       <div className={styles.twoColumn}>
-        <div className={styles.section}>
-          <section className={`${styles.section} ${styles.panel}`} aria-labelledby="answer-title">
-            <h3 id="answer-title" className={styles.subTitle}>
-              {item.answer === 'not_assessed' ? 'Answer' : `Answer: ${ANSWER_LABEL[item.answer]}`}
-            </h3>
+        <div className={local.work}>
+          <Panel
+            title={
+              item.answer === 'not_assessed' ? 'Answer' : `Answer: ${ANSWER_LABEL[item.answer]}`
+            }
+            titleId="answer-title"
+          >
             {detail.previousCycle && detail.previousCycle.answer !== 'not_assessed' ? (
-              <p className={styles.muted}>
-                Last cycle: {ANSWER_LABEL[detail.previousCycle.answer]}
-                {detail.previousCycle.comment ? ` — ${detail.previousCycle.comment}` : ''}
-              </p>
+              <Callout tone="neutral" icon={RotateCcw} title="Last cycle">
+                <Status kind="answer" value={detail.previousCycle.answer} />
+                {detail.previousCycle.comment ? <p>{detail.previousCycle.comment}</p> : null}
+              </Callout>
             ) : null}
-            {item.answeredAt ? (
-              <p className={styles.muted}>
-                By {item.answeredByName ?? 'someone'}, {formatIst(item.answeredAt)}
-              </p>
+            {item.reviewState === 'returned' && item.reviewNote ? (
+              <Callout tone="danger" title="Sent back by the reviewer" role="status">
+                <p>{item.reviewNote}</p>
+              </Callout>
             ) : null}
             {canAnswer ? (
               <AnswerForm
@@ -144,89 +208,79 @@ export default async function Page({ params }: Props) {
               />
             ) : (
               <>
-                {item.naReason ? <p>Why not applicable: {item.naReason}</p> : null}
-                {item.comment ? <p>{item.comment}</p> : null}
-                <p className={styles.muted}>
+                {item.naReason ? (
+                  <p className={styles.flush}>Why not applicable: {item.naReason}</p>
+                ) : null}
+                {item.comment ? <p className={styles.flush}>{item.comment}</p> : null}
+                <Callout tone="locked">
                   {item.departmentId
-                    ? `Answered by the ${item.departmentName ?? ''} department or the audit team.`
-                    : 'Not yet assigned to a department.'}
-                </p>
+                    ? `The ${item.departmentName ?? ''} department or the audit team answers this question.`
+                    : 'This question is not yet assigned to a department. The audit team or the DPO assigns it.'}
+                </Callout>
               </>
             )}
-          </section>
+          </Panel>
 
-          <section className={styles.section} aria-labelledby="evidence-title">
-            <h3 id="evidence-title" className={styles.subTitle}>
-              Evidence
-            </h3>
-            {attached.length === 0 ? (
-              <p className={styles.muted}>No evidence attached yet.</p>
-            ) : (
-              <EvidenceTable
-                rows={attached}
-                clientCode={client.code}
-                action={
-                  canUpload
-                    ? (row) => (
-                        <form action={unlink}>
-                          <input type="hidden" name="evidenceId" value={row.id} />
-                          <input type="hidden" name="itemId" value={item.id} />
-                          <button type="submit" className={formStyles.linkish}>
-                            Unlink
-                          </button>
-                        </form>
-                      )
-                    : undefined
-                }
-              />
-            )}
-            {canUpload && assessment.status !== 'completed' ? (
-              <div className={`${styles.section} ${styles.panel}`}>
-                <UploadEvidenceForm
-                  action={uploadEvidenceAction.bind(null, evidenceTarget)}
-                  itemId={item.id}
+          <Panel title={`Evidence (${attached.length})`} titleId="evidence-title" padding="flush">
+            <div className={local.panelBody}>
+              {attached.length === 0 ? (
+                <EmptyState icon={FileCheck} title="No evidence attached yet" size="quiet">
+                  An answer of Yes counts once the required evidence is accepted by an auditor. The
+                  list beside this panel says what to provide.
+                </EmptyState>
+              ) : (
+                <EvidenceTable
+                  rows={attached}
+                  clientCode={client.code}
+                  action={
+                    canUpload
+                      ? (row) => (
+                          <form action={unlink}>
+                            <input type="hidden" name="evidenceId" value={row.id} />
+                            <input type="hidden" name="itemId" value={item.id} />
+                            <button type="submit" className={formStyles.linkish}>
+                              Unlink<span className="visually-hidden"> {row.title}</span>
+                            </button>
+                          </form>
+                        )
+                      : undefined
+                  }
                 />
-                <LinkEvidenceForm
-                  action={linkEvidenceAction.bind(null, evidenceTarget)}
-                  itemId={item.id}
-                  options={repository
-                    .filter((row) => !attached.some((linked) => linked.id === row.id))
-                    .map((row) => ({ value: row.id, label: `${row.code} ${row.title}` }))}
-                />
-              </div>
-            ) : null}
-          </section>
-
-          {item.reviewState !== 'not_reviewed' ? (
-            <section className={styles.section} aria-labelledby="review-state">
-              <h3 id="review-state" className={styles.subTitle}>
-                Review
-              </h3>
-              <p>
-                {item.reviewState === 'accepted' ? 'Accepted' : 'Sent back'}
-                {item.reviewedByName ? ` by ${item.reviewedByName}` : ''}
-                {item.reviewedAt ? `, ${formatIst(item.reviewedAt)}` : ''}.
-              </p>
-              {item.reviewNote ? (
-                <blockquote className={styles.quote}>{item.reviewNote}</blockquote>
+              )}
+              {canUpload && assessment.status !== 'completed' ? (
+                <Disclosure
+                  summary="Add evidence"
+                  icon={FilePlus}
+                  defaultOpen={attached.length === 0}
+                >
+                  <UploadEvidenceForm
+                    action={uploadEvidenceAction.bind(null, evidenceTarget)}
+                    itemId={item.id}
+                  />
+                  <LinkEvidenceForm
+                    action={linkEvidenceAction.bind(null, evidenceTarget)}
+                    itemId={item.id}
+                    options={repository
+                      .filter((row) => !attached.some((linked) => linked.id === row.id))
+                      .map((row) => ({ value: row.id, label: `${row.code} ${row.title}` }))}
+                  />
+                </Disclosure>
               ) : null}
-            </section>
-          ) : null}
+            </div>
+          </Panel>
 
           {canReview && item.answer !== 'not_assessed' && assessment.status !== 'completed' ? (
-            <section className={`${styles.section} ${styles.panel}`} aria-labelledby="review-title">
-              <h3 id="review-title" className={styles.subTitle}>
-                Review this answer
-              </h3>
+            <Panel title="Review this answer" titleId="review-title">
+              <p className={`${styles.flush} ${styles.muted}`}>
+                The reviewer must not be the person who answered. Accept when the evidence supports
+                the answer; send it back with a note otherwise.
+              </p>
               <ReviewForm action={reviewItemAction.bind(null, target)} />
-            </section>
+            </Panel>
           ) : null}
 
           {canAssign && assessment.status !== 'completed' ? (
-            <section className={styles.section} aria-labelledby="assign-title">
-              <h3 id="assign-title" className={styles.subTitle}>
-                Department
-              </h3>
+            <Panel title="Department" titleId="assign-title">
               <AssignForm
                 action={assignItemsAction.bind(null, { ...target, assessmentId: assessment.id })}
                 departments={departments
@@ -235,52 +289,106 @@ export default async function Page({ params }: Props) {
                 itemId={item.id}
                 currentDepartmentId={item.departmentId}
               />
-            </section>
+            </Panel>
           ) : null}
+
+          <Panel title="Evidence trail" titleId="trail-title">
+            {trail.length === 0 ? (
+              <p className={`${styles.flush} ${styles.muted}`}>
+                Nothing recorded yet. The answer, each file and the review appear here with who and
+                when.
+              </p>
+            ) : (
+              <Timeline
+                label="Evidence trail"
+                entries={trail.map((entry) => ({
+                  key: `${entry.at.toISOString()}-${entry.text}`,
+                  when: formatIst(entry.at),
+                  what: entry.text,
+                }))}
+              />
+            )}
+          </Panel>
         </div>
 
-        <aside className={styles.section} aria-label="Guidance from the knowledge base">
-          <MarginRow margin="Law">
-            <span className={styles.roles}>
-              {question.references.map((reference) => (
-                <Citation key={reference}>{reference}</Citation>
-              ))}
-            </span>
-          </MarginRow>
-          <MarginRow margin="How to test it">
-            <p className={styles.flush}>{question.guidance}</p>
-          </MarginRow>
-          <MarginRow margin="Evidence required">
-            <EvidenceList items={question.evidenceRequired} />
-          </MarginRow>
-          <MarginRow margin="Also expected">
-            <EvidenceList items={question.evidenceRecommended} />
-          </MarginRow>
-          <MarginRow margin="Supporting">
-            <EvidenceList items={question.evidenceSupporting} />
-          </MarginRow>
-          <MarginRow margin="If No or Partial">
+        <aside className={local.guide} aria-label="Guidance from the knowledge base">
+          <section className={local.guideSection} aria-labelledby="why-title">
+            <h2 id="why-title" className={local.guideTitle}>
+              What this checks
+            </h2>
+            {law?.control.description ? (
+              <p className={styles.flush}>{law.control.description}</p>
+            ) : null}
+            <p className={`${styles.flush} ${styles.muted}`}>
+              How the audit team tests it: {question.guidance}
+            </p>
+          </section>
+          <section className={local.guideSection} aria-labelledby="evidence-guide-title">
+            <h2 id="evidence-guide-title" className={local.guideTitle}>
+              Evidence to provide
+            </h2>
+            <EvidenceList items={question.evidenceRequired} empty="None listed." />
+            {question.evidenceRecommended.length ? (
+              <>
+                <h3 className={local.guideSub}>Also expected</h3>
+                <EvidenceList items={question.evidenceRecommended} empty="" />
+              </>
+            ) : null}
+            {question.evidenceSupporting.length ? (
+              <>
+                <h3 className={local.guideSub}>Supporting</h3>
+                <EvidenceList items={question.evidenceSupporting} empty="" />
+              </>
+            ) : null}
+          </section>
+          <section className={local.guideSection} aria-labelledby="fix-title">
+            <h2 id="fix-title" className={local.guideTitle}>
+              If the answer is No or Partial
+            </h2>
             <p className={styles.flush}>{question.recommendation}</p>
-          </MarginRow>
-          <p className={styles.muted}>
-            <Link href={kbHref('questions', question.code)}>Open in the knowledge base</Link>
+          </section>
+          <LegalReference
+            obligations={law?.obligations ?? []}
+            references={question.references}
+            today={today()}
+            release={release.version}
+          />
+          <Disclosure summary="How answers count" icon={PencilLine}>
+            <ul className={styles.bullets}>
+              {HOW_ANSWERS_COUNT.map((row) => (
+                <li key={row.answer}>
+                  <strong>{row.answer}</strong>: {row.outcome}
+                </li>
+              ))}
+            </ul>
+          </Disclosure>
+          <p className={`${styles.flush} ${styles.muted}`}>
+            <Link href={kbHref('questions', question.code)}>
+              Open {question.code} in the knowledge base
+            </Link>
           </p>
         </aside>
       </div>
 
       <nav aria-label="Other questions" className={styles.pager}>
         {detail.previousCode ? (
-          <Link href={`${base}/items/${detail.previousCode}`}>← {detail.previousCode}</Link>
+          <Link href={`${base}/items/${detail.previousCode}`}>
+            <ArrowLeft size={16} aria-hidden="true" />
+            <span className="code">{detail.previousCode}</span>
+          </Link>
         ) : (
           <span />
         )}
         <Link href={base}>All questions</Link>
         {detail.nextCode ? (
-          <Link href={`${base}/items/${detail.nextCode}`}>{detail.nextCode} →</Link>
+          <Link href={`${base}/items/${detail.nextCode}`}>
+            <span className="code">{detail.nextCode}</span>
+            <ArrowRight size={16} aria-hidden="true" />
+          </Link>
         ) : (
           <span />
         )}
       </nav>
-    </article>
+    </>
   )
 }

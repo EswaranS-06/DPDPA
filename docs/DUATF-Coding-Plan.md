@@ -365,6 +365,32 @@ The platform is a **DPDPA Compliance Management Platform** for ComplyX to track 
 | TC-C11.3-01 | The overall workbook covers the clients the user may export; its figures equal the dashboard | oracle |
 | TC-C11.3-02 | A department workbook holds only that department's records | literal |
 
+### C16: Interface redesign, design system 2.0 (R2)
+Built after C11 and before C12, from the ComplyX design brief: light-first modern enterprise SaaS, Inter, indigo, Lucide icons, WCAG 2.2 AA. The design system is documented in `docs/design/DUATF-Design-System.md`.
+
+| Sub | Build |
+|---|---|
+| C16.1 | Semantic tokens for light, dark and high contrast, plus a compact density; Inter 4.1 self-hosted; one status language (label, tone and icon) for every database state |
+| C16.2 | App shell: a grouped sidebar with the client's sections inside a client, breadcrumbs, a user menu with theme and density, an icon rail on tablets and a drawer on phones |
+| C16.3 | Dashboards: "Needs your attention" (each user's actionable work, with the next step), the compliance posture with its working, posture by assessment, requirement areas, the regulatory clock |
+| C16.4 | Requirement pages: guidance first, the legal reference one click away (Act or Rule, in force or starting in so many days, penalty tier, official texts), the evidence trail, the remediation path on findings |
+| C16.5 | Search everywhere: Ctrl K or / opens a palette over clients, assessments, findings, actions, evidence, departments and the knowledge base; `/search` works without JavaScript |
+| C16.6 | States: empty states that say what is missing and what to do, errors with an error ID, refusals that name the role and who can, loading skeletons |
+| C16.7 | Visual review in a preview build at 1440, 1024 and 390 px, light, dark and high contrast; ComplyX sign-off |
+
+| Test | Expected | Source |
+|---|---|---|
+| TC-C16.1-01 | Every text and control colour meets WCAG AA in light, dark and high contrast | oracle |
+| TC-C16.1-02 | Every database state has a label, a tone and an icon | oracle |
+| TC-C16.2-01 | The sidebar offers each role only the sections it may open | literal |
+| TC-C16.3-01 | What needs attention equals direct counts, per role | oracle |
+| TC-C16.3-02 | The working shown beside the posture reproduces the figure | oracle |
+| TC-C16.4-01 | A provision reads as in force, starting in so many days, or stopped | literal |
+| TC-C16.5-01 | Search finds records only in clients the user can open | literal |
+| TC-C16.6-01 | A refusal names the action, the reader's role and the roles that may do it | literal |
+| TC-C16.7-01 | Screens render at three widths in three themes without overlap or console errors | manual |
+| TC-C16.7-02 | ComplyX signs off the new design on the live app | manual |
+
 ### C12: Hardening (R3) and C13: Pilots and production (R3)
 Unchanged in intent: isolation tests for every route, load test, restore drill, ClamAV, accessibility, self-assessment; then pilots and 1.0.
 

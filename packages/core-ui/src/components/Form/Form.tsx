@@ -1,3 +1,4 @@
+import { CircleAlert, CircleCheck, Info } from 'lucide-react'
 import type { ReactNode } from 'react'
 import styles from './Form.module.css'
 
@@ -37,6 +38,7 @@ const Wrapper = ({
     ) : null}
     {error ? (
       <p id={`${name}-error`} className={styles.error}>
+        <CircleAlert size={14} strokeWidth={2.25} aria-hidden="true" />
         {error}
       </p>
     ) : null}
@@ -166,9 +168,9 @@ export const Fieldset = ({
 )
 
 const ALERT_TONE = {
-  error: styles.alertError,
-  success: styles.alertSuccess,
-  info: styles.alertInfo,
+  error: { className: styles.alertError, icon: CircleAlert },
+  success: { className: styles.alertSuccess, icon: CircleCheck },
+  info: { className: styles.alertInfo, icon: Info },
 }
 
 /** Result of a form submission, announced to screen readers. */
@@ -178,18 +180,24 @@ export const FormAlert = ({
 }: {
   tone?: 'error' | 'success' | 'info'
   children: ReactNode
-}) => (
-  <div
-    className={`${styles.alert} ${ALERT_TONE[tone]}`}
-    role={tone === 'error' ? 'alert' : 'status'}
-  >
-    {children}
-  </div>
-)
+}) => {
+  const { className, icon: Icon } = ALERT_TONE[tone]
+  return (
+    <div className={`${styles.alert} ${className}`} role={tone === 'error' ? 'alert' : 'status'}>
+      <Icon className={styles.alertIcon} size={16} strokeWidth={2.25} aria-hidden="true" />
+      <div className={styles.alertBody}>{children}</div>
+    </div>
+  )
+}
 
-/** Class names for links and buttons that should look like form buttons. */
-export const buttonClass = (variant: 'primary' | 'secondary' | 'danger' = 'primary'): string =>
-  `${styles.button} ${styles[variant]}`
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
+
+/**
+ * Class names for links and buttons that should look like buttons. One primary per region;
+ * secondary for the rest; ghost for low-emphasis actions inside tables and toolbars.
+ */
+export const buttonClass = (variant: ButtonVariant = 'primary', size: 'md' | 'sm' = 'md'): string =>
+  `${styles.button} ${styles[variant]}${size === 'sm' ? ` ${styles.small}` : ''}`
 
 /** A row of form buttons. */
 export const FormActions = ({ children }: { children: ReactNode }) => (

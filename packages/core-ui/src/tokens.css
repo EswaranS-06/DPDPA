@@ -1,34 +1,86 @@
-/* DUATF design tokens. See docs/design/DUATF-Design-System.md. */
+/*
+ * DUATF design tokens, version 2. See docs/design/DUATF-Design-System.md.
+ * Light is the default. The theme comes from <html data-theme>: "dark" and "contrast" are
+ * chosen by the user; "system" (or none) follows the operating system. Density comes from
+ * <html data-density="compact">. TC-C16.1-01 checks every text pair below for WCAG AA contrast.
+ */
 :root {
-  --color-folio: #f4f5f2;
-  --color-sheet: #ffffff;
-  --color-ink: #1b2230;
-  --color-pencil: #5a6273;
-  --color-rule: #d9dde1;
-  --color-rule-strong: #b9bfc7;
-  --color-accent: #4f2e9c;
-  --color-accent-soft: #eee9f8;
-  --color-live: #2d7a4c;
-  --color-live-soft: #e3f1e8;
-  --color-pending: #9a5a00;
-  --color-pending-soft: #fbf0dd;
-  --color-severe: #a8261b;
-  --color-severe-soft: #fbe7e5;
+  color-scheme: light;
 
-  --font-sans: 'Anek Latin', 'Segoe UI', system-ui, sans-serif;
-  --font-serif: 'Martel', Georgia, 'Times New Roman', serif;
-  --width-wide: 112%;
-  --width-condensed: 86%;
+  /* Neutral */
+  --color-bg: #f8fafc;
+  --color-surface: #ffffff;
+  --color-surface-subtle: #f1f5f9;
+  --color-surface-hover: #f8fafc;
+  --color-border: #e2e8f0;
+  --color-border-strong: #cbd5e1;
+  /* Edges that identify a control (inputs, selects, checkboxes) need 3:1 against the surface. */
+  --color-border-control: #8391a7;
+  --color-text: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-muted: #5f6e84;
 
-  /* 1.25 scale from 16px */
-  --text-xs: 0.8rem;
-  --text-sm: 0.9rem;
-  --text-base: 1rem;
-  --text-md: 1.25rem;
-  --text-lg: 1.5625rem;
-  --text-xl: 1.953rem;
-  --text-2xl: 2.441rem;
+  /* Brand */
+  --color-primary: #4f46e5;
+  --color-primary-hover: #4338ca;
+  --color-primary-active: #3730a3;
+  --color-primary-subtle: #eef2ff;
+  --color-primary-border: #c7d2fe;
+  --color-on-primary: #ffffff;
+  --color-link: #4338ca;
+  /* Brand-coloured text on the subtle brand background (current page, brand badges) */
+  --color-primary-text: #3730a3;
 
+  /* Status: text, background, border, and a solid for marks and icons */
+  --color-success-text: #067647;
+  --color-success-bg: #ecfdf3;
+  --color-success-border: #abefc6;
+  --color-success-solid: #079455;
+  --color-warning-text: #b54708;
+  --color-warning-bg: #fffaeb;
+  --color-warning-border: #fedf89;
+  --color-warning-solid: #f79009;
+  --color-danger-text: #b42318;
+  --color-danger-bg: #fef3f2;
+  --color-danger-border: #fecdca;
+  --color-danger-solid: #d92d20;
+  --color-info-text: #175cd3;
+  --color-info-bg: #eff8ff;
+  --color-info-border: #b2ddff;
+  --color-info-solid: #2e90fa;
+  --color-neutral-text: #475569;
+  --color-neutral-bg: #f1f5f9;
+  --color-neutral-border: #e2e8f0;
+  --color-neutral-solid: #94a3b8;
+  /* Waiting on someone else: evidence or an answer awaiting review */
+  --color-pending-text: #5925dc;
+  --color-pending-bg: #f4f3ff;
+  --color-pending-border: #d9d6fe;
+  --color-pending-solid: #7a5af8;
+
+  /* Charts: answer outcomes use the status solids; checked with the palette validator */
+  --chart-yes: var(--color-success-solid);
+  --chart-partial: var(--color-warning-solid);
+  --chart-no: var(--color-danger-solid);
+  --chart-na: var(--color-neutral-solid);
+  --chart-track: #e2e8f0;
+  --chart-line: var(--color-primary);
+  --chart-grid: #e2e8f0;
+
+  /* Type: Inter, one family */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, 'Segoe UI', sans-serif;
+  --text-xs: 0.75rem; /* 12 metadata, captions */
+  --text-sm: 0.8125rem; /* 13 tables, secondary text */
+  --text-base: 0.875rem; /* 14 interface body */
+  --text-read: 0.9375rem; /* 15 reading text: requirements, guidance */
+  --text-md: 1rem; /* 16 subsection titles, ledes */
+  --text-lg: 1.125rem; /* 18 section titles */
+  --text-xl: 1.5rem; /* 24 page titles */
+  --text-2xl: 1.875rem; /* 30 tile figures */
+  --text-hero: 3.25rem; /* 52 the one hero figure on a view */
+  --measure: 68ch;
+
+  /* Space: 4 and 8 px steps */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
@@ -36,10 +88,209 @@
   --space-5: 1.5rem;
   --space-6: 2rem;
   --space-7: 3rem;
+  --space-8: 4rem;
 
-  --radius-control: 6px;
-  --radius-sheet: 10px;
-  --measure-legal: 66ch;
-  --margin-column: 9.5rem;
-  --focus-ring: 0 0 0 3px var(--color-accent-soft), 0 0 0 5px var(--color-accent);
+  /* Shape and depth: borders first, shadow only on things that float */
+  --radius-sm: 6px;
+  --radius-control: 8px;
+  --radius-sheet: 12px;
+  --radius-modal: 16px;
+  --radius-pill: 999px;
+  --shadow-xs: 0 1px 2px rgb(15 23 42 / 0.05);
+  --shadow-overlay: 0 20px 50px rgb(15 23 42 / 0.18), 0 2px 6px rgb(15 23 42 / 0.08);
+  --focus-ring: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-primary);
+
+  /* Motion */
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+  --duration-slow: 260ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* Density */
+  --control-height: 2.5rem;
+  --row-pad-y: 0.875rem;
+  --cell-pad-x: 1rem;
+
+  /* Frame */
+  --sidebar-width: 15rem;
+  --sidebar-rail: 4rem;
+  --content-max: 87.5rem;
+}
+
+:root[data-density='compact'] {
+  --control-height: 2.125rem;
+  --row-pad-y: 0.4375rem;
+  --cell-pad-x: 0.75rem;
+}
+
+/* Dark: chosen explicitly, or following the system when no other theme is chosen. */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --color-bg: #0f1420;
+  --color-surface: #151b2b;
+  --color-surface-subtle: #1b2335;
+  --color-surface-hover: #1a2133;
+  --color-border: #263044;
+  --color-border-strong: #34405a;
+  --color-border-control: #66738d;
+  --color-text: #e6eaf2;
+  --color-text-secondary: #aab4c5;
+  --color-text-muted: #919cb0;
+  --color-primary: #818cf8;
+  --color-primary-hover: #a5b4fc;
+  --color-primary-active: #6366f1;
+  --color-primary-subtle: #1f2442;
+  --color-primary-border: #3b4380;
+  --color-on-primary: #0f1420;
+  --color-link: #a5b4fc;
+  --color-primary-text: #a5b4fc;
+  --color-success-text: #6ce9a6;
+  --color-success-bg: #0d2a20;
+  --color-success-border: #17573d;
+  --color-success-solid: #0e9f6e;
+  --color-warning-text: #fec84b;
+  --color-warning-bg: #2b2112;
+  --color-warning-border: #6a4512;
+  --color-warning-solid: #e3a008;
+  --color-danger-text: #fda29b;
+  --color-danger-bg: #301718;
+  --color-danger-border: #7a271a;
+  --color-danger-solid: #e02424;
+  --color-info-text: #84caff;
+  --color-info-bg: #102440;
+  --color-info-border: #1e4e8c;
+  --color-info-solid: #2e90fa;
+  --color-neutral-text: #aab4c5;
+  --color-neutral-bg: #1b2335;
+  --color-neutral-border: #2d3850;
+  --color-neutral-solid: #64748b;
+  --color-pending-text: #bdb4fe;
+  --color-pending-bg: #221c45;
+  --color-pending-border: #4a3a99;
+  --color-pending-solid: #9b8afb;
+  --chart-track: #263044;
+  --chart-grid: #263044;
+  --shadow-xs: none;
+  --shadow-overlay: 0 20px 50px rgb(0 0 0 / 0.5), 0 0 0 1px #263044;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']):not([data-theme='dark']):not([data-theme='contrast']) {
+    color-scheme: dark;
+    --color-bg: #0f1420;
+    --color-surface: #151b2b;
+    --color-surface-subtle: #1b2335;
+    --color-surface-hover: #1a2133;
+    --color-border: #263044;
+    --color-border-strong: #34405a;
+    --color-border-control: #66738d;
+    --color-text: #e6eaf2;
+    --color-text-secondary: #aab4c5;
+    --color-text-muted: #919cb0;
+    --color-primary: #818cf8;
+    --color-primary-hover: #a5b4fc;
+    --color-primary-active: #6366f1;
+    --color-primary-subtle: #1f2442;
+    --color-primary-border: #3b4380;
+    --color-on-primary: #0f1420;
+    --color-link: #a5b4fc;
+    --color-primary-text: #a5b4fc;
+    --color-success-text: #6ce9a6;
+    --color-success-bg: #0d2a20;
+    --color-success-border: #17573d;
+    --color-success-solid: #0e9f6e;
+    --color-warning-text: #fec84b;
+    --color-warning-bg: #2b2112;
+    --color-warning-border: #6a4512;
+    --color-warning-solid: #e3a008;
+    --color-danger-text: #fda29b;
+    --color-danger-bg: #301718;
+    --color-danger-border: #7a271a;
+    --color-danger-solid: #e02424;
+    --color-info-text: #84caff;
+    --color-info-bg: #102440;
+    --color-info-border: #1e4e8c;
+    --color-info-solid: #2e90fa;
+    --color-neutral-text: #aab4c5;
+    --color-neutral-bg: #1b2335;
+    --color-neutral-border: #2d3850;
+    --color-neutral-solid: #64748b;
+    --color-pending-text: #bdb4fe;
+    --color-pending-bg: #221c45;
+    --color-pending-border: #4a3a99;
+    --color-pending-solid: #9b8afb;
+    --chart-track: #263044;
+    --chart-grid: #263044;
+    --shadow-xs: none;
+    --shadow-overlay: 0 20px 50px rgb(0 0 0 / 0.5), 0 0 0 1px #263044;
+  }
+}
+
+/* High contrast: light, black text, strong edges, underlined links, a heavier focus ring. */
+:root[data-theme='contrast'] {
+  color-scheme: light;
+  --color-bg: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-subtle: #f1f5f9;
+  --color-surface-hover: #eef2ff;
+  --color-border: #475569;
+  --color-border-strong: #1e293b;
+  --color-border-control: #1e293b;
+  --color-text: #000000;
+  --color-text-secondary: #1e293b;
+  --color-text-muted: #334155;
+  --color-primary: #3730a3;
+  --color-primary-hover: #312e81;
+  --color-primary-active: #1e1b4b;
+  --color-primary-subtle: #e0e7ff;
+  --color-primary-border: #3730a3;
+  --color-link: #312e81;
+  --color-primary-text: #1e1b4b;
+  --color-success-text: #05603a;
+  --color-success-border: #067647;
+  --color-warning-text: #7a2e0e;
+  --color-warning-border: #b54708;
+  --color-danger-text: #7a271a;
+  --color-danger-border: #b42318;
+  --color-info-text: #194185;
+  --color-info-border: #175cd3;
+  --color-neutral-text: #1e293b;
+  --color-neutral-border: #475569;
+  --color-pending-text: #3e1c96;
+  --color-pending-border: #5925dc;
+  --chart-track: #cbd5e1;
+  --focus-ring: 0 0 0 2px #ffffff, 0 0 0 5px #000000;
+}
+
+/* Paper is always light: printed reports ignore the screen theme. */
+@media print {
+  :root {
+    color-scheme: light !important;
+    --color-bg: #ffffff !important;
+    --color-surface: #ffffff !important;
+    --color-surface-subtle: #f1f5f9 !important;
+    --color-border: #e2e8f0 !important;
+    --color-border-strong: #cbd5e1 !important;
+    --color-text: #0f172a !important;
+    --color-text-secondary: #475569 !important;
+    --color-text-muted: #5f6e84 !important;
+    --color-primary: #4f46e5 !important;
+    --color-primary-text: #3730a3 !important;
+    --color-primary-subtle: #eef2ff !important;
+    --color-primary-border: #c7d2fe !important;
+    --color-link: #4338ca !important;
+    --color-success-text: #067647 !important;
+    --color-success-bg: #ecfdf3 !important;
+    --color-success-border: #abefc6 !important;
+    --color-warning-text: #b54708 !important;
+    --color-warning-bg: #fffaeb !important;
+    --color-warning-border: #fedf89 !important;
+    --color-danger-text: #b42318 !important;
+    --color-danger-bg: #fef3f2 !important;
+    --color-danger-border: #fecdca !important;
+    --color-neutral-text: #475569 !important;
+    --color-neutral-bg: #f1f5f9 !important;
+    --color-neutral-border: #e2e8f0 !important;
+    --chart-track: #e2e8f0 !important;
+  }
 }

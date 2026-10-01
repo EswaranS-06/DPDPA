@@ -17,6 +17,7 @@ export {
   type KbListSection,
 } from './refs'
 export { isLiveOn } from './queries'
+export { OFFICIAL_SOURCES, officialSourceFor } from './sources'
 export type {
   ObligationFilters,
   ObligationListItem,

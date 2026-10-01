@@ -6,38 +6,76 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  background: var(--color-bg);
 }
 
 body {
   margin: 0;
   font-family: var(--font-sans);
   font-size: var(--text-base);
-  line-height: 1.5;
-  color: var(--color-ink);
-  background: var(--color-folio);
+  line-height: 1.5714;
+  color: var(--color-text);
+  background: var(--color-bg);
+  font-feature-settings: 'cv11';
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
 
 a {
-  color: var(--color-accent);
+  color: var(--color-link);
+  text-decoration: none;
+  border-radius: 2px;
+}
+
+a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+:root[data-theme='contrast'] a {
+  text-decoration: underline;
   text-underline-offset: 3px;
 }
 
 h1,
 h2,
-h3 {
+h3,
+h4 {
   text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+svg {
+  flex-shrink: 0;
 }
 
 :focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
-  border-radius: 4px;
 }
 
 ::selection {
-  background: var(--color-accent-soft);
+  background: var(--color-primary-subtle);
+}
+
+/* Codes and citations: OBL-CON-01, s.8(6), FND-NADALL-004. Tabular figures, case-sensitive forms. */
+.code {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'case', 'cv11';
+  letter-spacing: 0.01em;
+  white-space: nowrap;
 }
 
 .visually-hidden {
@@ -52,28 +90,38 @@ h3 {
   border: 0;
 }
 
+.skip-link {
+  position: absolute;
+  left: var(--space-4);
+  top: -3rem;
+  z-index: 100;
+  padding: var(--space-2) var(--space-4);
+  font-weight: 600;
+  color: var(--color-on-primary);
+  background: var(--color-primary);
+  border-radius: var(--radius-control);
+}
+
+.skip-link:focus {
+  top: var(--space-3);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
-.skip-link {
-  position: absolute;
-  left: var(--space-4);
-  top: -3rem;
-  padding: var(--space-2) var(--space-4);
-  background: var(--color-accent);
-  color: #fff;
-  border-radius: var(--radius-control);
-  z-index: 10;
-}
-
-.skip-link:focus {
-  top: var(--space-3);
+@media (forced-colors: active) {
+  :focus-visible {
+    outline: 2px solid CanvasText;
+    outline-offset: 2px;
+  }
 }
 
 @media print {
@@ -81,8 +129,10 @@ h3 {
     display: none !important;
   }
 
+  html,
   body {
     background: #fff;
+    color: #000;
   }
 
   a {

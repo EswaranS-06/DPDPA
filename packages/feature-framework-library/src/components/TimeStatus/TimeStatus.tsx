@@ -1,23 +1,22 @@
-import { formatDay } from '@duatf/core-utils'
 import { Chip } from '@duatf/core-ui'
+import { CalendarClock, CircleCheck, CircleMinus } from 'lucide-react'
+import { commencementOn } from './commencement'
 
 type TimeStatusProps = { inForce: string | null; inForceUntil?: string | null; today: string }
 
+const LOOK = {
+  in_force: { tone: 'success', icon: CircleCheck },
+  starts: { tone: 'info', icon: CalendarClock },
+  stopped: { tone: 'neutral', icon: CircleMinus },
+} as const
+
 /** Whether an obligation applies today, the date it starts, or the date it stopped applying. */
 export const TimeStatus = ({ inForce, inForceUntil = null, today }: TimeStatusProps) => {
-  if (inForceUntil !== null && inForceUntil <= today) {
-    return <Chip>Stopped applying {formatDay(inForceUntil)}</Chip>
-  }
-  if (inForce === null || inForce <= today) {
-    const until = inForceUntil ? `, stops applying ${formatDay(inForceUntil)}` : ''
-    return (
-      <Chip
-        tone="live"
-        title={inForce ? `In force since ${formatDay(inForce)}${until}` : `In force${until}`}
-      >
-        {inForceUntil ? `In force until ${formatDay(inForceUntil)}` : 'In force'}
-      </Chip>
-    )
-  }
-  return <Chip tone="pending">Starts {formatDay(inForce)}</Chip>
+  const status = commencementOn(inForce, inForceUntil, today)
+  const look = LOOK[status.state]
+  return (
+    <Chip tone={look.tone} icon={look.icon} title={status.detail}>
+      {status.label}
+    </Chip>
+  )
 }

@@ -1,0 +1,36 @@
+.skeleton {
+  display: block;
+  height: 0.875rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-subtle);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+.block {
+  border-radius: var(--radius-sheet);
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11.5rem, 1fr));
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.55;
+  }
+}

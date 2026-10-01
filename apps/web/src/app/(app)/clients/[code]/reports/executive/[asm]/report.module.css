@@ -4,8 +4,8 @@
   gap: var(--space-6);
   max-width: 60rem;
   padding: var(--space-6);
-  background: var(--color-sheet);
-  border: 1px solid var(--color-rule);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-sheet);
 }
 
@@ -16,29 +16,28 @@
 
 .cover {
   padding-bottom: var(--space-5);
-  border-bottom: 3px solid var(--color-accent);
+  border-bottom: 3px solid var(--color-primary);
 }
 
 .kicker {
   margin: 0;
   font-size: var(--text-sm);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-accent);
+  font-weight: 550;
+  color: var(--color-primary-text);
 }
 
 .title {
   margin: var(--space-2) 0 var(--space-1);
   font-size: var(--text-2xl);
-  font-stretch: var(--width-wide);
-  line-height: 1.1;
+  font-weight: 650;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
 }
 
 .subtitle {
   margin: 0 0 var(--space-4);
-  font-family: var(--font-serif);
   font-size: var(--text-md);
-  color: var(--color-pencil);
+  color: var(--color-text-secondary);
 }
 
 .facts {
@@ -49,10 +48,8 @@
 }
 
 .facts dt {
-  font-size: var(--text-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--color-pencil);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
 }
 
 .facts dd {
@@ -70,13 +67,14 @@
 .section h2 {
   margin: 0;
   font-size: var(--text-lg);
-  font-stretch: var(--width-wide);
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 .section p {
   margin: 0;
   max-width: 72ch;
-  font-family: var(--font-serif);
+  font-size: var(--text-read);
   line-height: 1.65;
 }
 
@@ -101,7 +99,7 @@
 
 .small {
   font-size: var(--text-sm);
-  color: var(--color-pencil);
+  color: var(--color-text-secondary);
 }
 
 .riskRow {

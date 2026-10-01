@@ -1,10 +1,12 @@
 import { ROLE_LABEL } from '@duatf/core-access'
 import { formatIst } from '@duatf/core-utils'
-import { Chip, DataTable, EmptyState, PageHeader } from '@duatf/core-ui'
+import { Chip, DataTable, EmptyState, PageHeader, Panel } from '@duatf/core-ui'
 import { listClients, listFirmStaff, type Person } from '@duatf/feature-compliance-api'
 import type { Metadata } from 'next'
 import { AccountControls, InviteStaffForm } from '@/components/forms/PeopleForms'
-import { requireCapability } from '@/server/auth'
+import { PermissionNotice } from '@/components/PermissionNotice'
+import { Status } from '@/components/status'
+import { permissionFor } from '@/server/auth'
 import { serviceContext } from '@/server/services'
 import { accountAction, inviteStaffAction } from '../../clients/actions'
 import styles from '../../clients/clients.module.css'
@@ -12,17 +14,13 @@ import styles from '../../clients/clients.module.css'
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = { title: 'Staff' }
 
-const STATUS_CHIP = {
-  active: <Chip tone="live">Active</Chip>,
-  invited: <Chip tone="pending">Invited</Chip>,
-  disabled: <Chip tone="severe">Disabled</Chip>,
-} as const
-
 const roleText = (assignment: Person['assignments'][number]) =>
   `${ROLE_LABEL[assignment.role]}, ${assignment.clientCode ?? 'all clients'}`
 
 export default async function Page() {
-  await requireCapability('platform.admin')
+  const { denial } = await permissionFor('platform.admin')
+  if (denial)
+    return <PermissionNotice denial={denial} back={{ href: '/', label: 'Back to the overview' }} />
   const ctx = await serviceContext()
   const [staff, clients] = await Promise.all([listFirmStaff(ctx), listClients(ctx)])
   const account = accountAction.bind(null, '/admin/staff')
@@ -33,7 +31,7 @@ export default async function Page() {
         lede="Firm administrators manage staff and every client. Lead auditors run engagements; auditors work on the clients they are assigned to, or on all clients when given a firm-wide role."
       />
       {staff.length === 0 ? (
-        <EmptyState title="No staff yet." />
+        <EmptyState title="No staff yet">Invite the first staff member below.</EmptyState>
       ) : (
         <DataTable
           rows={staff}
@@ -55,22 +53,33 @@ export default async function Page() {
               render: (row) => (
                 <span className={styles.roles}>
                   {row.assignments.map((assignment) => (
-                    <Chip key={assignment.assignmentId} tone="accent">
+                    <Chip key={assignment.assignmentId} tone="brand">
                       {roleText(assignment)}
                     </Chip>
                   ))}
                 </span>
               ),
             },
-            { key: 'status', header: 'Account', render: (row) => STATUS_CHIP[row.status] },
+            {
+              key: 'status',
+              header: 'Account',
+              render: (row) => <Status kind="user" value={row.status} />,
+            },
             {
               key: 'last',
               header: 'Last sign-in',
-              render: (row) => (row.lastLoginAt ? formatIst(row.lastLoginAt) : '—'),
+              priority: 'low',
+              render: (row) =>
+                row.lastLoginAt ? (
+                  formatIst(row.lastLoginAt)
+                ) : (
+                  <span className={styles.muted}>Never</span>
+                ),
             },
             {
               key: 'actions',
               header: <span className="visually-hidden">Actions</span>,
+              label: '',
               render: (row) => (
                 <AccountControls
                   action={account}
@@ -88,11 +97,8 @@ export default async function Page() {
           ]}
         />
       )}
-      <section className={`${styles.section} ${styles.panel}`} aria-labelledby="invite-staff">
-        <h2 id="invite-staff" className={styles.sectionTitle}>
-          Invite a staff member
-        </h2>
-        <p className={styles.sectionIntro}>
+      <Panel title="Invite a staff member" titleId="invite-staff">
+        <p className={`${styles.flush} ${styles.sectionIntro}`}>
           DUATF creates their sign-in and shows a one-time password once. At first sign-in they
           choose their own password and set up an authenticator app.
         </p>
@@ -103,7 +109,7 @@ export default async function Page() {
             label: `${client.name} (${client.code})`,
           }))}
         />
-      </section>
+      </Panel>
     </div>
   )
 }

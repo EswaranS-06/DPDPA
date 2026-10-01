@@ -242,7 +242,8 @@ export const evidenceLink = pgTable(
 
 export const FINDING_STATUSES = ['open', 'closed'] as const
 export type FindingStatus = (typeof FINDING_STATUSES)[number]
-export type GapType = 'gap' | 'potential_gap'
+export const GAP_TYPES = ['gap', 'potential_gap'] as const
+export type GapType = (typeof GAP_TYPES)[number]
 
 /**
  * A gap raised by a No or Partial answer. Each assessment item has at most one finding; a later

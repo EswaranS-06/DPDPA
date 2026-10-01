@@ -99,9 +99,9 @@ export const SectorScreen = async ({ api, code }: Props) => {
                 header: 'Status',
                 render: (row) =>
                   row.confidence.toLowerCase() === 'verify' ? (
-                    <Chip tone="pending">Verify before citing</Chip>
+                    <Chip tone="warning">Verify before citing</Chip>
                   ) : (
-                    <Chip tone="live">Checked</Chip>
+                    <Chip tone="success">Checked</Chip>
                   ),
               },
             ]}

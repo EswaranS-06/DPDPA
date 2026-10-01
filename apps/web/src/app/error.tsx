@@ -1,16 +1,18 @@
 'use client'
 
-export default function ErrorPage({ reset }: { error: Error; reset: () => void }) {
+import { ErrorCard } from '@/components/StateCards'
+import styles from './states.module.css'
+
+export default function ErrorPage({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string }
+  reset: () => void
+}) {
   return (
-    <div role="alert">
-      <h1>Something went wrong</h1>
-      <p>
-        The server could not complete this request. Check that the database and Keycloak services
-        are running, then try again.
-      </p>
-      <button type="button" onClick={reset}>
-        Try again
-      </button>
-    </div>
+    <main id="main" className={styles.page}>
+      <ErrorCard digest={error.digest} reset={reset} />
+    </main>
   )
 }

@@ -69,7 +69,14 @@ export {
   type ItemRow,
   type ItemDetail,
 } from './assessments'
-export { summariseProgress, COMPLIANCE_OF, type Progress, type StateCount } from './progress'
+export {
+  summariseProgress,
+  explainCompliance,
+  COMPLIANCE_OF,
+  type ComplianceWorking,
+  type Progress,
+  type StateCount,
+} from './progress'
 export {
   uploadEvidence,
   linkEvidence,
@@ -152,3 +159,11 @@ export {
   RISK_REGISTER_COLUMNS,
   WORKBOOK_SHEETS,
 } from './workbooks'
+export {
+  attentionFor,
+  reachOf,
+  ATTENTION_KINDS,
+  type AttentionItem,
+  type AttentionKind,
+} from './attention'
+export { searchWorkspace, type WorkspaceHit } from './search'

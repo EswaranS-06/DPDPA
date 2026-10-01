@@ -3,7 +3,8 @@ import { department } from './compliance'
 import { tenant } from './platform'
 
 export type UserKind = 'firm' | 'client'
-export type UserStatus = 'invited' | 'active' | 'disabled'
+export const USER_STATUSES = ['invited', 'active', 'disabled'] as const
+export type UserStatus = (typeof USER_STATUSES)[number]
 
 /** People who can sign in. Credentials and MFA live in Keycloak; roles live here. */
 export const appUser = pgTable('app_user', {

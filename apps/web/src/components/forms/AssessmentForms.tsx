@@ -8,6 +8,7 @@ import {
   TextField,
   type SelectOption,
 } from '@duatf/core-ui'
+import { CircleAlert, CircleCheck, CircleX, Minus } from 'lucide-react'
 import { useActionState, useState } from 'react'
 import { IDLE, type FormState } from '@/lib/formState'
 import { Feedback } from './PeopleForms'
@@ -67,10 +68,22 @@ export const NewAssessmentForm = ({
 }
 
 const ANSWERS = [
-  { value: 'yes', label: 'Yes', note: 'In place, with evidence' },
-  { value: 'partial', label: 'Partial', note: 'Partly in place' },
-  { value: 'no', label: 'No', note: 'Not in place' },
-  { value: 'not_applicable', label: 'Not applicable', note: 'Give the reason' },
+  { value: 'yes', label: 'Yes', note: 'In place, with evidence', icon: CircleCheck, tone: 'yes' },
+  {
+    value: 'partial',
+    label: 'Partial',
+    note: 'Partly in place',
+    icon: CircleAlert,
+    tone: 'partial',
+  },
+  { value: 'no', label: 'No', note: 'Not in place', icon: CircleX, tone: 'no' },
+  {
+    value: 'not_applicable',
+    label: 'Not applicable',
+    note: 'Give the reason',
+    icon: Minus,
+    tone: 'na',
+  },
 ] as const
 
 type AnswerFormProps = {
@@ -109,7 +122,15 @@ export const AnswerForm = ({ action, current, disabled }: AnswerFormProps) => {
               checked={answer === option.value}
               onChange={() => setAnswer(option.value)}
             />
-            <span className={answerStyles.optionLabel}>{option.label}</span>
+            <span className={answerStyles.optionLabel}>
+              <option.icon
+                className={answerStyles[option.tone]}
+                size={16}
+                strokeWidth={2.25}
+                aria-hidden="true"
+              />
+              {option.label}
+            </span>
             <span className={answerStyles.optionNote}>{option.note}</span>
           </label>
         ))}

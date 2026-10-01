@@ -1,6 +1,15 @@
 import { can } from '@duatf/core-access'
 import { formatDay, formatIst, isoDate } from '@duatf/core-utils'
-import { MarginRow } from '@duatf/core-ui'
+import {
+  Callout,
+  Chip,
+  DescriptionList,
+  Disclosure,
+  EmptyState,
+  PageHeader,
+  Panel,
+  Timeline,
+} from '@duatf/core-ui'
 import {
   ACTION_STATUS_LABEL,
   FINAL_ACTION_STATUSES,
@@ -9,6 +18,8 @@ import {
   nextSteps,
   NotFoundError,
 } from '@duatf/feature-compliance-api'
+import { ACTION_STATUSES } from '@duatf/platform-db'
+import { ClockAlert, FileCheck, FilePlus, Pencil } from 'lucide-react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -25,6 +36,7 @@ import {
   updatePlanAction,
   uploadActionEvidence,
 } from '../actions'
+import local from './action.module.css'
 
 export const dynamic = 'force-dynamic'
 
@@ -33,6 +45,11 @@ type Props = { params: Promise<{ code: string; rem: string }> }
 export const generateMetadata = async ({ params }: Props): Promise<Metadata> => ({
   title: decodeURIComponent((await params).rem),
 })
+
+const statusLabel = (value: string) => {
+  const status = ACTION_STATUSES.find((item) => item === value)
+  return status ? ACTION_STATUS_LABEL[status] : value
+}
 
 export default async function Page({ params }: Props) {
   const { code, rem } = await params
@@ -55,80 +72,105 @@ export default async function Page({ params }: Props) {
   const steps = nextSteps(ctx, client.id, item)
   const options = canManage ? await actionPlanOptions(ctx, client.id) : null
   const repository = canUpdate ? await listEvidence(ctx, client.id) : []
-  const today = isoDate(new Date())
+  const overdue =
+    item.dueDate !== null &&
+    item.dueDate < isoDate(new Date()) &&
+    !finished &&
+    item.status !== 'remediated'
 
   return (
-    <article className={styles.section} aria-labelledby="action-title">
-      <nav aria-label="Breadcrumb" className={styles.muted}>
-        <Link href={`/clients/${client.code}/actions`}>Remediation</Link> / {item.code}
-      </nav>
-      <header className={styles.header}>
-        <span className={styles.code}>
-          {item.code} · finding{' '}
-          <Link href={`/clients/${client.code}/findings/${item.findingCode}`}>
-            {item.findingCode}
-          </Link>{' '}
-          {item.findingTitle}
-        </span>
-        <h2 id="action-title" className={styles.sectionTitle}>
-          {item.title}
-        </h2>
-        <div className={styles.chips}>
-          <ActionStatusChip status={item.status} />
-          {item.dueDate ? (
-            <span className={item.dueDate < today && !finished ? styles.overdueText : styles.muted}>
-              Due {formatDay(item.dueDate)}
+    <>
+      <PageHeader
+        kicker={
+          <span className={local.kicker}>
+            <span className="code">{item.code}</span>
+            <span>
+              For finding{' '}
+              <Link href={`/clients/${client.code}/findings/${item.findingCode}`} className="code">
+                {item.findingCode}
+              </Link>{' '}
+              {item.findingTitle}
             </span>
-          ) : null}
-        </div>
-      </header>
+          </span>
+        }
+        title={item.title}
+      >
+        <ActionStatusChip status={item.status} />
+        {item.dueDate ? <span>Due {formatDay(item.dueDate)}</span> : <span>No due date</span>}
+        {overdue ? (
+          <Chip tone="danger" icon={ClockAlert}>
+            Overdue
+          </Chip>
+        ) : null}
+      </PageHeader>
 
       <div className={styles.twoColumn}>
-        <div className={styles.section}>
-          <MarginRow margin="Owner">
-            <p className={styles.flush}>
-              {item.ownerName ?? 'Not assigned yet'}
-              {item.departmentName ? ` · ${item.departmentName}` : ''}
-            </p>
-          </MarginRow>
-          {item.description ? (
-            <MarginRow margin="What to do">
-              <p className={styles.flush}>{item.description}</p>
-            </MarginRow>
-          ) : null}
-          <MarginRow margin="Recommendation">
-            <p className={styles.flush}>{item.recommendation}</p>
-          </MarginRow>
-
+        <div className={local.work}>
           {steps.length && !finished ? (
-            <section className={`${styles.section} ${styles.panel}`} aria-labelledby="next-steps">
-              <h3 id="next-steps" className={styles.subTitle}>
-                Next step
-              </h3>
+            <Panel title="Next step" titleId="next-steps">
               <ActionSteps action={moveAction.bind(null, target)} steps={steps} />
-            </section>
-          ) : null}
-
-          <section className={styles.section} aria-labelledby="action-evidence">
-            <h3 id="action-evidence" className={styles.subTitle}>
-              Evidence of the fix
-            </h3>
-            {item.evidence.length === 0 ? (
-              <p className={styles.muted}>
-                None yet. Evidence is needed before review, and must be accepted before closing.
+            </Panel>
+          ) : finished ? (
+            <Callout
+              tone="success"
+              title={`This action is ${statusLabel(item.status).toLowerCase()}`}
+            >
+              <p>Nothing more to do. Its history stays on the right.</p>
+            </Callout>
+          ) : (
+            <Callout tone="locked" title="Waiting on someone else">
+              <p>
+                {item.status === 'under_review' || item.status === 'remediated'
+                  ? 'An auditor other than the owner verifies and closes this action.'
+                  : 'The owner of this action moves it to the next step.'}
               </p>
+            </Callout>
+          )}
+
+          <Panel title="What to do" titleId="what-title">
+            <DescriptionList
+              columns={2}
+              items={[
+                { label: 'Owner', value: item.ownerName ?? 'Not assigned yet' },
+                { label: 'Department', value: item.departmentName },
+                ...(item.description
+                  ? [{ label: 'Plan', value: item.description, wide: true }]
+                  : []),
+                { label: 'Recommended action', value: item.recommendation, wide: true },
+              ]}
+            />
+          </Panel>
+
+          <Panel title={`Evidence of the fix (${item.evidence.length})`} titleId="action-evidence">
+            {item.evidence.length === 0 ? (
+              <EmptyState icon={FileCheck} title="No evidence yet" size="quiet">
+                Evidence is needed before review, and one file must be accepted before the action
+                can be verified and closed.
+              </EmptyState>
             ) : (
-              <ul className={styles.bullets}>
+              <ul className={local.files}>
                 {item.evidence.map((row) => (
                   <li key={row.id}>
-                    <Link href={`/clients/${client.code}/evidence/${row.code}`}>{row.title}</Link> (
-                    {row.fileName}) <EvidenceStatusChip status={row.status} expired={false} />
+                    <span className={styles.personCell}>
+                      <Link
+                        href={`/clients/${client.code}/evidence/${row.code}`}
+                        className={styles.clientName}
+                      >
+                        {row.title}
+                      </Link>
+                      <span className={styles.muted}>{row.fileName}</span>
+                    </span>
+                    <EvidenceStatusChip status={row.status} expired={false} />
                   </li>
                 ))}
               </ul>
             )}
             {canUpdate ? (
-              <div className={`${styles.section} ${styles.panel}`}>
+              <Disclosure
+                summary="Add evidence"
+                icon={FilePlus}
+                defaultOpen={item.evidence.length === 0}
+              >
                 <UploadEvidenceForm action={uploadActionEvidence.bind(null, target)} />
                 <LinkEvidenceForm
                   action={linkEvidenceToAction.bind(null, target)}
@@ -137,29 +179,30 @@ export default async function Page({ params }: Props) {
                     .filter((row) => !item.evidence.some((linked) => linked.id === row.id))
                     .map((row) => ({ value: row.id, label: `${row.code} ${row.title}` }))}
                 />
-              </div>
+              </Disclosure>
             ) : null}
-          </section>
+          </Panel>
         </div>
 
-        <aside className={styles.section} aria-labelledby="action-history">
-          <h3 id="action-history" className={styles.subTitle}>
-            History
-          </h3>
-          <ol className={styles.bullets}>
-            {item.events.map((event) => (
-              <li key={event.id}>
-                {ACTION_STATUS_LABEL[event.toStatus as keyof typeof ACTION_STATUS_LABEL] ??
-                  event.toStatus}
-                , {formatIst(event.at)}
-                {event.actorName ? ` by ${event.actorName}` : ''}
-                {event.note ? <span className={styles.muted}> — {event.note}</span> : null}
-              </li>
-            ))}
-          </ol>
+        <div className={local.work}>
+          <Panel title="History" titleId="action-history">
+            <Timeline
+              label="Action history"
+              entries={item.events.map((event) => ({
+                key: event.id,
+                when: formatIst(event.at),
+                what: (
+                  <>
+                    {statusLabel(event.toStatus)}
+                    {event.actorName ? ` by ${event.actorName}` : ''}
+                    {event.note ? <span className={styles.muted}>. {event.note}</span> : null}
+                  </>
+                ),
+              }))}
+            />
+          </Panel>
           {canManage && options ? (
-            <div className={styles.panel}>
-              <h3 className={styles.subTitle}>Plan</h3>
+            <Disclosure summary="Change the plan" icon={Pencil}>
               <ActionPlanForm
                 action={updatePlanAction.bind(null, target)}
                 owners={options.owners}
@@ -173,10 +216,10 @@ export default async function Page({ params }: Props) {
                   dueDate: item.dueDate ?? '',
                 }}
               />
-            </div>
+            </Disclosure>
           ) : null}
-        </aside>
+        </div>
       </div>
-    </article>
+    </>
   )
 }

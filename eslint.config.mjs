@@ -23,6 +23,7 @@ export default defineConfig([
   globalIgnores([
     '**/node_modules/**',
     '**/.next/**',
+    '**/.next-preview/**',
     '**/dist/**',
     '**/.turbo/**',
     'seed/**',

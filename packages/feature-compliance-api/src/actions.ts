@@ -387,6 +387,8 @@ export const linkActionEvidence = async (
 
 export type ActionFilters = {
   status?: ActionStatus
+  /** Any of these statuses, e.g. the ones waiting for an auditor to verify or close. */
+  statuses?: ActionStatus[]
   ownerUserId?: string
   overdue?: boolean
   findingId?: string
@@ -428,6 +430,9 @@ export const listActions = async (
         and(
           eq(remediationAction.tenantId, clientId),
           filters.status ? eq(remediationAction.status, filters.status) : undefined,
+          filters.statuses?.length
+            ? inArray(remediationAction.status, filters.statuses)
+            : undefined,
           filters.ownerUserId ? eq(remediationAction.ownerUserId, filters.ownerUserId) : undefined,
           filters.findingId ? eq(remediationAction.findingId, filters.findingId) : undefined,
           filters.departmentId

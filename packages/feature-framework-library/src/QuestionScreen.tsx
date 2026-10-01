@@ -41,9 +41,9 @@ export const QuestionScreen = async ({ api, code, today }: Props) => {
       >
         <ImpactChip weight={item.riskWeight} />
         {item.reviewStatus === 'draft' ? (
-          <Chip tone="pending">Draft wording, awaiting legal review</Chip>
+          <Chip tone="warning">Draft wording, awaiting legal review</Chip>
         ) : (
-          <Chip tone="live">Reviewed</Chip>
+          <Chip tone="success">Reviewed</Chip>
         )}
         <Chip>
           <Link href={kbHref('controls', item.control.code)}>
@@ -104,7 +104,7 @@ export const QuestionScreen = async ({ api, code, today }: Props) => {
             {item.criteria.map((criterion) => (
               <li key={`${criterion.obligationCode}-${criterion.text}`}>
                 <Citation>{criterion.obligationCode}</Citation> {criterion.text}{' '}
-                {criterion.critical ? <Chip tone="severe">Critical</Chip> : null}
+                {criterion.critical ? <Chip tone="danger">Critical</Chip> : null}
               </li>
             ))}
           </ul>

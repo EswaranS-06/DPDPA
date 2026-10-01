@@ -1,12 +1,14 @@
 import { can } from '@duatf/core-access'
-import { buttonClass, DataTable, EmptyState } from '@duatf/core-ui'
+import { buttonClass, Chip, DataTable, EmptyState, PageHeader, Panel } from '@duatf/core-ui'
 import { listAssessments, listDepartments } from '@duatf/feature-compliance-api'
+import { Download, FileSpreadsheet, FileText, Printer } from 'lucide-react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { AssessmentStatusChip } from '@/components/assessment/AssessmentBits'
 import { loadClient } from '@/server/clients'
 import { serviceContext } from '@/server/services'
 import styles from '../../clients.module.css'
+import local from './reports.module.css'
 
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = { title: 'Reports' }
@@ -24,34 +26,112 @@ export default async function Page({ params }: { params: Promise<{ code: string 
 
   return (
     <>
-      {canExport ? (
-        <section className={`${styles.section} ${styles.panel}`} aria-labelledby="workbook-title">
-          <h2 id="workbook-title" className={styles.sectionTitle}>
-            Compliance workbook
-          </h2>
-          <p className={styles.sectionIntro}>
-            One Excel file that opens on a dashboard (headline figures, compliance by domain and
-            by department, risks by rating, a risk heatmap and remediation by status), followed by
-            the department figures, the risk register, all findings, remediation actions and the
-            answers of the latest assessment. Each download is recorded.
+      <PageHeader
+        title="Reports"
+        lede="Every report is generated from the live records: answers, evidence, findings, risks and actions. Each download is recorded in the audit log."
+      />
+
+      <div className={local.catalogue}>
+        <Panel
+          title="Executive report"
+          titleId="executive-title"
+          actions={
+            <Chip icon={FileText} tone="neutral">
+              PDF, by printing
+            </Chip>
+          }
+        >
+          <p className={`${styles.flush} ${styles.sectionIntro}`}>
+            A summary of one assessment for management: scope, compliance by domain, key findings
+            with recommendations, the risk picture and remediation status. Open it and use the
+            browser&apos;s print dialog to save it as PDF.
           </p>
-          <div>
-            <a href={`${base}/workbook`} className={buttonClass()} rel="nofollow">
-              Download Excel workbook
-            </a>
-          </div>
-        </section>
-      ) : null}
+          {assessments.length === 0 ? (
+            <EmptyState title="No assessment to report on yet" size="quiet">
+              The report becomes available once an assessment is started.
+            </EmptyState>
+          ) : (
+            <DataTable
+              rows={assessments}
+              rowKey={(row) => row.id}
+              columns={[
+                {
+                  key: 'assessment',
+                  header: 'Assessment',
+                  render: (row) => (
+                    <span className={styles.personCell}>
+                      <strong>{row.title}</strong>
+                      <span className={`code ${styles.muted}`}>{row.code}</span>
+                    </span>
+                  ),
+                },
+                {
+                  key: 'status',
+                  header: 'Status',
+                  render: (row) => <AssessmentStatusChip status={row.status} />,
+                },
+                {
+                  key: 'open',
+                  header: <span className="visually-hidden">Open</span>,
+                  label: '',
+                  render: (row) => (
+                    <Link
+                      href={`${base}/executive/${row.code}`}
+                      className={buttonClass('secondary', 'sm')}
+                    >
+                      <Printer size={14} aria-hidden="true" />
+                      Open report<span className="visually-hidden"> for {row.code}</span>
+                    </Link>
+                  ),
+                },
+              ]}
+            />
+          )}
+        </Panel>
+
+        {canExport ? (
+          <Panel
+            title="Compliance workbook"
+            titleId="workbook-title"
+            actions={
+              <Chip icon={FileSpreadsheet} tone="neutral">
+                Excel
+              </Chip>
+            }
+          >
+            <p className={`${styles.flush} ${styles.sectionIntro}`}>
+              Opens on a dashboard: headline figures, compliance by domain and by department, risks
+              by rating, a risk heatmap and remediation by status. Then the department figures, the
+              risk register, all findings, remediation actions and the answers of the latest
+              assessment.
+            </p>
+            <div>
+              <a href={`${base}/workbook`} className={buttonClass()} rel="nofollow">
+                <Download size={16} aria-hidden="true" />
+                Download compliance workbook
+              </a>
+            </div>
+          </Panel>
+        ) : null}
+      </div>
+
       {canExport && departments.length ? (
-        <section className={styles.section} aria-labelledby="department-books-title">
-          <h2 id="department-books-title" className={styles.sectionTitle}>
-            Department workbooks
-          </h2>
-          <p className={styles.sectionIntro}>
-            One Excel file per department: its dashboard, its answers in the latest assessment,
-            its findings, remediation actions and evidence. Useful to send to a department head.
+        <Panel
+          title="Department workbooks"
+          titleId="department-books-title"
+          padding="flush"
+          actions={
+            <Chip icon={FileSpreadsheet} tone="neutral">
+              Excel
+            </Chip>
+          }
+        >
+          <p className={local.intro}>
+            One file per department: its dashboard, its answers in the latest assessment, its
+            findings, remediation actions and evidence. Useful to send to a department head.
           </p>
           <DataTable
+            plain
             rows={departments}
             rowKey={(row) => row.id}
             columns={[
@@ -61,61 +141,29 @@ export default async function Page({ params }: { params: Promise<{ code: string 
                 render: (row) => (
                   <span className={styles.personCell}>
                     <Link href={`/clients/${client.code}/departments/${row.code}`}>{row.name}</Link>
-                    <span className={styles.muted}>{row.fullCode}</span>
+                    <span className={`code ${styles.muted}`}>{row.fullCode}</span>
                   </span>
                 ),
               },
               {
                 key: 'download',
                 header: <span className="visually-hidden">Download</span>,
+                label: '',
                 render: (row) => (
-                  <a href={`/clients/${client.code}/departments/${row.code}/workbook`} rel="nofollow">
-                    Download workbook
+                  <a
+                    href={`/clients/${client.code}/departments/${row.code}/workbook`}
+                    rel="nofollow"
+                    className={styles.iconLink}
+                  >
+                    <Download size={14} aria-hidden="true" />
+                    Download<span className="visually-hidden"> the {row.name} workbook</span>
                   </a>
                 ),
               },
             ]}
           />
-        </section>
+        </Panel>
       ) : null}
-      <section className={styles.section} aria-labelledby="executive-title">
-        <h2 id="executive-title" className={styles.sectionTitle}>
-          Executive reports
-        </h2>
-        <p className={styles.sectionIntro}>
-          A printable summary of one assessment for management: scope, compliance by domain, key
-          findings with recommendations, the risk picture and remediation status. Use the
-          browser&apos;s print dialog to save it as PDF.
-        </p>
-        {assessments.length === 0 ? (
-          <EmptyState title="No assessment to report on yet." />
-        ) : (
-          <DataTable
-            rows={assessments}
-            rowKey={(row) => row.id}
-            columns={[
-              {
-                key: 'assessment',
-                header: 'Assessment',
-                render: (row) => (
-                  <span className={styles.personCell}>
-                    <strong>{row.title}</strong>
-                    <span className={styles.muted}>
-                      {row.code} · knowledge base {row.releaseVersion}
-                    </span>
-                  </span>
-                ),
-              },
-              { key: 'status', header: 'Status', render: (row) => <AssessmentStatusChip status={row.status} /> },
-              {
-                key: 'open',
-                header: <span className="visually-hidden">Open</span>,
-                render: (row) => <Link href={`${base}/executive/${row.code}`}>Executive report</Link>,
-              },
-            ]}
-          />
-        )}
-      </section>
     </>
   )
 }

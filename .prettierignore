@@ -5,6 +5,7 @@ reports/
 plan/STATUS.md
 pnpm-lock.yaml
 **/.next/
+**/.next-preview/
 **/dist/
 **/.turbo/
 packages/platform-db/migrations/

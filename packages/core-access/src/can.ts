@@ -18,9 +18,12 @@ export type Principal = {
 export type AccessScope = { clientId?: string; departmentId?: string | null }
 
 export class AccessDeniedError extends Error {
+  readonly capability: Capability
+
   constructor(capability: Capability) {
     super(`You do not have permission for this action (${capability}).`)
     this.name = 'AccessDeniedError'
+    this.capability = capability
   }
 }
 

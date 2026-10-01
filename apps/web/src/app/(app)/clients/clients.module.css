@@ -1,100 +1,136 @@
+/* Shared page structure for the client pages. Sections stack with even rhythm. */
 .page {
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
-}
-
-.clientCell {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-}
-
-.clientName {
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.clientName:hover {
-  text-decoration: underline;
-}
-
-.muted {
-  color: var(--color-pencil);
-  font-size: var(--text-sm);
-}
-
-.header {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.headerTop {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--space-3);
-}
-
-.code {
-  font-size: var(--text-sm);
-  color: var(--color-pencil);
-  letter-spacing: 0.04em;
-}
-
-.title {
-  margin: 0;
-  font-size: var(--text-xl);
-  font-stretch: var(--width-wide);
-  line-height: 1.15;
-}
-
-.chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
+  gap: var(--space-6);
 }
 
 .section {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.headerTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-5);
+}
+
+.code {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'case';
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-xl);
+  font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: -0.018em;
+}
+
+.chips,
+.roles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.roles {
+  gap: var(--space-1);
 }
 
 .sectionTitle {
   margin: 0;
   font-size: var(--text-lg);
-  font-stretch: var(--width-wide);
   font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.subTitle {
+  margin: 0;
+  font-size: var(--text-md);
+  font-weight: 600;
+  letter-spacing: -0.006em;
 }
 
 .sectionIntro {
   margin: 0;
-  color: var(--color-pencil);
-  max-width: 70ch;
+  max-width: var(--measure);
+  color: var(--color-text-secondary);
 }
 
-.profile {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
-  gap: var(--space-4) var(--space-6);
+.muted {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.flush {
   margin: 0;
 }
 
-.profile div {
+.clientCell,
+.personCell {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 0.15rem;
   min-width: 0;
 }
 
+.clientName {
+  font-weight: 550;
+  color: var(--color-text);
+}
+
+.clientName:hover {
+  color: var(--color-link);
+}
+
+.iconLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 500;
+}
+
+.panel {
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sheet);
+}
+
+.profile {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: var(--space-5) var(--space-6);
+  margin: 0;
+}
+
+.profile > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
 .profile dt {
-  font-size: var(--text-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--color-pencil);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
 }
 
 .profile dd {
@@ -106,30 +142,15 @@
   grid-column: 1 / -1;
 }
 
-.panel {
-  padding: var(--space-5);
-  background: var(--color-sheet);
-  border: 1px solid var(--color-rule);
-  border-radius: var(--radius-sheet);
-}
-
-.personCell {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-}
-
-.roles {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1);
-}
-
 .filters {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
   gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sheet);
 }
 
 .filters > div {
@@ -137,36 +158,27 @@
 }
 
 .questionLink {
-  color: var(--color-ink);
-  font-family: var(--font-serif);
+  font-size: var(--text-base);
   line-height: 1.5;
-  text-decoration: none;
+  color: var(--color-text);
 }
 
 .questionLink:hover {
-  color: var(--color-accent);
-  text-decoration: underline;
+  color: var(--color-link);
 }
 
 .questionTitle {
   margin: 0;
   max-width: 62ch;
-  font-family: var(--font-serif);
-  font-size: var(--text-md);
-  font-weight: 400;
-  line-height: 1.5;
-}
-
-.subTitle {
-  margin: 0;
-  font-size: var(--text-md);
-  font-stretch: var(--width-wide);
+  font-size: var(--text-lg);
   font-weight: 600;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
 }
 
 .twoColumn {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
   gap: var(--space-6);
   align-items: start;
 }
@@ -176,32 +188,45 @@
   padding-left: 1.1rem;
 }
 
-.flush {
-  margin: 0;
+.bullets li + li {
+  margin-top: var(--space-1);
 }
 
 .quote {
   margin: 0;
   padding: var(--space-2) var(--space-4);
-  border-left: 3px solid var(--color-rule-strong);
-  color: var(--color-pencil);
+  color: var(--color-text-secondary);
+  border-left: 2px solid var(--color-border-strong);
 }
 
 .pager {
   display: flex;
   justify-content: space-between;
   gap: var(--space-3);
-  padding-top: var(--space-3);
-  border-top: 1px solid var(--color-rule);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.pager a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-weight: 500;
+}
+
+.hash {
+  font-size: var(--text-sm);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.overdueText {
+  font-weight: 600;
+  color: var(--color-danger-text);
 }
 
 @media (max-width: 1100px) {
   .twoColumn {
     grid-template-columns: minmax(0, 1fr);
   }
-}
-
-.overdueText {
-  color: var(--color-severe);
-  font-weight: 600;
 }

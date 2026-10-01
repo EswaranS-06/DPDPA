@@ -1,4 +1,12 @@
-import { can, type AccessScope, type Capability, type Principal } from '@duatf/core-access'
+import {
+  can,
+  CAPABILITIES,
+  describeDenial,
+  type AccessScope,
+  type Capability,
+  type Denial,
+  type Principal,
+} from '@duatf/core-access'
 import {
   createOidc,
   findSessionUser,
@@ -67,4 +75,21 @@ export const requireCapability = async (
   const session = await requireSession()
   if (!can(session.principal, capability, scope)) notFound()
   return session
+}
+
+/**
+ * For pages that explain a refusal instead of hiding it: null when the user may do it, the
+ * explanation when they may not. Someone who cannot see the client at all still gets "not found".
+ */
+export const permissionFor = async (
+  capability: Capability,
+  scope: AccessScope = {},
+): Promise<{ session: Session; denial: Denial | null }> => {
+  const session = await requireSession()
+  if (can(session.principal, capability, scope)) return { session, denial: null }
+  const clientScoped = CAPABILITIES[capability].scope !== 'firm'
+  if (clientScoped && !can(session.principal, 'client.view', { clientId: scope.clientId })) {
+    notFound()
+  }
+  return { session, denial: describeDenial(session.principal, capability, scope) }
 }

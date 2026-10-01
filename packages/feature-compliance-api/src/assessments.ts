@@ -254,7 +254,8 @@ export type ItemFilters = {
   /** A department id, or "none" for items not yet assigned. */
   department?: string
   state?: ComplianceState
-  review?: ReviewState
+  /** A review state, or "awaiting" for answered questions nobody has reviewed yet. */
+  review?: ReviewState | 'awaiting'
 }
 
 const itemColumns = {
@@ -308,7 +309,14 @@ export const listItems = async (
               ? eq(assessmentItem.departmentId, filters.department)
               : undefined,
           filters.state ? eq(assessmentItem.complianceState, filters.state) : undefined,
-          filters.review ? eq(assessmentItem.reviewState, filters.review) : undefined,
+          filters.review === 'awaiting'
+            ? and(
+                ne(assessmentItem.answer, 'not_assessed'),
+                eq(assessmentItem.reviewState, 'not_reviewed'),
+              )
+            : filters.review
+              ? eq(assessmentItem.reviewState, filters.review)
+              : undefined,
         ),
       )
       .orderBy(asc(assessmentItem.seq))

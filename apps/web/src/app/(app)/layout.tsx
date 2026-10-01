@@ -1,10 +1,11 @@
 import { ROLE_LABEL, type Principal } from '@duatf/core-access'
-import Link from 'next/link'
+import { listClients } from '@duatf/feature-compliance-api'
+import { cookies } from 'next/headers'
 import type { ReactNode } from 'react'
-import { AppNav } from '@/components/AppNav'
-import { requireSession } from '@/server/auth'
+import { AppShell } from '@/components/shell/AppShell'
+import { DENSITY_COOKIE, THEME_COOKIE, asDensity, asTheme } from '@/components/shell/display'
 import { navigationFor } from '@/server/navigation'
-import styles from './shell.module.css'
+import { serviceContext } from '@/server/services'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,48 +16,30 @@ const roleSummary = (principal: Principal) => {
   return labels.length === 0 ? 'No role assigned' : labels.join(', ')
 }
 
+const initialsOf = (name: string) =>
+  name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word.charAt(0).toUpperCase())
+    .join('')
+
 export default async function AppLayout({ children }: { children: ReactNode }) {
-  const { user, principal } = await requireSession()
+  const ctx = await serviceContext()
+  const { user, principal } = ctx.session
+  const [clients, saved] = await Promise.all([listClients(ctx), cookies()])
   return (
-    <div className={styles.frame}>
-      <Link href="/" className={`${styles.brand} no-print`}>
-        <span className={styles.brandMark}>DUATF</span>
-        <span className={styles.brandName}>DPDP compliance tracking</span>
-      </Link>
-      <header className={`${styles.top} no-print`}>
-        <form action="/knowledge-base" method="get" role="search" className={styles.search}>
-          <label htmlFor="site-search" className="visually-hidden">
-            Search the knowledge base
-          </label>
-          <input
-            id="site-search"
-            name="q"
-            type="search"
-            placeholder="Search the knowledge base: s.8(6), OBL-CON-01, withdrawal"
-          />
-          <button type="submit">Search</button>
-        </form>
-        <div className={styles.user}>
-          <div className={styles.userText}>
-            <span className={styles.userName}>{user.displayName}</span>
-            <span className={styles.userRole}>{roleSummary(principal)}</span>
-          </div>
-          <form action="/auth/logout" method="post">
-            <button type="submit" className={styles.signOut}>
-              Sign out
-            </button>
-          </form>
-        </div>
-      </header>
-      <aside className={`${styles.rail} no-print`}>
-        <AppNav items={navigationFor(principal)} />
-        <p className={styles.railNote}>
-          ComplyX Cybersecurity Services. A working compliance framework, not legal advice.
-        </p>
-      </aside>
-      <main id="main" className={styles.main}>
-        {children}
-      </main>
-    </div>
+    <AppShell
+      navigation={navigationFor(principal, clients)}
+      user={{
+        name: user.displayName,
+        roles: roleSummary(principal),
+        initials: initialsOf(user.displayName),
+        theme: asTheme(saved.get(THEME_COOKIE)?.value),
+        density: asDensity(saved.get(DENSITY_COOKIE)?.value),
+      }}
+    >
+      {children}
+    </AppShell>
   )
 }

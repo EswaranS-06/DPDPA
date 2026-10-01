@@ -10,23 +10,20 @@
   font-size: var(--text-md);
   font-weight: 600;
   line-height: 1.3;
-  color: var(--color-ink);
+  color: var(--color-text);
   text-decoration: none;
 }
 
 .title:hover {
-  color: var(--color-accent);
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  color: var(--color-link);
 }
 
 .requirement {
   margin: var(--space-2) 0 var(--space-3);
-  max-width: var(--measure-legal);
-  font-family: var(--font-serif);
-  font-size: 0.97rem;
+  max-width: var(--measure);
+  font-size: var(--text-read);
   line-height: 1.7;
-  color: var(--color-ink);
+  color: var(--color-text);
   display: -webkit-box;
   -webkit-line-clamp: 3;
   line-clamp: 3;

@@ -1,15 +1,38 @@
-import { formatDay, formatIst } from '@duatf/core-utils'
-import { Chip, DataTable, type ChipTone } from '@duatf/core-ui'
+import { daysBetween, formatDay, formatIst, isoDate } from '@duatf/core-utils'
+import { Chip, DataTable } from '@duatf/core-ui'
 import type { EvidenceRow } from '@duatf/feature-compliance-api'
 import type { EvidenceStatus } from '@duatf/platform-db'
+import { CalendarCheck, CalendarClock, CalendarX, Download } from 'lucide-react'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import styles from '@/app/(app)/clients/clients.module.css'
+import { Status } from '@/components/status'
 
-const STATUS: Record<EvidenceStatus, { label: string; tone: ChipTone }> = {
-  pending_review: { label: 'Awaiting review', tone: 'pending' },
-  accepted: { label: 'Accepted', tone: 'live' },
-  rejected: { label: 'Rejected', tone: 'severe' },
+const SOON_DAYS = 30
+
+/** Whether a file is still valid: expired, expiring within 30 days, or valid until its date. */
+export const Freshness = ({ validUntil }: { validUntil: string | null }) => {
+  if (!validUntil) return null
+  const days = daysBetween(isoDate(new Date()), validUntil)
+  if (days < 0) {
+    return (
+      <Chip tone="danger" icon={CalendarX}>
+        Expired {formatDay(validUntil)}
+      </Chip>
+    )
+  }
+  if (days <= SOON_DAYS) {
+    return (
+      <Chip tone="warning" icon={CalendarClock}>
+        Expires in {days} {days === 1 ? 'day' : 'days'}
+      </Chip>
+    )
+  }
+  return (
+    <Chip tone="success" icon={CalendarCheck}>
+      Valid until {formatDay(validUntil)}
+    </Chip>
+  )
 }
 
 export const EvidenceStatusChip = ({
@@ -20,8 +43,12 @@ export const EvidenceStatusChip = ({
   expired: boolean
 }) => (
   <span className={styles.roles}>
-    <Chip tone={STATUS[status].tone}>{STATUS[status].label}</Chip>
-    {expired ? <Chip tone="severe">Expired</Chip> : null}
+    <Status kind="evidence" value={status} />
+    {expired ? (
+      <Chip tone="danger" icon={CalendarX}>
+        Expired
+      </Chip>
+    ) : null}
   </span>
 )
 
@@ -57,7 +84,7 @@ export const EvidenceTable = ({ rows, clientCode, action }: EvidenceTableProps) 
               {row.title}
             </Link>
             <span className={styles.muted}>
-              {row.code} · {row.fileName} · {fileSize(row.sizeBytes)}
+              <span className="code">{row.code}</span>, {row.fileName}, {fileSize(row.sizeBytes)}
             </span>
           </span>
         ),
@@ -65,7 +92,7 @@ export const EvidenceTable = ({ rows, clientCode, action }: EvidenceTableProps) 
       {
         key: 'status',
         header: 'Status',
-        render: (row) => <EvidenceStatusChip status={row.status} expired={row.expired} />,
+        render: (row) => <EvidenceStatusChip status={row.status} expired={false} />,
       },
       {
         key: 'uploaded',
@@ -79,22 +106,35 @@ export const EvidenceTable = ({ rows, clientCode, action }: EvidenceTableProps) 
       },
       {
         key: 'valid',
-        header: 'Valid until',
-        render: (row) => (row.validUntil ? formatDay(row.validUntil) : '—'),
+        header: 'Freshness',
+        priority: 'low',
+        render: (row) =>
+          row.validUntil ? (
+            <Freshness validUntil={row.validUntil} />
+          ) : (
+            <span className={styles.muted}>No expiry</span>
+          ),
       },
       {
         key: 'used',
         header: 'Used for',
         align: 'end',
+        priority: 'low',
         render: (row) => `${row.linkCount} question${row.linkCount === 1 ? '' : 's'}`,
       },
       {
         key: 'download',
         header: <span className="visually-hidden">Download</span>,
+        label: '',
         render: (row) => (
           <span className={styles.roles}>
-            <a href={`/clients/${clientCode}/evidence/${row.code}/download`} rel="nofollow">
-              Download
+            <a
+              href={`/clients/${clientCode}/evidence/${row.code}/download`}
+              rel="nofollow"
+              className={styles.iconLink}
+            >
+              <Download size={14} aria-hidden="true" />
+              Download<span className="visually-hidden"> {row.title}</span>
             </a>
             {action ? action(row) : null}
           </span>
