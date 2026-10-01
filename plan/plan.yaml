@@ -696,6 +696,55 @@ phases:
             source: manual
             kind: manual
 
+  - id: C18
+    title: 'Playbook: guided tours of every task'
+    release: R2
+    reviews: [firm_admin]
+    subphases:
+      - id: C18.1
+        title: 'Catalogue of tasks and search'
+        state: active
+        tests:
+          - id: TC-C18.1-01
+            title: 'Each task names who can do it exactly as the permission matrix allows, with well-formed steps'
+            expected: 'equal to core-access for every capability; hands-on step last; no empty group'
+            source: oracle
+          - id: TC-C18.1-02
+            title: 'Search finds tasks by title, keyword and word start'
+            expected: 'onboard, upload, evid, risk, excel, dark mode; every title finds its task first'
+            source: literal
+      - id: C18.2
+        title: 'Guide window: visible Chrome, tab reuse, guide card'
+        state: active
+        tests:
+          - id: TC-C18.2-01
+            title: 'The guide reuses the tab it opened and opens a new one only when none is left'
+            expected: 'DUATF tab reused; sign-in tab reused; empty tab used; new tab only when all closed'
+            source: literal
+      - id: C18.3
+        title: 'Every tour checked against DUATF'
+        state: active
+        tests:
+          - id: TC-C18.3-01
+            title: 'Every tour reaches its end or its hands-on step against the live app, without saving'
+            expected: '43 of 43'
+            source: manual
+            kind: manual
+      - id: C18.4
+        title: 'Headed run on the ComplyX computer'
+        state: active
+        tests:
+          - id: TC-C18.4-01
+            title: 'Show me opens a visible Chrome on DUATF, waits for sign-in and a second task reuses the tab'
+            expected: 'window opens; sign-in wait; tab reused'
+            source: manual
+            kind: manual
+          - id: TC-C18.4-02
+            title: 'ComplyX signs in and follows a task to its end in the guide window'
+            expected: 'done'
+            source: manual
+            kind: manual
+
   - id: C12
     title: 'Hardening'
     release: R3

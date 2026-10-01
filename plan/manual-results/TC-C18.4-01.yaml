@@ -1,0 +1,12 @@
+id: TC-C18.4-01
+result: pass
+by: claude (for EswaranS-06)
+date: '2026-10-01'
+evidence: >-
+  On the ComplyX Windows computer (Node 24.19, Google Chrome): the bundle in
+  D:\Code\DPDPA\Source-Code\playbook served http://localhost:53001 (43 tasks, search working, a
+  text/plain POST from elsewhere refused with 403). "Show me" on "Find your way around" opened a
+  visible Chrome window on DUATF and the page reported "Waiting for you to sign in"; starting
+  "Search with Ctrl K" next reported the tab as reused. Both runs were stopped without signing in;
+  Claude does not type passwords.
+notes: The full run after the person signs in is TC-C18.4-02.

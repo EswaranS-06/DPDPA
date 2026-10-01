@@ -343,8 +343,10 @@ describe('workspace: attention and search', () => {
     const forDpo = await searchWorkspace(as(dpo), word)
     expect(new Set(forDpo.map((hit) => hit.clientCode))).toEqual(new Set([mine.code]))
     expect(forDpo.some((hit) => hit.kind === 'client' && hit.code === mine.code)).toBe(true)
-    // The other client's records do not appear, even by their exact code.
-    expect(await searchWorkspace(as(dpo), other.code)).toEqual([])
+    // The other client's records do not appear, even by their exact code. (Its code can also
+    // occur in the DPO's own client's name, which may then match, so look at whose hits they are.)
+    const byOtherCode = await searchWorkspace(as(dpo), other.code)
+    expect(byOtherCode.filter((hit) => hit.clientCode !== mine.code)).toEqual([])
 
     const forLead = await searchWorkspace(as(lead), word)
     expect(new Set(forLead.map((hit) => hit.clientCode))).toEqual(new Set([mine.code, other.code]))

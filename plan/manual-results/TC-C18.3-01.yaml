@@ -1,0 +1,57 @@
+id: TC-C18.3-01
+result: pass
+by: claude (for EswaranS-06)
+date: '2026-10-01'
+evidence: >-
+  pnpm playbook:check with PLAYBOOK_BASE=http://127.0.0.1:53000 on the server: every tour walked in
+  headless Chromium (playwright-core 1.63) with server-side sessions for a QA staff user (firm
+  administrator and lead auditor) and for AMMA's client DPO and admissions department owner, all
+  deleted afterwards. Steps were performed up to each tour's hands-on step, which the check never
+  performs, so nothing was saved. 43 of 43 tours reached their end or their hands-on step, with no
+  optional step skipped. Fixed during the check: "Open a client" took the Onboard client link, and
+  "Move an action forward" opened a closed action.
+output: |
+  ok   find-your-way            7/7 complete
+  ok   search-everything        5/5 complete
+  ok   display-settings         5/5 complete
+  ok   hands-on-role            5/5 hands-on
+  ok   onboard-client           12/12 hands-on
+  ok   client-overview          6/6 complete
+  ok   edit-client              4/4 hands-on
+  ok   add-department           6/6 hands-on
+  ok   department-active        2/2 complete
+  ok   invite-client-user       7/7 hands-on
+  ok   assign-staff             4/4 hands-on
+  ok   manage-accounts          4/4 complete
+  ok   start-assessment         4/4 hands-on
+  ok   assign-questions         6/6 hands-on
+  ok   filter-questions         6/6 complete
+  ok   answer-question          7/7 hands-on
+  ok   review-answer            8/8 hands-on
+  ok   assessment-stages        3/3 complete
+  ok   reassess                 4/4 hands-on
+  ok   legal-reference          6/6 complete
+  ok   upload-evidence          8/8 hands-on
+  ok   link-evidence            6/6 hands-on
+  ok   evidence-library         5/5 complete
+  ok   review-evidence          5/5 hands-on
+  ok   read-finding             5/5 complete
+  ok   findings-without-plan    3/3 complete
+  ok   rate-risk                6/6 hands-on
+  ok   accept-risk              4/4 hands-on
+  ok   risk-register            4/4 complete
+  ok   plan-action              8/8 hands-on
+  ok   work-action              5/5 complete
+  ok   verify-action            5/5 hands-on
+  ok   overdue-actions          3/3 complete
+  ok   attention                3/3 complete
+  ok   department-dashboard     4/4 complete
+  ok   executive-report         3/3 complete
+  ok   workbooks                5/5 hands-on
+  ok   explore-kb               5/5 complete
+  ok   kb-citation              3/3 complete
+  ok   kb-draft                 8/8 hands-on
+  ok   kb-publish               5/5 hands-on
+  ok   invite-staff             4/4 hands-on
+  ok   risk-bands               3/3 hands-on
+  43 tours: 43 reached their end or hands-on step, 0 failed.

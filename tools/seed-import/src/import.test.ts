@@ -215,16 +215,21 @@ describe('release immutability', () => {
 
   it('allows editing and deleting a draft release', async () => {
     const version = `0.0.0-test-${Date.now()}`
-    const draft = await one<{ id: string }>(sql`
-      insert into framework_release (version, status, source, created_by)
-      values (${version}, 'draft', 'test', 'test') returning id`)
-    await handle.db.execute(
-      sql`insert into domain (release_id, code, title, description, body_md) values (${draft?.id}, 'D99', 'x', 'x', 'x')`,
-    )
-    await handle.db.execute(sql`delete from framework_release where id = ${draft?.id}`)
-    const left = await one<{ n: number }>(
-      sql`select count(*)::int as n from domain where code = 'D99'`,
-    )
+    // One transaction, so the short-lived draft is never visible to tests running alongside
+    // (the knowledge-base editor tests look for the open draft).
+    const left = await handle.db.transaction(async (tx) => {
+      const [draft] = await tx.execute<{ id: string }>(sql`
+        insert into framework_release (version, status, source, created_by)
+        values (${version}, 'draft', 'test', 'test') returning id`)
+      await tx.execute(
+        sql`insert into domain (release_id, code, title, description, body_md) values (${draft?.id}, 'D99', 'x', 'x', 'x')`,
+      )
+      await tx.execute(sql`delete from framework_release where id = ${draft?.id}`)
+      const [row] = await tx.execute<{ n: number }>(
+        sql`select count(*)::int as n from domain where code = 'D99'`,
+      )
+      return row
+    })
     expect(left?.n).toBe(0)
   })
 })
