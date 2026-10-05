@@ -10,7 +10,7 @@ import {
 } from '@duatf/core-ui'
 import { useActionState, useRef } from 'react'
 import { IDLE, type FormState } from '@/lib/formState'
-import { Feedback } from './PeopleForms'
+import { Feedback } from './Feedback'
 import styles from './forms.module.css'
 
 type Action = (state: FormState, formData: FormData) => Promise<FormState>
@@ -22,9 +22,16 @@ type UploadFormProps = {
   /** Question to link the upload to, when uploading from a question page. */
   itemId?: string
   departments?: SelectOption[]
+  /** Open evidence requests of the question the file can answer. */
+  requests?: { id: string; title: string }[]
 }
 
-export const UploadEvidenceForm = ({ action, itemId, departments }: UploadFormProps) => {
+export const UploadEvidenceForm = ({
+  action,
+  itemId,
+  departments,
+  requests = [],
+}: UploadFormProps) => {
   const formRef = useRef<HTMLFormElement>(null)
   const [state, formAction] = useActionState(async (previous: FormState, formData: FormData) => {
     const next = await action(previous, formData)
@@ -87,6 +94,17 @@ export const UploadEvidenceForm = ({ action, itemId, departments }: UploadFormPr
         defaultValue={value('description')}
         error={error('description')}
       />
+      {requests.length ? (
+        <fieldset className={styles.checkList}>
+          <legend className={styles.fileLabel}>This file answers</legend>
+          {requests.map((request) => (
+            <label key={request.id} className={styles.checkItem}>
+              <input type="checkbox" name="requestIds" value={request.id} />
+              {request.title}
+            </label>
+          ))}
+        </fieldset>
+      ) : null}
       <FormActions>
         <SubmitButton pendingText="Uploading…">Upload</SubmitButton>
       </FormActions>

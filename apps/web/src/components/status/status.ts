@@ -35,6 +35,7 @@ import {
   CircleX,
   Eye,
   Hourglass,
+  Info,
   Landmark,
   Mail,
   Minus,
@@ -82,6 +83,7 @@ export const STATUS: { [K in keyof StatusKinds]: Record<StatusKinds[K], StatusEn
     no: entry(ANSWER_LABEL.no, 'danger', CircleX),
     not_applicable: entry(ANSWER_LABEL.not_applicable, 'neutral', Minus),
     not_assessed: entry(ANSWER_LABEL.not_assessed, 'neutral', CircleDashed),
+    recorded: entry(ANSWER_LABEL.recorded, 'neutral', Info),
   },
   compliance: {
     compliant: entry(COMPLIANCE_LABEL.compliant, 'success', CircleCheck),
@@ -89,6 +91,7 @@ export const STATUS: { [K in keyof StatusKinds]: Record<StatusKinds[K], StatusEn
     gap: entry(COMPLIANCE_LABEL.gap, 'danger', CircleX),
     excluded: entry(COMPLIANCE_LABEL.excluded, 'neutral', Minus),
     pending: entry(COMPLIANCE_LABEL.pending, 'neutral', CircleDashed),
+    informational: entry(COMPLIANCE_LABEL.informational, 'neutral', Info),
   },
   review: {
     not_reviewed: entry(REVIEW_LABEL.not_reviewed, 'neutral', CircleDashed),

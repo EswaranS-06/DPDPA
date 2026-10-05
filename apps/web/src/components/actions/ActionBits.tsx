@@ -1,7 +1,7 @@
 import { formatDay } from '@duatf/core-utils'
 import { Chip, DataTable } from '@duatf/core-ui'
 import {
-  listClientPeople,
+  assignablePeople,
   listDepartments,
   type ActionRow,
   type ServiceContext,
@@ -75,19 +75,14 @@ export const ActionTable = ({ rows, clientCode }: { rows: ActionRow[]; clientCod
   />
 )
 
-/** People who may own actions for a client, and its active departments, as form options. */
+/** People who can own an action, and the client's active departments, as form options. */
 export const actionPlanOptions = async (ctx: ServiceContext, clientId: string) => {
-  const [people, departments] = await Promise.all([
-    listClientPeople(ctx, clientId),
+  const [owners, departments] = await Promise.all([
+    assignablePeople(ctx, clientId),
     listDepartments(ctx, clientId),
   ])
   return {
-    owners: [...people.clientUsers, ...people.firmTeam]
-      .filter((person) => person.status !== 'disabled')
-      .map((person) => ({
-        value: person.userId,
-        label: `${person.displayName} (${person.kind === 'firm' ? 'ComplyX' : 'client'})`,
-      })),
+    owners,
     departments: departments
       .filter((row) => row.active)
       .map((row) => ({ value: row.id, label: row.name })),

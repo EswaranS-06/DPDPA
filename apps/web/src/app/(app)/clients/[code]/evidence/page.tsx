@@ -1,9 +1,17 @@
 import { can } from '@duatf/core-access'
-import { buttonClass, Disclosure, EmptyState, PageHeader, TextField } from '@duatf/core-ui'
+import {
+  buttonClass,
+  Disclosure,
+  EmptyState,
+  PageHeader,
+  SectionHeader,
+  TextField,
+} from '@duatf/core-ui'
 import {
   evidenceStatusCounts,
   listDepartments,
   listEvidence,
+  listEvidenceRequests,
   type EvidenceFilters,
 } from '@duatf/feature-compliance-api'
 import { EVIDENCE_STATUSES } from '@duatf/platform-db'
@@ -11,6 +19,7 @@ import { FileCheck, FilePlus } from 'lucide-react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { EvidenceTable } from '@/components/evidence/EvidenceTable'
+import { RequestTable } from '@/components/evidence/RequestTable'
 import { FilterTabs } from '@/components/FilterTabs'
 import { UploadEvidenceForm } from '@/components/forms/EvidenceForms'
 import { STATUS } from '@/components/status'
@@ -33,9 +42,10 @@ export default async function Page({ params, searchParams }: Props) {
     status: EVIDENCE_STATUSES.find((status) => status === firstValue(query.status)),
     text: firstValue(query.q)?.trim().slice(0, 100) || undefined,
   }
-  const [rows, counts] = await Promise.all([
+  const [rows, counts, requests] = await Promise.all([
     listEvidence(ctx, client.id, filters),
     evidenceStatusCounts(ctx, client.id),
+    listEvidenceRequests(ctx, client.id, { open: true }),
   ])
   const firmUploader = can(ctx.principal, 'evidence.upload', {
     clientId: client.id,
@@ -55,6 +65,12 @@ export default async function Page({ params, searchParams }: Props) {
         title="Evidence"
         lede="Every file is stored with its SHA-256 fingerprint. Downloads use a link that stops working after five minutes, and every download is recorded in the audit log."
       />
+      {requests.length ? (
+        <section className={styles.section} id="requests" aria-labelledby="requests-title">
+          <SectionHeader id="requests-title" title="Requested evidence" count={requests.length} />
+          <RequestTable rows={requests} clientCode={client.code} />
+        </section>
+      ) : null}
       <section className={styles.section} aria-label="Evidence files">
         <FilterTabs
           label="Evidence by status"

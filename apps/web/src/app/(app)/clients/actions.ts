@@ -1,16 +1,12 @@
 'use server'
 
 import {
-  assignStaff,
   createClient,
   createDepartment,
-  inviteClientUser,
-  inviteFirmStaff,
-  removeAssignment,
-  resetTemporaryPassword,
-  setUserEnabled,
-  updateClient,
   setDepartmentActive,
+  updateClient,
+  updateDepartment,
+  type QuestionChange,
 } from '@duatf/feature-compliance-api'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
@@ -46,20 +42,61 @@ export const updateClientAction = async (
   redirect(clientPath(code))
 }
 
+/** The department fields plus every ticked question (one "questions" field each). */
+const departmentInput = (formData: FormData) => ({
+  ...formValues(formData),
+  questions: formData.getAll('questions').filter((item) => typeof item === 'string'),
+})
+
+/** "kept" notes for questions that could not be taken away, carried to the department page. */
+const keptQuery = (change: QuestionChange | null) =>
+  change?.kept.length ? `?kept=${encodeURIComponent(change.kept.join(', '))}` : ''
+
 export const createDepartmentAction = async (
   clientId: string,
   code: string,
   _: FormState,
   formData: FormData,
 ): Promise<FormState> => {
-  const values = formValues(formData)
+  const input = departmentInput(formData)
+  const departmentCode = (formValues(formData).code ?? '').trim().toUpperCase()
   try {
-    await createDepartment(await serviceContext(), clientId, values)
+    await createDepartment(await serviceContext(), clientId, input)
   } catch (error) {
-    return failure(error, values)
+    return failure(error, formValues(formData))
   }
-  revalidatePath(clientPath(code, '/departments'))
-  return { status: 'success', message: `Department ${values.code?.toUpperCase() ?? ''} added.` }
+  revalidatePath(clientPath(code), 'layout')
+  redirect(clientPath(code, `/departments/${encodeURIComponent(departmentCode)}`))
+}
+
+export const updateDepartmentAction = async (
+  target: {
+    clientId: string
+    clientCode: string
+    departmentId: string
+    departmentCode: string
+    active: boolean
+  },
+  _: FormState,
+  formData: FormData,
+): Promise<FormState> => {
+  const input = departmentInput(formData)
+  let change: QuestionChange | null
+  try {
+    change = await updateDepartment(await serviceContext(), target.clientId, target.departmentId, {
+      ...input,
+      active: target.active,
+    })
+  } catch (error) {
+    return failure(error, formValues(formData))
+  }
+  revalidatePath(clientPath(target.clientCode), 'layout')
+  redirect(
+    clientPath(
+      target.clientCode,
+      `/departments/${encodeURIComponent(target.departmentCode)}${keptQuery(change)}`,
+    ),
+  )
 }
 
 export const setDepartmentActiveAction = async (
@@ -75,106 +112,4 @@ export const setDepartmentActiveAction = async (
     values.active === 'true',
   )
   revalidatePath(clientPath(code, '/departments'))
-}
-
-export const inviteClientUserAction = async (
-  clientId: string,
-  code: string,
-  _: FormState,
-  formData: FormData,
-): Promise<FormState> => {
-  const values = formValues(formData)
-  try {
-    const result = await inviteClientUser(await serviceContext(), clientId, values)
-    revalidatePath(clientPath(code, '/people'))
-    return result.temporaryPassword
-      ? {
-          status: 'success',
-          message: `${values.email ?? 'The person'} can now sign in. Give them this one-time password through a separate, private channel; they will choose their own password and set up an authenticator app at first sign-in.`,
-          secret: { label: 'One-time password', value: result.temporaryPassword },
-        }
-      : {
-          status: 'success',
-          message: 'This person already had an account; the role was added to it.',
-        }
-  } catch (error) {
-    return failure(error, values)
-  }
-}
-
-export const assignStaffAction = async (
-  clientId: string,
-  code: string,
-  _: FormState,
-  formData: FormData,
-): Promise<FormState> => {
-  const values = formValues(formData)
-  try {
-    await assignStaff(await serviceContext(), clientId, values)
-  } catch (error) {
-    return failure(error, values)
-  }
-  revalidatePath(clientPath(code, '/people'))
-  return { status: 'success', message: 'Added to the client team.' }
-}
-
-export const inviteStaffAction = async (_: FormState, formData: FormData): Promise<FormState> => {
-  const values = formValues(formData)
-  try {
-    const result = await inviteFirmStaff(await serviceContext(), values)
-    revalidatePath('/admin/staff')
-    return result.temporaryPassword
-      ? {
-          status: 'success',
-          message: `${values.email ?? 'The person'} can now sign in. Give them this one-time password privately; they will choose their own password and set up an authenticator app at first sign-in.`,
-          secret: { label: 'One-time password', value: result.temporaryPassword },
-        }
-      : { status: 'success', message: 'This person already had an account; the role was added.' }
-  } catch (error) {
-    return failure(error, values)
-  }
-}
-
-/** Remove role, reset password, disable and enable: small actions with their own feedback. */
-export const accountAction = async (
-  returnPath: string,
-  _: FormState,
-  formData: FormData,
-): Promise<FormState> => {
-  const values = formValues(formData)
-  try {
-    const ctx = await serviceContext()
-    let state: FormState
-    switch (values.intent) {
-      case 'remove':
-        await removeAssignment(ctx, values.assignmentId ?? '')
-        state = { status: 'success', message: 'Role removed.' }
-        break
-      case 'reset':
-        state = {
-          status: 'success',
-          message: 'Give this one-time password privately. Their open sessions were ended.',
-          secret: {
-            label: 'New one-time password',
-            value: await resetTemporaryPassword(ctx, values.userId ?? ''),
-          },
-        }
-        break
-      case 'disable':
-      case 'enable':
-        await setUserEnabled(ctx, values.userId ?? '', values.intent === 'enable')
-        state = {
-          status: 'success',
-          message:
-            values.intent === 'enable' ? 'Account enabled.' : 'Account disabled and signed out.',
-        }
-        break
-      default:
-        return { status: 'error', message: 'Unknown action.' }
-    }
-    revalidatePath(returnPath)
-    return state
-  } catch (error) {
-    return failure(error)
-  }
 }

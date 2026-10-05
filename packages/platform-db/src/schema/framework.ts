@@ -399,9 +399,49 @@ export type QuestionApplicability = {
 
 export type QuestionReviewStatus = 'draft' | 'sme_approved'
 
+/** Who answers a questionnaire: the organisation as a whole, a department, or a vendor. */
+export type QuestionnaireRespondent = 'organisation' | 'department' | 'vendor'
+
+/** One ComplyX question template (TPL-001 Data Fiduciary, TPL-002, TPL-003). */
+export const questionnaire = pgTable(
+  'questionnaire',
+  {
+    releaseId: releaseRef(),
+    code: text('code').notNull(),
+    seq: integer('seq').notNull(),
+    title: text('title').notNull(),
+    respondent: text('respondent').$type<QuestionnaireRespondent>().notNull(),
+    description: text('description').notNull(),
+    sourceFile: text('source_file'),
+  },
+  (table) => [primaryKey({ name: 'questionnaire_pk', columns: [table.releaseId, table.code] })],
+)
+
+/** How a question is answered. */
+export const ANSWER_TYPES = ['yes_no', 'maturity', 'choice', 'multi_choice', 'text'] as const
+export type AnswerType = (typeof ANSWER_TYPES)[number]
+
+/** What choosing an option means for compliance; informational answers are recorded, not scored. */
+export const ANSWER_OUTCOMES = ['compliant', 'potential_gap', 'gap', 'informational'] as const
+export type AnswerOutcome = (typeof ANSWER_OUTCOMES)[number]
+
+/** One option of a question. Free-text questions have none; Not applicable is always offered. */
+export type AnswerOption = { value: string; label: string; outcome: AnswerOutcome; hint?: string }
+
 /**
- * The assessment question bank: one question per control. References, applicability, risk
- * weight and evidence suggestions are derived from the knowledge base when the release is built.
+ * Self-reconciliation: when the answer to another question (the gate) is one of `values`, this
+ * question does not apply and is marked Not applicable; with any other answer it applies and
+ * cannot be marked Not applicable.
+ */
+export type QuestionGate = { question: string; values: string[]; reason: string }
+
+export const RISK_LEVELS = ['critical', 'high', 'medium', 'low'] as const
+export type RiskLevel = (typeof RISK_LEVELS)[number]
+
+/**
+ * The assessment question bank, built from the ComplyX templates. Each question maps to KB
+ * obligations and controls; references, penalty, applicability and evidence suggestions are
+ * derived from them when the release is built. control_code is the first mapped control.
  */
 export const question = pgTable(
   'question',
@@ -409,9 +449,25 @@ export const question = pgTable(
     releaseId: releaseRef(),
     code: text('code').notNull(),
     seq: integer('seq').notNull(),
+    questionnaireCode: text('questionnaire_code').notNull(),
+    section: text('section').notNull(),
+    title: text('title').notNull(),
     controlCode: text('control_code').notNull(),
+    controlCodes: textList('control_codes'),
     domainCode: text('domain_code').notNull(),
     text: text('text').notNull(),
+    answerType: text('answer_type').$type<AnswerType>().notNull(),
+    options: jsonb('options').$type<AnswerOption[]>().notNull(),
+    scored: boolean('scored').notNull(),
+    riskLevel: text('risk_level').$type<RiskLevel>().notNull(),
+    sourceRef: text('source_ref'),
+    sourceId: text('source_id'),
+    attachmentRequired: boolean('attachment_required').notNull().default(false),
+    mappingNote: text('mapping_note'),
+    gates: jsonb('gates')
+      .$type<QuestionGate[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
     guidance: text('guidance').notNull(),
     recommendation: text('recommendation').notNull(),
     obligationCodes: textList('obligation_codes'),
@@ -423,10 +479,7 @@ export const question = pgTable(
     evidenceSupporting: textList('evidence_supporting'),
     reviewStatus: text('review_status').$type<QuestionReviewStatus>().notNull().default('draft'),
   },
-  (table) => [
-    primaryKey({ name: 'question_pk', columns: [table.releaseId, table.code] }),
-    unique('question_release_control').on(table.releaseId, table.controlCode),
-  ],
+  (table) => [primaryKey({ name: 'question_pk', columns: [table.releaseId, table.code] })],
 )
 
 export type KbReviewStatus = 'awaiting_review' | 'reviewed'
@@ -498,6 +551,7 @@ export const FRAMEWORK_CHILD_TABLES = [
   'discovery_question',
   'playbook_doc',
   'notification_entry',
+  'questionnaire',
   'question',
   'kb_entry_review',
 ] as const

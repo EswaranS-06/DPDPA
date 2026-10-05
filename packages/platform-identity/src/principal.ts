@@ -5,7 +5,7 @@ import type { SessionUser } from './sessions'
 /** Builds the principal (who the user is and every role they hold) for authorization checks. */
 export const loadPrincipal = async (
   db: Executor,
-  user: Pick<SessionUser, 'userId' | 'email' | 'displayName'>,
+  user: Pick<SessionUser, 'userId' | 'username' | 'displayName'>,
 ): Promise<Principal> => {
   const rows = await db
     .select({
@@ -17,7 +17,7 @@ export const loadPrincipal = async (
     .where(eq(roleAssignment.userId, user.userId))
   return {
     userId: user.userId,
-    email: user.email,
+    email: user.username,
     displayName: user.displayName,
     assignments: rows.map((row) => ({ ...row, role: row.role as Role })),
   }

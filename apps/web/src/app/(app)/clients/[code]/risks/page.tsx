@@ -44,13 +44,13 @@ export default async function Page({ params, searchParams }: Props) {
     <>
       <PageHeader
         title="Risk register"
-        lede="One risk per finding, rated by likelihood and impact on scales of 1 to 5. Only the client DPO can accept a risk instead of fixing it."
+        lede="One risk per finding, rated by likelihood and impact on scales of 1 to 5. Record an acceptance only when the client has decided to accept the risk instead of fixing it."
       />
       <div className={dash.split}>
         <Panel title="How risks are rated" titleId="rating-title">
           <p className={styles.flush}>
             Score = likelihood × impact. Impact starts from the penalty exposure of the obligations
-            behind the question; the audit team adjusts both when it rates the risk.
+            behind the question; you adjust both when you rate the risk.
           </p>
           <ul className={styles.bullets}>
             {bands.map((band) => (

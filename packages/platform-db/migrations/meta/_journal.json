@@ -113,6 +113,34 @@
       "when": 1790856004895,
       "tag": "0015_kb_authoring",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1791201205342,
+      "tag": "0016_self_assessment",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1791201205908,
+      "tag": "0017_password_login",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1791202676099,
+      "tag": "0018_action_owner_name",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1791220307064,
+      "tag": "0019_people_and_assignments",
+      "breakpoints": true
     }
   ]
 }

@@ -23,6 +23,7 @@ const KEYS = [
   'type',
   'sector',
   'text',
+  'questionnaire',
 ] as const satisfies readonly (keyof KnowledgeBaseParams)[]
 
 export default async function Page({ searchParams }: { searchParams: SearchParams }) {

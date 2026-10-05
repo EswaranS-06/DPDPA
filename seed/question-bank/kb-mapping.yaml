@@ -1,0 +1,839 @@
+# How each ComplyX template question maps to the DUATF knowledge base.
+# Status: AI-drafted mapping (Claude), awaiting legal review by ComplyX.
+# Keys are the template codes in templates.yaml. Per question:
+#   title        short name used for findings and risks
+#   domain       KB domain (D01-D18) the question reports under
+#   obligations  KB obligations it evidences: references, penalty tier and phase come from these
+#   controls     KB controls it tests: guidance, evidence and the recommendation come from these
+#   scoring      yes/no questions only: reversed (Yes is the gap) or informational (not scored)
+#   outcomes     choice questions only: the outcome of each option (otherwise informational)
+#   note         where the template reference differs from the KB, or how it is scored
+#   gates        self-reconciliation: when the named question has one of these answers, this
+#                question is marked Not applicable; otherwise it cannot be Not applicable
+version: 1
+questionnaires:
+  TPL-001:
+    title: Data Fiduciary
+    respondent: organisation
+    description: "Organisation-level questions on the DPDP programme of the Data Fiduciary: governance, inventory, notice and consent, children, rights, retention, security, breach, transfers, processors and Significant Data Fiduciary duties."
+  TPL-002:
+    title: Internal data handlers
+    respondent: department
+    description: "The common module every department answers about the personal data it handles, such as categories, purposes, systems, access, sharing, retention and training."
+  TPL-003:
+    title: External data handlers
+    respondent: vendor
+    description: "The vendor questionnaire for each processor or other external recipient, covering the contract, certifications, safeguards, breach reporting, data location and sub-processors."
+questions:
+  "A1.1":
+    title: "DPO or contact person appointed and published"
+    domain: D01
+    obligations: [OBL-GOV-03, OBL-GOV-04]
+    controls: [CTL-GOV-03]
+    note: "The template cites s.10 and Rule 13, which apply to Significant Data Fiduciaries. For every Data Fiduciary the duty is s.8(9) with Rule 9."
+  "A1.2":
+    title: "DPO based in India and answerable to the Board"
+    domain: D15
+    obligations: [OBL-SDF-01]
+    controls: [CTL-SDF-01]
+    note: "Applies only to a Significant Data Fiduciary notified under s.10(1)."
+    gates:
+      - question: "A1.4"
+        values: ["No"]
+        reason: "The organisation is not a Significant Data Fiduciary (A1.4)."
+  "A1.3":
+    title: "Board-approved privacy policy and programme"
+    domain: D01
+    obligations: [OBL-GOV-01, OBL-GOV-02]
+    controls: [CTL-GOV-01, CTL-GOV-02]
+  "A1.4":
+    title: "Significant Data Fiduciary status determined"
+    domain: D02
+    obligations: [OBL-SCP-01, OBL-SCP-04]
+    controls: [CTL-SCP-01]
+    note: "SDF status arises only when the Central Government notifies it under s.10(1); this records the organisation's own readiness view."
+  "A1.5":
+    title: "Privacy roles and responsibilities documented"
+    domain: D02
+    obligations: [OBL-SCP-02, OBL-GOV-01]
+    controls: [CTL-SCP-02, CTL-GOV-01]
+  "A1.6":
+    title: "Budget and management sponsorship for DPDP compliance"
+    domain: D01
+    obligations: [OBL-GOV-02]
+    controls: [CTL-GOV-01, CTL-GOV-06]
+    note: "Good practice supporting s.8(4); no provision requires a budget."
+  "A1.7":
+    title: "Privacy risk register reviewed quarterly"
+    domain: D01
+    obligations: [OBL-GOV-01, OBL-GOV-02]
+    controls: [CTL-GOV-06, CTL-SEC-01]
+    note: "The quarterly cycle is the template's good practice; the Act sets no frequency (an SDF must run a DPIA every 12 months under Rule 13(1))."
+  "A2.1":
+    title: "Personal data inventory with sensitivity classification"
+    domain: D03
+    obligations: [OBL-MAP-01]
+    controls: [CTL-MAP-01, CTL-MAP-04]
+    note: "Rule 6 does not mention an inventory. The KB anchors the register in s.8(1), s.8(4) and s.6(10)."
+  "A2.2":
+    title: "End-to-end data flow maps"
+    domain: D03
+    obligations: [OBL-MAP-01, OBL-MAP-02]
+    controls: [CTL-MAP-02]
+  "A2.3":
+    title: "Lawful basis recorded for each processing activity"
+    domain: D04
+    obligations: [OBL-GOV-05, OBL-LB-01]
+    controls: [CTL-LB-01]
+    note: "The DPDP grounds are consent (s.6) and the legitimate uses in s.7; \"legal obligation\" falls within s.7(c) to (e)."
+  "A2.4":
+    title: "Systems holding personal data catalogued, including shadow IT"
+    domain: D03
+    obligations: [OBL-MAP-01, OBL-SEC-01]
+    controls: [CTL-MAP-03]
+  "A2.5":
+    title: "Children's or disability data processed"
+    domain: D07
+    obligations: [OBL-CHD-01, OBL-PWD-01]
+    controls: [CTL-SCP-01]
+  "A2.6":
+    title: "Sensitive categories processed"
+    domain: D03
+    obligations: [OBL-SEC-01, LNK-SPDI-01]
+    controls: [CTL-MAP-04]
+    note: "The DPDP Act has no special or sensitive category; sensitivity shapes the reasonable safeguards (s.8(5)). The SPDI Rules 2011 apply until 13 May 2027."
+  "A2.7":
+    title: "Inventory refreshed on a set cycle and on change"
+    domain: D03
+    obligations: [OBL-MAP-01]
+    controls: [CTL-MAP-01, CTL-SCP-04]
+  "A3.1":
+    title: "Standalone, itemised notice at or before collection"
+    domain: D05
+    obligations: [OBL-NOT-01, OBL-NOT-02, OBL-NOT-03]
+    controls: [CTL-NOT-01]
+  "A3.2":
+    title: "Notice in English and Eighth Schedule languages"
+    domain: D05
+    obligations: [OBL-NOT-05, OBL-CON-03]
+    controls: [CTL-NOT-03]
+    note: "s.5(3) requires the option to read the notice in English or any Eighth Schedule language."
+  "A3.3":
+    title: "Valid consent: free, specific, informed and unambiguous"
+    domain: D06
+    obligations: [OBL-CON-01, OBL-CON-02]
+    controls: [CTL-CON-01]
+  "A3.4":
+    title: "Withdrawal as easy as consent, and processing stops"
+    domain: D06
+    obligations: [OBL-CON-04, OBL-CON-05]
+    controls: [CTL-CON-03, CTL-CON-04]
+  "A3.5":
+    title: "Consent ledger with scope and notice version"
+    domain: D06
+    obligations: [OBL-CON-06]
+    controls: [CTL-CON-02, CTL-NOT-04]
+  "A3.6":
+    title: "Legitimate uses documented and bounded"
+    domain: D04
+    obligations: [OBL-LB-03, OBL-LB-04, OBL-LB-05, OBL-LB-06]
+    controls: [CTL-LB-01, CTL-LB-03]
+  "A3.7":
+    title: "Consent Manager registered and conflict-free"
+    domain: D06
+    obligations: [OBL-CON-07]
+    controls: [CTL-CON-05]
+    note: "Registration and conflict-of-interest duties sit with the Consent Manager (s.6(9), Rule 4, First Schedule); for the Data Fiduciary this is due diligence. Not applicable when no Consent Manager is used."
+  "A4.1":
+    title: "Verifiable parental consent before processing a child's data"
+    domain: D07
+    obligations: [OBL-CHD-01, OBL-CHD-02]
+    controls: [CTL-CHD-02]
+    gates:
+      - question: "A2.5"
+        values: ["Neither", "Disability data"]
+        reason: "No children's personal data is processed (A2.5)."
+  "A4.2":
+    title: "No tracking, behavioural monitoring or targeted ads for children"
+    domain: D07
+    obligations: [OBL-CHD-05]
+    controls: [CTL-CHD-03]
+    gates:
+      - question: "A2.5"
+        values: ["Neither", "Disability data"]
+        reason: "No children's personal data is processed (A2.5)."
+  "A4.3":
+    title: "Age assurance proportionate to risk"
+    domain: D07
+    obligations: [OBL-CHD-03]
+    controls: [CTL-CHD-01]
+    gates:
+      - question: "A2.5"
+        values: ["Neither", "Disability data"]
+        reason: "No children's personal data is processed (A2.5)."
+  "A4.4":
+    title: "Verifiable guardian consent for persons with disability"
+    domain: D07
+    obligations: [OBL-PWD-01, OBL-PWD-02]
+    controls: [CTL-PWD-01]
+    gates:
+      - question: "A2.5"
+        values: ["Neither", "Children's data"]
+        reason: "No personal data of persons with disability under a lawful guardian is processed (A2.5)."
+  "A5.1":
+    title: "Channel for Data Principals to exercise their rights"
+    domain: D12
+    obligations: [OBL-RGT-01]
+    controls: [CTL-RGT-01]
+  "A5.2":
+    title: "Rights requests tracked against a response deadline"
+    domain: D12
+    obligations: [OBL-RGT-02, OBL-RGT-03, OBL-RGT-04, OBL-RGT-05]
+    controls: [CTL-RGT-02]
+    note: "The Rules prescribe no 7-day period for rights requests. Rule 14(3) sets an outer limit of 90 days for grievance redressal and asks the Data Fiduciary to publish its response period; treat 7 days as an internal target."
+  "A5.3":
+    title: "Access: summary of data and who it was shared with"
+    domain: D12
+    obligations: [OBL-RGT-02]
+    controls: [CTL-RGT-04]
+  "A5.4":
+    title: "Right to nominate supported"
+    domain: D12
+    obligations: [OBL-RGT-06]
+    controls: [CTL-RGT-02]
+    note: "The template cites s.13; nomination is s.14 with Rule 14(4)."
+  "A5.5":
+    title: "Requester identity verified without excess data"
+    domain: D12
+    obligations: [OBL-RGT-07]
+    controls: [CTL-RGT-03]
+  "A6.1":
+    title: "Grievance redressal published with a response time"
+    domain: D12
+    obligations: [OBL-RGT-05, OBL-RGT-01]
+    controls: [CTL-RGT-01]
+    note: "The template cites Rule 13 (SDF). Grievance redressal is s.8(10), s.13 and Rule 14(3), within at most 90 days."
+  "A6.2":
+    title: "Grievances logged, escalated and analysed"
+    domain: D12
+    obligations: [OBL-RGT-05]
+    controls: [CTL-RGT-02, CTL-GOV-06]
+  "A6.3":
+    title: "Data Principal told how to complain to the Board"
+    domain: D12
+    obligations: [OBL-NOT-04, OBL-RGT-05]
+    controls: [CTL-NOT-01]
+    note: "s.13(3) requires grievance redressal to be exhausted before the Board is approached; the duty to explain how to complain is in the notice, s.5(1)(iii)."
+  "A7.1":
+    title: "Retention schedule per data category and purpose"
+    domain: D11
+    obligations: [OBL-RET-06, OBL-RET-01]
+    controls: [CTL-RET-01]
+  "A7.2":
+    title: "Erasure when the purpose ends or consent is withdrawn"
+    domain: D11
+    obligations: [OBL-RET-01]
+    controls: [CTL-RET-02]
+  "A7.3":
+    title: "Third Schedule retention periods applied"
+    domain: D11
+    obligations: [OBL-RET-03]
+    controls: [CTL-RET-03]
+  "A7.4":
+    title: "Notice 48 hours before erasure"
+    domain: D11
+    obligations: [OBL-RET-04]
+    controls: [CTL-RET-03]
+    note: "Rule 8(2): at least 48 hours before erasure for the Third Schedule classes."
+  "A7.5":
+    title: "Erasure reaches backups, logs and processors"
+    domain: D11
+    obligations: [OBL-RET-01, OBL-RET-02, OBL-RET-05]
+    controls: [CTL-RET-02, CTL-RET-04]
+    note: "Erasure from logs must respect the one-year floor in Rule 6(1)(e) and Rule 8(3)."
+  "A8.1":
+    title: "Encryption, masking or tokenisation of personal data"
+    domain: D09
+    obligations: [OBL-SEC-02]
+    controls: [CTL-SEC-02, CTL-SEC-03]
+  "A8.2":
+    title: "Access control: least privilege, RBAC and MFA"
+    domain: D09
+    obligations: [OBL-SEC-03]
+    controls: [CTL-SEC-04, CTL-SEC-05]
+  "A8.3":
+    title: "Logging and monitoring to detect unauthorised access"
+    domain: D09
+    obligations: [OBL-SEC-04]
+    controls: [CTL-SEC-06]
+  "A8.4":
+    title: "Security logs retained for at least one year"
+    domain: D09
+    obligations: [OBL-SEC-06, OBL-RET-05]
+    controls: [CTL-SEC-07]
+    note: "The template cites Rule 6(c); the one-year retention is Rule 6(1)(e), with Rule 8(3)."
+  "A8.5":
+    title: "Backups and continuity after a compromise"
+    domain: D09
+    obligations: [OBL-SEC-05]
+    controls: [CTL-SEC-08]
+  "A8.6":
+    title: "Security obligations in every processor contract"
+    domain: D09
+    obligations: [OBL-SEC-07]
+    controls: [CTL-TPM-03]
+  "A8.7":
+    title: "Data classification drives the safeguards"
+    domain: D09
+    obligations: [OBL-SEC-01]
+    controls: [CTL-MAP-04, CTL-SEC-01]
+  "A8.8":
+    title: "Safeguards tested on a set cadence (VAPT, configuration review)"
+    domain: D09
+    obligations: [OBL-SEC-08, OBL-SEC-01]
+    controls: [CTL-SEC-09, CTL-SEC-01]
+  "A9.1":
+    title: "Breach detection and response plan with roles"
+    domain: D10
+    obligations: [OBL-BRE-04]
+    controls: [CTL-BRE-01]
+  "A9.2":
+    title: "Affected Data Principals told without delay"
+    domain: D10
+    obligations: [OBL-BRE-01]
+    controls: [CTL-BRE-03]
+  "A9.3":
+    title: "Board told without delay; detailed report within 72 hours"
+    domain: D10
+    obligations: [OBL-BRE-02, OBL-BRE-03]
+    controls: [CTL-BRE-01, CTL-BRE-02]
+    note: "Rule 7(2): intimation to the Board without delay, and the detailed report within 72 hours of becoming aware (or longer if the Board allows)."
+  "A9.4":
+    title: "Processors bound to report breaches in time"
+    domain: D13
+    obligations: [OBL-PRC-04, OBL-SEC-07]
+    controls: [CTL-TPM-03]
+  "A9.5":
+    title: "Breach register with root cause and remediation"
+    domain: D10
+    obligations: [OBL-BRE-04, OBL-BRE-03]
+    controls: [CTL-BRE-02]
+  "A9.6":
+    title: "Breach plan tested at least once a year"
+    domain: D10
+    obligations: [OBL-BRE-04]
+    controls: [CTL-BRE-04]
+    note: "Annual testing is good practice; no provision sets a frequency."
+  "A10.1":
+    title: "Transfers of personal data outside India"
+    domain: D14
+    obligations: [OBL-XB-01]
+    controls: [CTL-XB-01]
+    note: "Transfers outside India: s.16 with Rule 15."
+  "A10.2":
+    title: "Transfers screened against restricted countries"
+    domain: D14
+    obligations: [OBL-XB-01, OBL-XB-02]
+    controls: [CTL-XB-01]
+    gates:
+      - question: "A10.1"
+        values: ["No transfers"]
+        reason: "No personal data is transferred outside India (A10.1)."
+  "A10.3":
+    title: "Sector localisation rules (such as RBI) applied on top"
+    domain: D14
+    obligations: [OBL-XB-03]
+    controls: [CTL-XB-02]
+  "A10.4":
+    title: "Overseas recipients bound to equivalent safeguards"
+    domain: D14
+    obligations: [OBL-SEC-07, OBL-PRC-01]
+    controls: [CTL-TPM-03, CTL-XB-01]
+    note: "The Act has no adequacy or equivalence test; the contract duty comes from s.8(2) and Rule 6(1)(f)."
+    gates:
+      - question: "A10.1"
+        values: ["No transfers"]
+        reason: "No personal data is transferred outside India (A10.1)."
+  "A11.1":
+    title: "Register of Data Processors and their processing"
+    domain: D13
+    obligations: [OBL-PRC-01, OBL-PRC-02]
+    controls: [CTL-TPM-01]
+  "A11.2":
+    title: "Valid DPDP contract with every processor"
+    domain: D13
+    obligations: [OBL-PRC-01, OBL-SEC-07]
+    controls: [CTL-TPM-03]
+  "A11.3":
+    title: "Processor due diligence before onboarding and periodically"
+    domain: D13
+    obligations: [OBL-PRC-02]
+    controls: [CTL-TPM-02, CTL-TPM-04]
+  "A11.4":
+    title: "Sub-processors authorised, with obligations flowed down"
+    domain: D13
+    obligations: [OBL-PRC-02, OBL-SEC-07]
+    controls: [CTL-TPM-03]
+    note: "The Act does not regulate sub-processing directly; this follows from s.8(1) accountability and Rule 6(1)(f)."
+  "A11.5":
+    title: "Return or deletion on termination, with attestation"
+    domain: D13
+    obligations: [OBL-RET-02, OBL-PRC-03]
+    controls: [CTL-RET-04]
+  "A11.6":
+    title: "Consent for cookies, trackers and pixels"
+    domain: D06
+    obligations: [OBL-CON-01, OBL-NOT-01]
+    controls: [CTL-CON-01]
+    note: "The DPDP Act has no cookie-specific rule; trackers that process personal data need a ground under s.4, usually consent."
+  "A12.1":
+    title: "SDF: India-based DPO appointed"
+    domain: D15
+    obligations: [OBL-SDF-01]
+    controls: [CTL-SDF-01]
+    note: "Applies only to a Significant Data Fiduciary notified under s.10(1)."
+    gates:
+      - question: "A1.4"
+        values: ["No"]
+        reason: "The organisation is not a Significant Data Fiduciary (A1.4)."
+  "A12.2":
+    title: "SDF: DPIA every 12 months"
+    domain: D15
+    obligations: [OBL-SDF-03]
+    controls: [CTL-SDF-02]
+    note: "Applies only to a Significant Data Fiduciary notified under s.10(1)."
+    gates:
+      - question: "A1.4"
+        values: ["No"]
+        reason: "The organisation is not a Significant Data Fiduciary (A1.4)."
+  "A12.3":
+    title: "SDF: independent data audit every 12 months"
+    domain: D15
+    obligations: [OBL-SDF-02, OBL-SDF-04, OBL-SDF-05]
+    controls: [CTL-SDF-01, CTL-SDF-02]
+    note: "Applies only to a Significant Data Fiduciary notified under s.10(1)."
+    gates:
+      - question: "A1.4"
+        values: ["No"]
+        reason: "The organisation is not a Significant Data Fiduciary (A1.4)."
+  "A12.4":
+    title: "SDF: algorithmic due diligence"
+    domain: D15
+    obligations: [OBL-SDF-06]
+    controls: [CTL-SDF-03]
+    note: "Applies only to a Significant Data Fiduciary notified under s.10(1)."
+    gates:
+      - question: "A1.4"
+        values: ["No"]
+        reason: "The organisation is not a Significant Data Fiduciary (A1.4)."
+  "A12.5":
+    title: "SDF: localisation of specified data"
+    domain: D15
+    obligations: [OBL-SDF-07]
+    controls: [CTL-XB-02]
+    note: "Applies only to a Significant Data Fiduciary notified under s.10(1)."
+    gates:
+      - question: "A1.4"
+        values: ["No"]
+        reason: "The organisation is not a Significant Data Fiduciary (A1.4)."
+  "A13.1":
+    title: "Privacy training for all staff and high-risk roles"
+    domain: D01
+    obligations: [OBL-GOV-02, OBL-SEC-08]
+    controls: [CTL-GOV-04]
+  "A13.2":
+    title: "Privacy review gate in product and process change"
+    domain: D01
+    obligations: [OBL-GOV-02, OBL-LB-02]
+    controls: [CTL-GOV-05]
+    note: "The Act has no express privacy-by-design duty; this supports s.8(4) and data minimisation under s.6(1)."
+  "A13.3":
+    title: "Confidentiality obligations for staff handling personal data"
+    domain: D09
+    obligations: [OBL-SEC-08, OBL-SEC-01]
+    controls: [CTL-GOV-04, CTL-SEC-04]
+  "B0.1":
+    title: "Personal data categories handled"
+    domain: D03
+    obligations: [OBL-MAP-01]
+    controls: [CTL-MAP-04]
+  "B0.2":
+    title: "Purpose and lawful basis per category"
+    domain: D04
+    obligations: [OBL-LB-01, OBL-GOV-05]
+    controls: [CTL-LB-01]
+    note: "Under the DPDP Act the grounds are consent (s.6) and the legitimate uses in s.7; \"legal obligation\" corresponds to s.7(c) to (e)."
+  "B0.3":
+    title: "Systems and spreadsheets holding personal data"
+    domain: D03
+    obligations: [OBL-MAP-01]
+    controls: [CTL-MAP-03]
+  "B0.4":
+    title: "Who the data is collected from"
+    domain: D03
+    obligations: [OBL-MAP-01, OBL-CHD-03]
+    controls: [CTL-MAP-01]
+  "B0.6":
+    title: "Department access on a least-privilege basis"
+    domain: D09
+    obligations: [OBL-SEC-03]
+    controls: [CTL-SEC-04]
+  "B0.7":
+    title: "Local copies of personal data (laptops, USB, email, personal drives)"
+    domain: D09
+    obligations: [OBL-SEC-01, OBL-SEC-04]
+    controls: [CTL-SEC-10, CTL-SEC-14]
+    scoring: reversed
+    note: "Scored in reverse: Yes (local copies are kept) is a gap and No is compliant."
+  "B0.8":
+    title: "Data shared with other departments"
+    domain: D03
+    obligations: [OBL-MAP-01]
+    controls: [CTL-MAP-02]
+    scoring: informational
+    note: "Recorded for the internal data-flow map; not scored."
+  "B0.9":
+    title: "External parties the data is shared with"
+    domain: D13
+    obligations: [OBL-PRC-01]
+    controls: [CTL-TPM-01]
+  "B0.10":
+    title: "Department retention and deletion practice"
+    domain: D11
+    obligations: [OBL-RET-01, OBL-RET-06]
+    controls: [CTL-RET-01, CTL-RET-02]
+  "B0.12":
+    title: "Department staff trained on DPDP"
+    domain: D01
+    obligations: [OBL-GOV-02]
+    controls: [CTL-GOV-04]
+  "B0.13":
+    title: "Documented procedures for handling personal data"
+    domain: D01
+    obligations: [OBL-GOV-02]
+    controls: [CTL-GOV-02]
+  "B0.14":
+    title: "Personal data incidents in the last 12 months"
+    domain: D10
+    obligations: [OBL-BRE-04]
+    controls: [CTL-BRE-02]
+    scoring: informational
+    note: "Recorded, not scored. A Yes calls for a check of the breach register (A9.5)."
+  "B0.15":
+    title: "AI or automated decisions on personal data"
+    domain: D08
+    obligations: [OBL-DQ-01, OBL-SDF-06]
+    controls: [CTL-DQ-01, CTL-SDF-03]
+    scoring: informational
+    note: "Recorded, not scored. Flags accuracy under s.8(3) and, for an SDF, algorithmic due diligence under Rule 13(3)."
+  "B3.2":
+    title: "Consent for cookies, trackers and pixels (department)"
+    domain: D06
+    obligations: [OBL-CON-01, OBL-NOT-01]
+    controls: [CTL-CON-01]
+    note: "The DPDP Act has no cookie-specific rule; trackers that process personal data need a ground under s.4, usually consent."
+  "C0.1":
+    title: "Vendor identity and processing locations"
+    domain: D13
+    obligations: [OBL-PRC-02]
+    controls: [CTL-TPM-01]
+  "C0.2":
+    title: "Processing the vendor performs for you"
+    domain: D13
+    obligations: [OBL-PRC-01]
+    controls: [CTL-TPM-01]
+  "C0.3":
+    title: "Personal data the vendor handles"
+    domain: D13
+    obligations: [OBL-PRC-02]
+    controls: [CTL-TPM-01]
+  "C0.4":
+    title: "Vendor criticality tier"
+    domain: D13
+    obligations: [OBL-PRC-02]
+    controls: [CTL-TPM-01]
+  "C0.5":
+    title: "Vendor's role under DPDP"
+    domain: D02
+    obligations: [OBL-SCP-02]
+    controls: [CTL-SCP-02]
+    note: "The Act knows Data Fiduciaries and Data Processors; a joint fiduciary is one that decides \"in conjunction with other persons\" (s.2(i))."
+  "C0.6":
+    title: "Vendor's sub-processors"
+    domain: D13
+    obligations: [OBL-PRC-02]
+    controls: [CTL-TPM-01]
+  "C1.1":
+    title: "Data processing agreement in place"
+    domain: D13
+    obligations: [OBL-PRC-01, OBL-SEC-07]
+    controls: [CTL-TPM-03]
+  "C1.2":
+    title: "Contract requires Rule 6 security safeguards"
+    domain: D13
+    obligations: [OBL-SEC-07]
+    controls: [CTL-TPM-03]
+  "C1.3":
+    title: "Processing only for the purpose and on instructions"
+    domain: D13
+    obligations: [OBL-PRC-01]
+    controls: [CTL-TPM-03]
+  "C1.4":
+    title: "Sub-processing needs your prior approval"
+    domain: D13
+    obligations: [OBL-PRC-02, OBL-SEC-07]
+    controls: [CTL-TPM-03]
+    note: "The Act does not regulate sub-processing directly; this follows from s.8(1) accountability and Rule 6(1)(f)."
+  "C1.5":
+    title: "Breach notification SLA in the contract"
+    domain: D13
+    obligations: [OBL-PRC-04]
+    controls: [CTL-TPM-03]
+    outcomes:
+      "≤24 hours": compliant
+      "≤48 hours": potential_gap
+      "≤72 hours": gap
+      "No SLA defined": gap
+    note: "Scored by ComplyX: the SLA must leave time for the detailed report to the Board within 72 hours (Rule 7(2)(b)). Up to 24 hours is compliant, up to 48 hours a potential gap, longer or none a gap."
+  "C1.6":
+    title: "Return and verified deletion on termination"
+    domain: D13
+    obligations: [OBL-RET-02, OBL-PRC-03]
+    controls: [CTL-RET-04, CTL-TPM-03]
+  "C1.7":
+    title: "Right to audit the vendor"
+    domain: D13
+    obligations: [OBL-PRC-02]
+    controls: [CTL-TPM-03, CTL-TPM-04]
+  "C1.8":
+    title: "Liability and indemnity for DPDP penalties"
+    domain: D13
+    obligations: [OBL-GOV-01]
+    controls: [CTL-TPM-03]
+    note: "Penalties under s.33 fall on the Data Fiduciary, which stays accountable for its processors (s.8(1)); an indemnity shifts the cost, not the liability."
+  "C1.9":
+    title: "Cross-border terms follow the restricted-country list"
+    domain: D14
+    obligations: [OBL-XB-01]
+    controls: [CTL-XB-01, CTL-TPM-03]
+  "C2.1":
+    title: "Vendor ISO/IEC 27001 certification"
+    domain: D09
+    obligations: [OBL-PRC-02, OBL-SEC-01]
+    controls: [CTL-TPM-02]
+    note: "Certification is evidence of safeguards; DPDP does not require it."
+  "C2.2":
+    title: "Vendor SOC 2 Type II report under 12 months old"
+    domain: D09
+    obligations: [OBL-PRC-02, OBL-SEC-01]
+    controls: [CTL-TPM-02]
+    note: "Certification is evidence of safeguards; DPDP does not require it."
+  "C2.3":
+    title: "Vendor privacy certification (ISO/IEC 27701)"
+    domain: D09
+    obligations: [OBL-PRC-02, OBL-SEC-01]
+    controls: [CTL-TPM-02]
+    note: "Certification is evidence of safeguards; DPDP does not require it."
+  "C2.4":
+    title: "Vendor information-security policy reviewed annually"
+    domain: D09
+    obligations: [OBL-SEC-01, OBL-PRC-02]
+    controls: [CTL-SEC-01, CTL-TPM-02]
+  "C2.5":
+    title: "Vendor security leadership named"
+    domain: D09
+    obligations: [OBL-SEC-08]
+    controls: [CTL-SEC-01]
+  "C3.1":
+    title: "Vendor least-privilege access"
+    domain: D09
+    obligations: [OBL-SEC-03]
+    controls: [CTL-SEC-04]
+  "C3.2":
+    title: "Vendor MFA on systems holding your data"
+    domain: D09
+    obligations: [OBL-SEC-03]
+    controls: [CTL-SEC-04]
+  "C3.3":
+    title: "Vendor privileged access management"
+    domain: D09
+    obligations: [OBL-SEC-03, OBL-SEC-04]
+    controls: [CTL-SEC-05]
+  "C3.4":
+    title: "Vendor joiner-mover-leaver process"
+    domain: D09
+    obligations: [OBL-SEC-03]
+    controls: [CTL-SEC-04]
+  "C3.5":
+    title: "Your data segregated from other customers"
+    domain: D09
+    obligations: [OBL-SEC-01, OBL-SEC-03]
+    controls: [CTL-SEC-04]
+  "C4.1":
+    title: "Vendor encryption at rest"
+    domain: D09
+    obligations: [OBL-SEC-02]
+    controls: [CTL-SEC-02]
+  "C4.2":
+    title: "Vendor encryption in transit"
+    domain: D09
+    obligations: [OBL-SEC-02]
+    controls: [CTL-SEC-02]
+  "C4.3":
+    title: "Vendor key management"
+    domain: D09
+    obligations: [OBL-SEC-02]
+    controls: [CTL-SEC-02]
+  "C4.4":
+    title: "Vendor masking and pseudonymisation"
+    domain: D09
+    obligations: [OBL-SEC-02]
+    controls: [CTL-SEC-03]
+  "C5.1":
+    title: "Vendor network protection"
+    domain: D09
+    obligations: [OBL-SEC-01]
+    controls: [CTL-SEC-01]
+  "C5.2":
+    title: "Vendor secure development lifecycle"
+    domain: D09
+    obligations: [OBL-SEC-01]
+    controls: [CTL-SEC-12]
+  "C5.3":
+    title: "Vendor endpoint security"
+    domain: D09
+    obligations: [OBL-SEC-01]
+    controls: [CTL-SEC-14]
+  "C5.4":
+    title: "Vendor configuration and change management"
+    domain: D09
+    obligations: [OBL-SEC-01]
+    controls: [CTL-SEC-01]
+  "C6.1":
+    title: "Vendor vulnerability scanning"
+    domain: D09
+    obligations: [OBL-SEC-01]
+    controls: [CTL-SEC-09]
+  "C6.2":
+    title: "Vendor annual penetration test"
+    domain: D09
+    obligations: [OBL-SEC-01, OBL-SEC-08]
+    controls: [CTL-SEC-09]
+  "C6.3":
+    title: "Vendor patching to SLA"
+    domain: D09
+    obligations: [OBL-SEC-01]
+    controls: [CTL-SEC-09]
+  "C7.1":
+    title: "Vendor logging and monitoring"
+    domain: D09
+    obligations: [OBL-SEC-04]
+    controls: [CTL-SEC-06]
+  "C7.2":
+    title: "Vendor keeps logs for at least one year"
+    domain: D09
+    obligations: [OBL-SEC-06]
+    controls: [CTL-SEC-07]
+    note: "The template cites Rule 6(c); the one-year retention is Rule 6(1)(e)."
+  "C7.3":
+    title: "Vendor round-the-clock monitoring"
+    domain: D09
+    obligations: [OBL-SEC-04, OBL-BRE-04]
+    controls: [CTL-SEC-06]
+  "C7.4":
+    title: "Vendor log integrity and clock synchronisation"
+    domain: D09
+    obligations: [OBL-SEC-04, LNK-CERT-03]
+    controls: [CTL-SEC-13, CTL-SEC-06]
+    note: "Clock synchronisation is also a CERT-In Direction of 28 April 2022."
+  "C8.1":
+    title: "Vendor incident response plan"
+    domain: D10
+    obligations: [OBL-BRE-04, OBL-PRC-04]
+    controls: [CTL-BRE-01]
+  "C8.2":
+    title: "Vendor committed to report breaches within the SLA"
+    domain: D10
+    obligations: [OBL-PRC-04]
+    controls: [CTL-TPM-03]
+  "C8.3":
+    title: "Vendor breach report carries what you must report"
+    domain: D10
+    obligations: [OBL-PRC-04, OBL-BRE-01, OBL-BRE-03]
+    controls: [CTL-TPM-03]
+  "C8.4":
+    title: "Vendor incident drills and breach history"
+    domain: D10
+    obligations: [OBL-BRE-04]
+    controls: [CTL-BRE-04]
+  "C8.5":
+    title: "Vendor breach contact available at all hours"
+    domain: D10
+    obligations: [OBL-PRC-04]
+    controls: [CTL-TPM-03]
+  "C9.1":
+    title: "Where the vendor stores and processes your data"
+    domain: D14
+    obligations: [OBL-XB-01]
+    controls: [CTL-XB-01]
+  "C9.2":
+    title: "Vendor honours your retention and deletion"
+    domain: D11
+    obligations: [OBL-RET-02, OBL-PRC-03]
+    controls: [CTL-RET-04]
+  "C9.3":
+    title: "Vendor media sanitisation and certified destruction"
+    domain: D11
+    obligations: [OBL-SEC-01, OBL-RET-02]
+    controls: [CTL-RET-04, CTL-SEC-11]
+  "C9.4":
+    title: "Vendor supports rights requests in time"
+    domain: D12
+    obligations: [OBL-RGT-02, OBL-RGT-03, OBL-RGT-04, OBL-PRC-03]
+    controls: [CTL-RGT-02, CTL-TPM-03]
+    note: "The Rules prescribe no 7-day period for rights requests. Rule 14(3) sets an outer limit of 90 days for grievance redressal and asks the Data Fiduciary to publish its response period; treat 7 days as an internal target."
+  "C10.1":
+    title: "Vendor business continuity and disaster recovery"
+    domain: D09
+    obligations: [OBL-SEC-05]
+    controls: [CTL-SEC-08]
+  "C10.2":
+    title: "Vendor tested backups"
+    domain: D09
+    obligations: [OBL-SEC-05]
+    controls: [CTL-SEC-08]
+  "C11.1":
+    title: "Vendor staff background checks"
+    domain: D09
+    obligations: [OBL-SEC-08]
+    controls: [CTL-SEC-01]
+  "C11.2":
+    title: "Vendor staff confidentiality and training"
+    domain: D09
+    obligations: [OBL-SEC-08]
+    controls: [CTL-GOV-04]
+  "C11.3":
+    title: "Vendor physical and environmental security"
+    domain: D09
+    obligations: [OBL-SEC-01]
+    controls: [CTL-SEC-11]
+  "C12.1":
+    title: "Vendor's sub-processor list"
+    domain: D13
+    obligations: [OBL-PRC-02]
+    controls: [CTL-TPM-01]
+  "C12.2":
+    title: "Obligations flowed down to sub-processors"
+    domain: D13
+    obligations: [OBL-SEC-07, OBL-PRC-02]
+    controls: [CTL-TPM-03]
+  "C12.3":
+    title: "Notice and right to object to new sub-processors"
+    domain: D13
+    obligations: [OBL-PRC-02]
+    controls: [CTL-TPM-03, CTL-TPM-04]
+  "C12.4":
+    title: "Vendor oversees its sub-processors"
+    domain: D13
+    obligations: [OBL-PRC-02]
+    controls: [CTL-TPM-04]

@@ -13,6 +13,7 @@ import {
   eq,
   evidence,
   evidenceLink,
+  evidenceRequest,
   EVIDENCE_STATUSES,
   ilike,
   inArray,
@@ -24,6 +25,7 @@ import {
   type Transaction,
 } from '@duatf/platform-db'
 import { z } from 'zod'
+import { fulfilRequests, followEvidenceReview } from './assignments'
 import { audit, inClient, type EvidenceStorage, type ServiceContext } from './context'
 import {
   NotFoundError,
@@ -31,7 +33,6 @@ import {
   optionalText,
   parseInput,
   requiredText,
-  RuleError,
   ValidationError,
 } from './errors'
 
@@ -117,6 +118,8 @@ const uploadSchema = z.object({
   validUntil: optionalDate(),
   departmentId: z.preprocess(blankToUndefined, z.uuid().optional()),
   itemIds: idList,
+  /** Evidence requests the file answers. */
+  requestIds: idList,
 })
 
 const requireStorage = (ctx: ServiceContext): EvidenceStorage => {
@@ -127,7 +130,11 @@ const requireStorage = (ctx: ServiceContext): EvidenceStorage => {
 const itemDepartments = async (tx: Transaction, clientId: string, itemIds: string[]) => {
   if (itemIds.length === 0) return []
   const rows = await tx
-    .select({ id: assessmentItem.id, departmentId: assessmentItem.departmentId })
+    .select({
+      id: assessmentItem.id,
+      departmentId: assessmentItem.departmentId,
+      assigneeUserId: assessmentItem.assigneeUserId,
+    })
     .from(assessmentItem)
     .where(and(eq(assessmentItem.tenantId, clientId), inArray(assessmentItem.id, itemIds)))
   if (rows.length !== new Set(itemIds).size) {
@@ -136,18 +143,47 @@ const itemDepartments = async (tx: Transaction, clientId: string, itemIds: strin
   return rows
 }
 
-/** Department owners may only attach evidence to their own department's questions. */
+/** Open requests addressed to this person for these questions. */
+const requestsFor = async (tx: Transaction, clientId: string, itemIds: string[], userId: string) =>
+  itemIds.length === 0
+    ? []
+    : tx
+        .select({ itemId: evidenceRequest.itemId })
+        .from(evidenceRequest)
+        .where(
+          and(
+            eq(evidenceRequest.tenantId, clientId),
+            inArray(evidenceRequest.itemId, itemIds),
+            eq(evidenceRequest.assigneeUserId, userId),
+            inArray(evidenceRequest.status, ['requested', 'received']),
+          ),
+        )
+
+/**
+ * Who may attach evidence to a question: the audit team, people of its department, the person
+ * the question is given to, and a person asked for evidence for it.
+ */
 const authorizeUpload = (
   ctx: ServiceContext,
   clientId: string,
-  departmentIds: (string | null)[],
+  items: { id: string; departmentId: string | null; assigneeUserId: string | null }[],
+  requestedOf: { itemId: string }[],
+  departmentId: string | null,
 ) => {
-  for (const departmentId of departmentIds.length ? departmentIds : [null]) {
+  if (items.length === 0) {
     authorize(ctx.principal, 'evidence.upload', { clientId, departmentId })
+    return
+  }
+  for (const item of items) {
+    const own =
+      item.assigneeUserId === ctx.principal.userId ||
+      requestedOf.some((row) => row.itemId === item.id)
+    if (own && can(ctx.principal, 'client.view', { clientId })) continue
+    authorize(ctx.principal, 'evidence.upload', { clientId, departmentId: item.departmentId })
   }
 }
 
-/** Stores a file with its SHA-256 and links it to the chosen questions. */
+/** Stores a file with its SHA-256, accepts it and links it to the chosen questions. */
 export const uploadEvidence = async (
   ctx: ServiceContext,
   clientId: string,
@@ -159,12 +195,28 @@ export const uploadEvidence = async (
   const checked = checkEvidenceFile(file.name, file.bytes)
   const storage = requireStorage(ctx)
   const itemIds = [...new Set(input.itemIds ?? [])]
-  const items = await inClient(ctx, clientId, (tx) => itemDepartments(tx, clientId, itemIds))
-  authorizeUpload(
-    ctx,
-    clientId,
-    items.length ? items.map((item) => item.departmentId) : [input.departmentId ?? null],
-  )
+  const { items, requestedOf, requests } = await inClient(ctx, clientId, async (tx) => {
+    const found = await itemDepartments(tx, clientId, itemIds)
+    const asked = await requestsFor(tx, clientId, itemIds, ctx.principal.userId)
+    const chosen = input.requestIds?.length
+      ? await tx
+          .select({ id: evidenceRequest.id, itemId: evidenceRequest.itemId })
+          .from(evidenceRequest)
+          .where(
+            and(
+              eq(evidenceRequest.tenantId, clientId),
+              inArray(evidenceRequest.id, input.requestIds),
+            ),
+          )
+      : []
+    if (chosen.some((row) => !itemIds.includes(row.itemId))) {
+      throw new ValidationError({ requestIds: 'Choose requests of this question.' })
+    }
+    return { items: found, requestedOf: asked, requests: chosen }
+  })
+  authorizeUpload(ctx, clientId, items, requestedOf, input.departmentId ?? null)
+  // The audit team's files count at once; files from people at the client wait for its review.
+  const byAuditTeam = can(ctx.principal, 'evidence.review', { clientId })
   const sameDepartment = new Set(items.map((item) => item.departmentId))
   const departmentId =
     input.departmentId ?? (sameDepartment.size === 1 ? ([...sameDepartment][0] ?? null) : null)
@@ -194,6 +246,15 @@ export const uploadEvidence = async (
           departmentId,
           validUntil: input.validUntil ?? null,
           uploadedBy: ctx.principal.userId,
+          // In the self-audit edition the audit team collects and judges the evidence, so its
+          // files are accepted as they are uploaded (they can still be rejected later).
+          ...(byAuditTeam
+            ? {
+                status: 'accepted' as const,
+                reviewedBy: ctx.principal.userId,
+                reviewedAt: new Date(),
+              }
+            : {}),
         })
         .returning({ id: evidence.id })
       const id = created?.id ?? ''
@@ -207,6 +268,12 @@ export const uploadEvidence = async (
           })),
         )
       }
+      await fulfilRequests(tx, {
+        clientId,
+        requestIds: requests.map((row) => row.id),
+        evidenceId: id,
+        accepted: byAuditTeam,
+      })
       await audit(tx, ctx, {
         tenantId: clientId,
         action: 'evidence.upload',
@@ -240,11 +307,8 @@ export const linkEvidence = async (
       .where(and(eq(evidence.id, evidenceId), eq(evidence.tenantId, clientId)))
     if (!found) throw new NotFoundError('Evidence')
     const items = await itemDepartments(tx, clientId, itemIds)
-    authorizeUpload(
-      ctx,
-      clientId,
-      items.map((item) => item.departmentId),
-    )
+    const asked = await requestsFor(tx, clientId, itemIds, ctx.principal.userId)
+    authorizeUpload(ctx, clientId, items, asked, null)
     const linked = await tx
       .insert(evidenceLink)
       .values(
@@ -277,11 +341,8 @@ export const unlinkEvidence = async (
   authorize(ctx.principal, 'evidence.view', { clientId })
   await inClient(ctx, clientId, async (tx) => {
     const items = await itemDepartments(tx, clientId, [itemId])
-    authorizeUpload(
-      ctx,
-      clientId,
-      items.map((item) => item.departmentId),
-    )
+    const asked = await requestsFor(tx, clientId, [itemId], ctx.principal.userId)
+    authorizeUpload(ctx, clientId, items, asked, null)
     const removed = await tx
       .delete(evidenceLink)
       .where(
@@ -392,12 +453,15 @@ export const getEvidence = async (ctx: ServiceContext, clientId: string, code: s
       .select({
         itemId: assessmentItem.id,
         questionCode: assessmentItem.questionCode,
+        departmentCode: department.code,
+        departmentName: department.name,
         assessmentCode: assessment.code,
         assessmentTitle: assessment.title,
       })
       .from(evidenceLink)
       .innerJoin(assessmentItem, eq(assessmentItem.id, evidenceLink.itemId))
       .innerJoin(assessment, eq(assessment.id, assessmentItem.assessmentId))
+      .leftJoin(department, eq(department.id, assessmentItem.departmentId))
       .where(eq(evidenceLink.evidenceId, row.id))
       .orderBy(asc(assessment.code), asc(assessmentItem.seq))
     const [expiredRow] = withExpiry([row], isoDate(new Date()))
@@ -416,7 +480,7 @@ const reviewSchema = z
     message: 'Say why the evidence is rejected.',
   })
 
-/** Accepts or rejects evidence. The person who uploaded it cannot review it. */
+/** Accepts or rejects evidence (for example rejecting a file that has expired). */
 export const reviewEvidence = async (
   ctx: ServiceContext,
   clientId: string,
@@ -427,13 +491,10 @@ export const reviewEvidence = async (
   const input = parseInput(reviewSchema, raw)
   await inClient(ctx, clientId, async (tx) => {
     const [found] = await tx
-      .select({ code: evidence.code, uploadedBy: evidence.uploadedBy })
+      .select({ code: evidence.code })
       .from(evidence)
       .where(and(eq(evidence.id, evidenceId), eq(evidence.tenantId, clientId)))
     if (!found) throw new NotFoundError('Evidence')
-    if (found.uploadedBy === ctx.principal.userId) {
-      throw new RuleError('Someone other than the person who uploaded it must review it.')
-    }
     await tx
       .update(evidence)
       .set({
@@ -443,6 +504,7 @@ export const reviewEvidence = async (
         reviewedAt: new Date(),
       })
       .where(eq(evidence.id, evidenceId))
+    await followEvidenceReview(tx, evidenceId, input.decision)
     await audit(tx, ctx, {
       tenantId: clientId,
       action: `evidence.${input.decision}`,

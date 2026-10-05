@@ -33,13 +33,12 @@ import {
 import { listFindings, type FindingRow } from './findings'
 import {
   ACTION_STATUS_LABEL,
-  ANSWER_LABEL,
   ASSESSMENT_STATUS_LABEL,
   CLIENT_STATUS_LABEL,
   COMPLIANCE_LABEL,
-  REVIEW_LABEL,
 } from './labels'
 import { clientHeader } from './reports'
+import { describeResponse } from './responses'
 import { heatmap, listRisks, type Band, type RiskRow } from './risks'
 
 /** Columns of the risk-register sheet, in order. */
@@ -165,7 +164,7 @@ const figureTiles = (figures: ClientFigures, bands: readonly Band[]): Tile[] => 
     {
       label: 'Reviewed',
       value: progress ? percentText(progress.reviewedPct) : '—',
-      note: progress ? `${progress.accepted} answers accepted, ${progress.returned} sent back` : '',
+      note: progress ? `${progress.accepted} of ${progress.answered} answers checked` : '',
     },
   ]
 }
@@ -249,15 +248,17 @@ const actionRows = (actions: ActionRow[]) =>
 
 const ANSWER_COLUMNS = [
   'Question',
+  'Template',
+  'Section',
   'Domain',
   'Question text',
   'Department',
   'Answer',
   'Outcome',
-  'Review',
+  'Checked',
   'Recommendation',
 ]
-const ANSWER_WIDTHS = [12, 8, 60, 18, 14, 14, 12, 50]
+const ANSWER_WIDTHS = [10, 10, 22, 8, 60, 18, 24, 14, 10, 50]
 
 /** Answers of an assessment, with the recommendation for every gap. */
 const answerRows = async (
@@ -275,12 +276,14 @@ const answerRows = async (
   )
   return items.map((row) => [
     row.questionCode,
+    row.questionnaireCode,
+    row.section,
     row.domainCode,
     row.text,
     row.departmentName,
-    ANSWER_LABEL[row.answer],
+    describeResponse(row, row),
     COMPLIANCE_LABEL[row.complianceState],
-    REVIEW_LABEL[row.reviewState],
+    row.reviewState === 'accepted' ? 'Yes' : 'No',
     row.complianceState === 'gap' || row.complianceState === 'potential_gap'
       ? (recommendations.find((item) => item.code === row.questionCode)?.recommendation ?? null)
       : null,
@@ -736,10 +739,7 @@ export const buildDepartmentWorkbook = async (
   const dash = dashboardSheet(workbook, 'Department dashboard')
   dash.useBands(bands)
   dash.title(`${department.name}: ${client.name}`, [
-    `Department ID ${department.fullCode}${department.headName ? ` · head ${department.headName}` : ''}`,
-    view.owners.length
-      ? `Answers for the department: ${view.owners.map((owner) => owner.name).join(', ')}`
-      : 'No department owner invited yet; the client DPO answers for it.',
+    `Department ID ${department.fullCode}${department.headName ? ` · contact ${department.headName}` : ''}`,
     figures.latestAssessment
       ? `Latest assessment: ${figures.latestAssessment.title} (${figures.latestAssessment.code}) · ${ASSESSMENT_STATUS_LABEL[figures.latestAssessment.status]}`
       : 'No assessment yet.',
@@ -752,15 +752,6 @@ export const buildDepartmentWorkbook = async (
     (figures.latestAssessment?.domains ?? []).map((row) => [
       `${row.code} ${titles.get(row.code) ?? ''}`.trim(),
       ...progressCells(row.progress),
-    ]),
-  )
-  dash.heading('Needs attention')
-  dash.table(
-    [{ header: 'Question' }, { header: 'Why' }, { header: 'Reviewer’s note' }],
-    view.attention.map((row) => [
-      `${row.questionCode}: ${row.text}`,
-      row.reviewState === 'returned' ? 'Sent back by the reviewer' : 'Not answered yet',
-      row.reviewNote,
     ]),
   )
   dash.heading('Open findings')

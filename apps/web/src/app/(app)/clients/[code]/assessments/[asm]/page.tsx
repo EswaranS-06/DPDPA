@@ -12,20 +12,15 @@ import {
 } from '@duatf/core-ui'
 import {
   COMPLIANCE_LABEL,
+  describeResponse,
   getAssessment,
   listItems,
   NotFoundError,
-  REVIEW_LABEL,
   TRANSITIONS,
   type ItemFilters,
 } from '@duatf/feature-compliance-api'
-import {
-  COMPLIANCE_STATES,
-  REVIEW_STATES,
-  type ComplianceState,
-  type ReviewState,
-} from '@duatf/platform-db'
-import { SearchX } from 'lucide-react'
+import { COMPLIANCE_STATES, type ComplianceState } from '@duatf/platform-db'
+import { ListTodo, SearchX } from 'lucide-react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -39,13 +34,13 @@ import {
 } from '@/components/assessment/AssessmentBits'
 import dash from '@/components/dashboard/DashboardBits.module.css'
 import { ReassessForm } from '@/components/forms/ActionForms'
-import { AssignForm, StatusButtons } from '@/components/forms/AssessmentForms'
+import { CheckAllForm, StatusButtons } from '@/components/forms/AssessmentForms'
 import { loadClient } from '@/server/clients'
 import { firstValue, type SearchParams } from '@/server/searchParams'
 import { serviceContext } from '@/server/services'
 import styles from '../../../clients.module.css'
 import { reassessAction } from '../../actions/actions'
-import { assignItemsAction, changeStatusAction } from '../actions'
+import { changeStatusAction, checkAllAction } from '../actions'
 
 export const dynamic = 'force-dynamic'
 
@@ -58,7 +53,7 @@ export const generateMetadata = async ({ params }: Props): Promise<Metadata> => 
 const oneOf = <T extends string>(values: readonly T[], value: string | undefined): T | undefined =>
   values.find((item) => item === value)
 
-const REVIEW_FILTERS: readonly (ReviewState | 'awaiting')[] = [...REVIEW_STATES, 'awaiting']
+const CHECK_FILTERS = ['unchecked', 'checked'] as const
 
 export default async function Page({ params, searchParams }: Props) {
   const { code, asm } = await params
@@ -71,16 +66,17 @@ export default async function Page({ params, searchParams }: Props) {
     },
   )
   const query = await searchParams
-  const ownDepartment = ctx.principal.assignments.find(
-    (assignment) => assignment.role === 'department_owner' && assignment.clientId === client.id,
-  )?.departmentId
+  // A department by id (from the filter) or by code (a typed link); anything else is ignored.
+  const wanted = firstValue(query.department)
+  const department = detail.departments.find(
+    (row) => row.id === wanted || row.code === wanted?.toUpperCase(),
+  )
   const filters: ItemFilters = {
     domain: firstValue(query.domain) || undefined,
-    department:
-      firstValue(query.department) ||
-      (query.department === undefined ? (ownDepartment ?? undefined) : undefined),
+    department: department?.id,
+    questionnaire: firstValue(query.questionnaire) || undefined,
     state: oneOf<ComplianceState>(COMPLIANCE_STATES, firstValue(query.state)),
-    review: oneOf(REVIEW_FILTERS, firstValue(query.review)),
+    check: oneOf(CHECK_FILTERS, firstValue(query.check)),
   }
   const items = await listItems(ctx, client.id, detail.id, filters)
   const scope = { clientId: client.id }
@@ -94,10 +90,10 @@ export default async function Page({ params, searchParams }: Props) {
     assessmentCode: detail.code,
   }
   const base = `/clients/${client.code}/assessments/${detail.code}`
-  const departmentOptions = detail.departments
-    .filter((row) => row.id !== null)
-    .map((row) => ({ value: row.id ?? '', label: row.name }))
+  const departmentOptions = detail.departments.map((row) => ({ value: row.id, label: row.name }))
   const filtering = Object.values(filters).some(Boolean)
+  const unchecked = detail.progress.answered - detail.progress.accepted
+  const open = detail.status !== 'completed'
 
   return (
     <>
@@ -132,10 +128,10 @@ export default async function Page({ params, searchParams }: Props) {
       {detail.status === 'completed' && can(ctx.principal, 'assessment.create', scope) ? (
         <Panel title="Next cycle" titleId="next-cycle">
           <p className={`${styles.flush} ${styles.sectionIntro}`}>
-            Starts a new assessment on the current knowledge base, linked to this one, with the same
-            department for each question. Answers start empty and the previous answer is shown
-            beside each question. Open findings are resolved or carried forward as the new answers
-            come in.
+            Starts a new cycle on the current knowledge base, linked to this one, giving every
+            active department the questions it had. Answers start empty and the previous answer is
+            shown beside each question. Open findings are resolved or carried forward as the new
+            answers come in.
           </p>
           <ReassessForm
             action={reassessAction.bind(null, {
@@ -160,10 +156,7 @@ export default async function Page({ params, searchParams }: Props) {
                 key: 'domain',
                 header: 'Domain',
                 render: (row) => (
-                  <Link
-                    href={`${base}?domain=${row.code}&department=`}
-                    className={styles.personCell}
-                  >
+                  <Link href={`${base}?domain=${row.code}`} className={styles.personCell}>
                     <span>{row.title}</span>
                     <span className={`code ${styles.muted}`}>{row.code}</span>
                   </Link>
@@ -195,13 +188,13 @@ export default async function Page({ params, searchParams }: Props) {
             plain
             mobile="scroll"
             rows={detail.departments}
-            rowKey={(row) => row.id ?? 'none'}
+            rowKey={(row) => row.id}
             columns={[
               {
                 key: 'department',
                 header: 'Department',
                 render: (row) => (
-                  <Link href={`${base}?department=${row.id ?? 'none'}`}>{row.name}</Link>
+                  <Link href={`/clients/${client.code}/departments/${row.code}`}>{row.name}</Link>
                 ),
               },
               {
@@ -221,23 +214,20 @@ export default async function Page({ params, searchParams }: Props) {
         </Panel>
       </div>
 
-      {can(ctx.principal, 'assessment.assign', scope) && detail.status !== 'completed' ? (
-        <Panel title="Assign questions to a department" titleId="assign">
-          {departmentOptions.length === 0 ? (
-            <p className={`${styles.flush} ${styles.sectionIntro}`}>
-              Add departments first, on the{' '}
-              <Link href={`/clients/${client.code}/departments`}>Departments</Link> page.
-            </p>
-          ) : (
-            <AssignForm
-              action={assignItemsAction.bind(null, target)}
-              departments={departmentOptions}
-              domains={detail.domains.map((row) => ({
-                value: row.code,
-                label: `${row.code} ${row.title}`,
-              }))}
-            />
-          )}
+      {detail.progress.total === 0 ? (
+        <EmptyState icon={ListTodo} title="No questions in this cycle yet">
+          Questions come from the departments. Add a department and choose its questions on the{' '}
+          <Link href={`/clients/${client.code}/departments`}>Departments</Link> page.
+        </EmptyState>
+      ) : null}
+
+      {open && unchecked > 0 ? (
+        <Panel title={`${unchecked} answers not checked yet`} titleId="check-all">
+          <p className={`${styles.flush} ${styles.sectionIntro}`}>
+            The cycle can be completed once every question is answered and every answer is ticked as
+            checked. Tick them one by one on each question, or all at once here.
+          </p>
+          <CheckAllForm action={checkAllAction.bind(null, target)} count={unchecked} />
         </Panel>
       ) : null}
 
@@ -258,8 +248,18 @@ export default async function Page({ params, searchParams }: Props) {
             label="Department"
             name="department"
             placeholder="All departments"
-            options={[...departmentOptions, { value: 'none', label: 'Not assigned' }]}
+            options={departmentOptions}
             defaultValue={filters.department}
+          />
+          <SelectField
+            label="Questionnaire"
+            name="questionnaire"
+            placeholder="All questionnaires"
+            options={detail.questionnaires.map((row) => ({
+              value: row.code,
+              label: `${row.code} ${row.title}`,
+            }))}
+            defaultValue={filters.questionnaire}
           />
           <SelectField
             label="Outcome"
@@ -272,20 +272,20 @@ export default async function Page({ params, searchParams }: Props) {
             defaultValue={filters.state}
           />
           <SelectField
-            label="Review"
-            name="review"
-            placeholder="Any review state"
+            label="Self-check"
+            name="check"
+            placeholder="Checked or not"
             options={[
-              ...REVIEW_STATES.map((state) => ({ value: state, label: REVIEW_LABEL[state] })),
-              { value: 'awaiting', label: 'Answered, not reviewed' },
+              { value: 'unchecked', label: 'Answered, not checked' },
+              { value: 'checked', label: 'Checked' },
             ]}
-            defaultValue={filters.review}
+            defaultValue={filters.check}
           />
           <button type="submit" className={buttonClass('secondary')}>
             Apply filters
           </button>
           {filtering ? (
-            <Link href={`${base}?department=`} className={buttonClass('ghost')}>
+            <Link href={base} className={buttonClass('ghost')}>
               Clear filters
             </Link>
           ) : null}
@@ -305,12 +305,16 @@ export default async function Page({ params, searchParams }: Props) {
                 render: (row) => (
                   <span className={styles.personCell}>
                     <Link
-                      href={`${base}/items/${row.questionCode}`}
+                      href={`${base}/items/${row.departmentCode ?? '-'}/${row.questionCode}`}
                       className={styles.questionLink}
                     >
-                      {row.text}
+                      <span className="code">{row.questionCode}</span> {row.title}
                     </Link>
-                    <span className={`code ${styles.muted}`}>{row.questionCode}</span>
+                    <span className={styles.muted}>
+                      {row.answer === 'not_assessed'
+                        ? 'Not answered yet'
+                        : describeResponse(row, row)}
+                    </span>
                   </span>
                 ),
               },
@@ -318,8 +322,7 @@ export default async function Page({ params, searchParams }: Props) {
                 key: 'department',
                 header: 'Department',
                 width: '20%',
-                render: (row) =>
-                  row.departmentName ?? <span className={styles.muted}>Not assigned</span>,
+                render: (row) => row.departmentName ?? <span className={styles.muted}>None</span>,
               },
               {
                 key: 'outcome',

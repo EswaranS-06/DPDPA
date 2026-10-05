@@ -7,9 +7,9 @@ import {
   count,
   eq,
   evidence,
+  evidenceRequest,
   finding,
   inArray,
-  isNull,
   lt,
   min,
   ne,
@@ -35,14 +35,16 @@ import { listBands } from './risks'
  */
 export const ATTENTION_KINDS = [
   'overdue_actions',
-  'returned_answers',
-  'answers_to_review',
+  'answers_to_check',
   'evidence_to_review',
+  'evidence_requested',
   'actions_to_verify',
   'serious_risks',
   'findings_without_actions',
   'unanswered',
+  'actions_under_way',
   'my_actions',
+  'my_requests',
 ] as const
 export type AttentionKind = (typeof ATTENTION_KINDS)[number]
 
@@ -89,7 +91,8 @@ export const reachOf = (principal: Principal, capability: Capability, clientId: 
 const inReach = (column: AnyColumn, reach: Reach): SQL | undefined =>
   reach === 'all' || reach === null ? undefined : inArray(column, reach)
 
-const OPEN_CYCLES: AssessmentStatus[] = ['in_progress', 'in_review']
+/** A cycle opens as a draft and starts with its first answer; both hold answer work. */
+const OPEN_CYCLES: AssessmentStatus[] = ['draft', 'in_progress', 'in_review']
 
 /** What needs the user's attention across the clients they can see (or the ones given). */
 export const attentionFor = async (
@@ -128,20 +131,18 @@ export const attentionFor = async (
       }
       const update = reachOf(principal, 'action.update', client.id)
       if (update) {
-        add('overdue_actions', await overdueActions(tx, client.id, update, principal.userId, today))
+        add('overdue_actions', await overdueActions(tx, client.id, update, today))
       }
       const answer = reachOf(principal, 'assessment.answer', client.id)
-      if (answer) {
-        add('returned_answers', await itemsByCycle(tx, client.id, answer, 'returned'))
-      }
       if (can(principal, 'assessment.review', { clientId: client.id })) {
-        add('answers_to_review', await itemsByCycle(tx, client.id, 'all', 'to_review'))
+        add('answers_to_check', await itemsByCycle(tx, client.id, 'all', 'to_check'))
       }
       if (can(principal, 'evidence.review', { clientId: client.id })) {
         add('evidence_to_review', [await evidenceToReview(tx, client.id)])
+        add('evidence_requested', [await evidenceRequested(tx, client.id)])
       }
       if (can(principal, 'action.verify', { clientId: client.id })) {
-        add('actions_to_verify', [await actionsToVerify(tx, client.id, principal.userId)])
+        add('actions_to_verify', [await actionsToVerify(tx, client.id)])
       }
       if (can(principal, 'risk.accept', { clientId: client.id }) && serious.length) {
         const scores = serious.map((band) => [band.minScore, band.maxScore] as const)
@@ -153,7 +154,11 @@ export const attentionFor = async (
       if (answer) {
         add('unanswered', await itemsByCycle(tx, client.id, answer, 'unanswered'))
       }
+      if (can(principal, 'action.manage', { clientId: client.id })) {
+        add('actions_under_way', [await actionsUnderWay(tx, client.id)])
+      }
       add('my_actions', [await myActions(tx, client.id, principal.userId)])
+      add('my_requests', [await myRequests(tx, client.id, principal.userId)])
     }
   })
 
@@ -165,13 +170,7 @@ export const attentionFor = async (
   )
 }
 
-const overdueActions = async (
-  tx: Transaction,
-  clientId: string,
-  reach: Reach,
-  userId: string,
-  today: string,
-) => {
+const overdueActions = async (tx: Transaction, clientId: string, reach: Reach, today: string) => {
   const departments = inReach(remediationAction.departmentId, reach)
   const [row] = await tx
     .select({ n: count(), due: min(remediationAction.dueDate) })
@@ -181,7 +180,7 @@ const overdueActions = async (
         eq(remediationAction.tenantId, clientId),
         notInArray(remediationAction.status, UNFINISHED_ACTIONS),
         lt(remediationAction.dueDate, today),
-        departments ? or(departments, eq(remediationAction.ownerUserId, userId)) : undefined,
+        departments,
       ),
     )
   return [{ n: row?.n ?? 0, due: row?.due ?? null }]
@@ -192,17 +191,13 @@ const itemsByCycle = (
   tx: Transaction,
   clientId: string,
   reach: Reach,
-  which: 'returned' | 'to_review' | 'unanswered',
+  which: 'to_check' | 'unanswered',
 ) => {
+  // Answered but not yet ticked as checked, or not answered at all.
   const condition =
-    which === 'returned'
-      ? eq(assessmentItem.reviewState, 'returned')
-      : which === 'to_review'
-        ? and(
-            ne(assessmentItem.answer, 'not_assessed'),
-            eq(assessmentItem.reviewState, 'not_reviewed'),
-          )
-        : eq(assessmentItem.answer, 'not_assessed')
+    which === 'to_check'
+      ? and(ne(assessmentItem.answer, 'not_assessed'), ne(assessmentItem.reviewState, 'accepted'))
+      : eq(assessmentItem.answer, 'not_assessed')
   return tx
     .select({
       n: count(),
@@ -214,9 +209,7 @@ const itemsByCycle = (
     .where(
       and(
         eq(assessmentItem.tenantId, clientId),
-        which === 'unanswered'
-          ? eq(assessment.status, 'in_progress')
-          : inArray(assessment.status, OPEN_CYCLES),
+        inArray(assessment.status, OPEN_CYCLES),
         condition,
         inReach(assessmentItem.departmentId, reach),
       ),
@@ -233,8 +226,17 @@ const evidenceToReview = async (tx: Transaction, clientId: string) => {
   return { n: row?.n ?? 0 }
 }
 
-/** Actions waiting for an auditor to verify or close them; the owner cannot do either. */
-const actionsToVerify = async (tx: Transaction, clientId: string, userId: string) => {
+/** Evidence asked for and not yet received. */
+const evidenceRequested = async (tx: Transaction, clientId: string) => {
+  const [row] = await tx
+    .select({ n: count(), due: min(evidenceRequest.dueDate) })
+    .from(evidenceRequest)
+    .where(and(eq(evidenceRequest.tenantId, clientId), eq(evidenceRequest.status, 'requested')))
+  return { n: row?.n ?? 0, due: row?.due ?? null }
+}
+
+/** Actions waiting to be verified or closed. */
+const actionsToVerify = async (tx: Transaction, clientId: string) => {
   const [row] = await tx
     .select({ n: count(), due: min(remediationAction.dueDate) })
     .from(remediationAction)
@@ -242,7 +244,6 @@ const actionsToVerify = async (tx: Transaction, clientId: string, userId: string
       and(
         eq(remediationAction.tenantId, clientId),
         inArray(remediationAction.status, AWAITING_VERIFICATION),
-        or(isNull(remediationAction.ownerUserId), ne(remediationAction.ownerUserId, userId)),
       ),
     )
   return { n: row?.n ?? 0, due: row?.due ?? null }
@@ -285,6 +286,21 @@ const findingsWithoutActions = async (tx: Transaction, clientId: string) => {
   return { n: row?.n ?? 0 }
 }
 
+/** Actions the client still has to work on (planned, assigned, in progress or reworked). */
+const actionsUnderWay = async (tx: Transaction, clientId: string) => {
+  const [row] = await tx
+    .select({ n: count(), due: min(remediationAction.dueDate) })
+    .from(remediationAction)
+    .where(
+      and(
+        eq(remediationAction.tenantId, clientId),
+        inArray(remediationAction.status, WORKABLE_ACTIONS),
+      ),
+    )
+  return { n: row?.n ?? 0, due: row?.due ?? null }
+}
+
+/** Actions the user owns that still need work from them. */
 const myActions = async (tx: Transaction, clientId: string, userId: string) => {
   const [row] = await tx
     .select({ n: count(), due: min(remediationAction.dueDate) })
@@ -294,6 +310,21 @@ const myActions = async (tx: Transaction, clientId: string, userId: string) => {
         eq(remediationAction.tenantId, clientId),
         eq(remediationAction.ownerUserId, userId),
         inArray(remediationAction.status, WORKABLE_ACTIONS),
+      ),
+    )
+  return { n: row?.n ?? 0, due: row?.due ?? null }
+}
+
+/** Evidence asked of the user and not yet sent. */
+const myRequests = async (tx: Transaction, clientId: string, userId: string) => {
+  const [row] = await tx
+    .select({ n: count(), due: min(evidenceRequest.dueDate) })
+    .from(evidenceRequest)
+    .where(
+      and(
+        eq(evidenceRequest.tenantId, clientId),
+        eq(evidenceRequest.assigneeUserId, userId),
+        eq(evidenceRequest.status, 'requested'),
       ),
     )
   return { n: row?.n ?? 0, due: row?.due ?? null }

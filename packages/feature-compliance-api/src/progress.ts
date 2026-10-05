@@ -7,6 +7,7 @@ export const COMPLIANCE_OF: Record<Answer, ComplianceState> = {
   no: 'gap',
   not_applicable: 'excluded',
   not_assessed: 'pending',
+  recorded: 'informational',
 }
 
 export type StateCount = { complianceState: ComplianceState; reviewState: ReviewState; n: number }
@@ -19,6 +20,9 @@ export type Progress = {
   potentialGap: number
   gap: number
   excluded: number
+  /** Answers that record facts (profile questions); they count as answered but are not scored. */
+  informational: number
+  /** Answers the auditor has self-checked. */
   accepted: number
   returned: number
   /** Answered share of all questions, one decimal. */
@@ -28,7 +32,7 @@ export type Progress = {
    * decimal; null until something in scope is answered. Not applicable is left out.
    */
   compliancePct: number | null
-  /** Accepted share of answered questions, one decimal; null until something is answered. */
+  /** Checked share of answered questions, one decimal; null until something is answered. */
   reviewedPct: number | null
 }
 
@@ -55,6 +59,7 @@ export const summariseProgress = (counts: readonly StateCount[]): Progress => {
     potentialGap,
     gap,
     excluded: byState('excluded'),
+    informational: byState('informational'),
     accepted: sum((row) => row.reviewState === 'accepted' && row.complianceState !== 'pending'),
     returned: sum((row) => row.reviewState === 'returned' && row.complianceState !== 'pending'),
     progressPct: percent(answered, total) ?? 0,
@@ -69,8 +74,8 @@ export const summariseProgress = (counts: readonly StateCount[]): Progress => {
 
 /**
  * The working behind compliancePct, as shown beside the figure: points (Yes plus half of
- * Partial) over the questions in scope (Yes, Partial, No). Not applicable and unanswered
- * questions are reported as left out.
+ * Partial) over the questions in scope (Yes, Partial, No; maturity 3-4, 2 and 0-1 count the same
+ * way). Not applicable, recorded-only and unanswered questions are reported as left out.
  */
 export const explainCompliance = (progress: Progress) => {
   const scored = progress.compliant + progress.potentialGap + progress.gap
@@ -82,6 +87,7 @@ export const explainCompliance = (progress: Progress) => {
     points: progress.compliant + progress.potentialGap / 2,
     pct: percent(progress.compliant * 2 + progress.potentialGap, scored * 2),
     notApplicable: progress.excluded,
+    recorded: progress.informational,
     notAnswered: progress.pending,
   }
 }

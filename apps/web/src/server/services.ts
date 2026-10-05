@@ -1,6 +1,5 @@
 import { AccessDeniedError, CAPABILITIES, CAPABILITY_LABEL, ROLE_LABEL } from '@duatf/core-access'
 import {
-  keycloakProvisioner,
   objectEvidenceStorage,
   type EvidenceStorage,
   NotFoundError,
@@ -8,11 +7,6 @@ import {
   ValidationError,
   type ServiceContext,
 } from '@duatf/feature-compliance-api'
-import {
-  clientCredentials,
-  createKeycloakAdmin,
-  type KeycloakAdmin,
-} from '@duatf/platform-identity'
 import { createObjectStore } from '@duatf/platform-storage'
 import { requireSession, type Session } from './auth'
 import type { FormState } from '@/lib/formState'
@@ -21,7 +15,6 @@ import { database, env } from './runtime'
 export type { FormState } from '@/lib/formState'
 
 declare global {
-  var duatfKeycloakAdmin: KeycloakAdmin | undefined
   var duatfEvidenceStorage: EvidenceStorage | undefined
 }
 
@@ -35,22 +28,6 @@ const evidenceStorage = (): EvidenceStorage => {
   return globalThis.duatfEvidenceStorage
 }
 
-const keycloakAdmin = (): KeycloakAdmin => {
-  if (!globalThis.duatfKeycloakAdmin) {
-    const settings = env()
-    globalThis.duatfKeycloakAdmin = createKeycloakAdmin(
-      settings.KEYCLOAK_URL,
-      clientCredentials(
-        settings.KEYCLOAK_URL,
-        settings.KEYCLOAK_REALM,
-        settings.KEYCLOAK_ADMIN_CLIENT_ID,
-        settings.KEYCLOAK_ADMIN_CLIENT_SECRET,
-      ),
-    )
-  }
-  return globalThis.duatfKeycloakAdmin
-}
-
 /** The signed-in user's service context; redirects to sign-in when there is no session. */
 export const serviceContext = async (): Promise<ServiceContext & { session: Session }> => {
   const session = await requireSession()
@@ -58,7 +35,6 @@ export const serviceContext = async (): Promise<ServiceContext & { session: Sess
     session,
     db: database().db,
     principal: session.principal,
-    provisioner: keycloakProvisioner(keycloakAdmin(), env().KEYCLOAK_REALM),
     storage: evidenceStorage(),
   }
 }

@@ -6,7 +6,6 @@ import {
   asc,
   assessment,
   assessmentItem,
-  control,
   department,
   desc,
   eq,
@@ -33,6 +32,7 @@ import {
 import { audit, inClient, type ServiceContext } from './context'
 import { NotFoundError } from './errors'
 import { COMPLIANCE_OF } from './progress'
+import { describeResponse } from './responses'
 
 type SyncInput = {
   clientId: string
@@ -47,9 +47,10 @@ const gapTypeOf = (answer: Answer): GapType | null => {
 }
 
 const CLOSE_REASON: Partial<Record<Answer, string>> = {
-  yes: 'Answered Yes',
+  yes: 'Answered compliant',
   not_applicable: 'Answered Not applicable',
   not_assessed: 'Answer withdrawn',
+  recorded: 'Answer recorded as information',
 }
 
 // A first estimate the auditor refines: a gap is likely, a partial gap possible.
@@ -79,7 +80,10 @@ type ItemContext = Awaited<ReturnType<typeof loadItemContext>>
 type FindingRecord = typeof finding.$inferSelect
 type FindingRef = { id: string; code: string }
 
-/** In a re-assessment, the question's open findings from earlier cycles, oldest first. */
+/**
+ * In a re-assessment, the open findings from earlier cycles of the same question for the same
+ * department, oldest first.
+ */
 const earlierOpenFindings = async (
   tx: Transaction,
   context: ItemContext,
@@ -89,10 +93,12 @@ const earlierOpenFindings = async (
     .select({ finding })
     .from(finding)
     .innerJoin(assessment, eq(assessment.id, finding.assessmentId))
+    .innerJoin(assessmentItem, eq(assessmentItem.id, finding.itemId))
     .where(
       and(
         eq(finding.tenantId, context.item.tenantId),
         eq(finding.questionCode, context.item.questionCode),
+        sql`${assessmentItem.departmentId} is not distinct from ${context.item.departmentId}`,
         eq(finding.status, 'open'),
         ne(finding.itemId, context.item.id),
         lt(assessment.createdAt, context.assessmentCreatedAt),
@@ -150,7 +156,7 @@ const settleEarlierFindings = async (
     const reason = successor
       ? `Carried forward to ${successor.code} (${context.assessmentCode})`
       : input.answer === 'yes'
-        ? `Resolved in ${context.assessmentCode} (answered Yes)`
+        ? `Resolved in ${context.assessmentCode} (answered compliant)`
         : `Not applicable in ${context.assessmentCode}`
     const now = new Date()
     await tx
@@ -224,22 +230,29 @@ const openFinding = async (
   gapType: GapType,
   carried: FindingRecord | undefined,
 ): Promise<FindingRef> => {
-  const [source] = await tx
+  const [asked] = await tx
     .select({
       recommendation: question.recommendation,
       references: question.references,
       riskWeight: question.riskWeight,
-      title: control.title,
+      title: question.title,
     })
     .from(question)
-    .innerJoin(
-      control,
-      and(eq(control.releaseId, question.releaseId), eq(control.code, question.controlCode)),
-    )
     .where(
       and(eq(question.releaseId, context.releaseId), eq(question.code, context.item.questionCode)),
     )
-  if (!source) throw new NotFoundError(`Question ${context.item.questionCode}`)
+  if (!asked) throw new NotFoundError(`Question ${context.item.questionCode}`)
+  const [owner] = context.item.departmentId
+    ? await tx
+        .select({ name: department.name })
+        .from(department)
+        .where(eq(department.id, context.item.departmentId))
+    : []
+  // The same question can be asked of several departments, so the title names the department.
+  const source = {
+    ...asked,
+    title: owner ? `${owner.name}: ${asked.title}` : asked.title,
+  }
   const code = await nextCode(tx, input.clientId, sequenceScope('FND', context.clientCode))
   const [created] = await tx
     .insert(finding)
@@ -436,6 +449,7 @@ const findingColumns = {
   riskScore: risk.score,
   riskStatus: risk.status,
   departmentId: assessmentItem.departmentId,
+  departmentCode: department.code,
   departmentName: department.name,
 }
 
@@ -496,8 +510,27 @@ export const getFinding = async (ctx: ServiceContext, clientId: string, code: st
       .where(eq(findingEvent.findingId, row.finding.id))
       .orderBy(asc(findingEvent.id))
     const [item] = await tx
-      .select({ answer: assessmentItem.answer, comment: assessmentItem.comment })
+      .select({
+        answer: assessmentItem.answer,
+        response: assessmentItem.response,
+        comment: assessmentItem.comment,
+        departmentId: assessmentItem.departmentId,
+        departmentCode: department.code,
+        departmentName: department.name,
+        answerType: question.answerType,
+        options: question.options,
+        questionText: question.text,
+      })
       .from(assessmentItem)
+      .innerJoin(assessment, eq(assessment.id, assessmentItem.assessmentId))
+      .innerJoin(
+        question,
+        and(
+          eq(question.releaseId, assessment.releaseId),
+          eq(question.code, assessmentItem.questionCode),
+        ),
+      )
+      .leftJoin(department, eq(department.id, assessmentItem.departmentId))
       .where(eq(assessmentItem.id, row.finding.itemId))
     const [linkedRisk] = await tx.select().from(risk).where(eq(risk.findingId, row.finding.id))
     return {
@@ -505,7 +538,12 @@ export const getFinding = async (ctx: ServiceContext, clientId: string, code: st
       assessmentCode: row.assessmentCode,
       assessmentTitle: row.assessmentTitle,
       answer: item?.answer ?? null,
+      response: item ? describeResponse(item, item) : null,
       comment: item?.comment ?? null,
+      departmentId: item?.departmentId ?? null,
+      departmentCode: item?.departmentCode ?? null,
+      departmentName: item?.departmentName ?? null,
+      questionText: item?.questionText ?? null,
       events,
       risk: linkedRisk ?? null,
     }

@@ -8,11 +8,9 @@ import {
   type Principal,
 } from '@duatf/core-access'
 import {
-  createOidc,
   findSessionUser,
   loadPrincipal,
   SESSION_COOKIE,
-  type Oidc,
   type SessionUser,
 } from '@duatf/platform-identity'
 import { cookies, headers } from 'next/headers'
@@ -20,22 +18,8 @@ import { notFound, redirect } from 'next/navigation'
 import { cache } from 'react'
 import { database, env } from './runtime'
 
-declare global {
-  var duatfOidc: Oidc | undefined
-}
-
-export const oidc = (): Oidc => {
-  if (!globalThis.duatfOidc) {
-    const settings = env()
-    globalThis.duatfOidc = createOidc({
-      issuer: settings.OIDC_ISSUER,
-      clientId: settings.OIDC_CLIENT_ID,
-      clientSecret: settings.OIDC_CLIENT_SECRET,
-      appUrl: settings.PUBLIC_WEB_URL,
-    })
-  }
-  return globalThis.duatfOidc
-}
+/** Where the account changes its password; forced after a one-time password. */
+export const PASSWORD_PATH = '/account/password'
 
 /** Cookies are marked Secure only when the app is served over https. */
 export const cookieSecure = () => env().PUBLIC_WEB_URL.startsWith('https://')
@@ -57,10 +41,15 @@ const currentPath = async () => {
   return path && path.startsWith('/') ? path : '/'
 }
 
-/** Sends anonymous visitors to the sign-in page and returns the session otherwise. */
+/**
+ * Sends anonymous visitors to the sign-in page and returns the session otherwise. An account
+ * still on its one-time password is sent to change it first.
+ */
 export const requireSession = async (): Promise<Session> => {
   const session = await currentSession()
-  if (!session) redirect(`/login?next=${encodeURIComponent(await currentPath())}`)
+  const path = await currentPath()
+  if (!session) redirect(`/login?next=${encodeURIComponent(path)}`)
+  if (session.user.mustChangePassword && !path.startsWith(PASSWORD_PATH)) redirect(PASSWORD_PATH)
   return session
 }
 

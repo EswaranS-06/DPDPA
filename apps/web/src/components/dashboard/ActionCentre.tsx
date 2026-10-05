@@ -7,11 +7,13 @@ import {
   CircleDashed,
   ClockAlert,
   Eye,
+  FileClock,
   FileSearch,
+  FileUp,
   ListTodo,
   TriangleAlert,
-  Undo2,
   UserCheck,
+  Wrench,
   type LucideIcon,
 } from 'lucide-react'
 import Link from 'next/link'
@@ -45,19 +47,12 @@ export const ATTENTION: Record<AttentionKind, Presentation> = {
     cta: 'Open overdue actions',
     href: (item) => `/clients/${item.clientCode}/actions?show=overdue`,
   },
-  returned_answers: {
-    icon: Undo2,
-    tone: 'danger',
-    says: (n) => `${n} ${plural(n, 'answer was', 'answers were')} sent back for correction`,
-    cta: 'Fix answers',
-    href: (item) => assessmentHref(item, 'review=returned'),
-  },
-  answers_to_review: {
+  answers_to_check: {
     icon: Eye,
     tone: 'pending',
-    says: (n) => `${n} ${plural(n, 'answer is', 'answers are')} waiting for review`,
-    cta: 'Review answers',
-    href: (item) => assessmentHref(item, 'review=awaiting&department='),
+    says: (n) => `${n} ${plural(n, 'answer is', 'answers are')} not ticked as checked yet`,
+    cta: 'Check answers',
+    href: (item) => assessmentHref(item, 'check=unchecked'),
   },
   evidence_to_review: {
     icon: FileSearch,
@@ -65,6 +60,13 @@ export const ATTENTION: Record<AttentionKind, Presentation> = {
     says: (n) => `${n} evidence ${plural(n, 'file is', 'files are')} waiting for review`,
     cta: 'Review evidence',
     href: (item) => `/clients/${item.clientCode}/evidence?status=pending_review`,
+  },
+  evidence_requested: {
+    icon: FileClock,
+    tone: 'info',
+    says: (n) => `${n} requested evidence ${plural(n, 'file has', 'files have')} not come in yet`,
+    cta: 'See requests',
+    href: (item) => `/clients/${item.clientCode}/evidence#requests`,
   },
   actions_to_verify: {
     icon: BadgeCheck,
@@ -94,12 +96,26 @@ export const ATTENTION: Record<AttentionKind, Presentation> = {
     cta: 'Answer questions',
     href: (item) => assessmentHref(item, 'state=pending'),
   },
+  actions_under_way: {
+    icon: Wrench,
+    tone: 'info',
+    says: (n) => `${n} remediation ${plural(n, 'action is', 'actions are')} under way`,
+    cta: 'Track actions',
+    href: (item) => `/clients/${item.clientCode}/actions?show=underway`,
+  },
   my_actions: {
     icon: UserCheck,
     tone: 'info',
     says: (n) => `${n} remediation ${plural(n, 'action is', 'actions are')} assigned to you`,
     cta: 'Open my actions',
     href: (item) => `/clients/${item.clientCode}/actions?show=mine`,
+  },
+  my_requests: {
+    icon: FileUp,
+    tone: 'info',
+    says: (n) => `${n} evidence ${plural(n, 'file is', 'files are')} asked of you`,
+    cta: 'See your work',
+    href: (item) => `/clients/${item.clientCode}#your-work-title`,
   },
 }
 
@@ -143,7 +159,7 @@ export const ActionCentre = ({
   if (items.length === 0) {
     return (
       <EmptyState icon={CircleCheck} title="Nothing needs your attention" size="quiet">
-        No overdue actions, answers sent back or reviews waiting on you.
+        No overdue actions, unchecked answers or actions waiting to be verified.
       </EmptyState>
     )
   }

@@ -59,7 +59,7 @@ export {
   type CodeFamily,
 } from './entries'
 export { plainExplanation } from './entryBodies'
-export { isLiveOn } from './queries'
+export { isLiveOn, highestPenalty } from './queries'
 export { OFFICIAL_SOURCES, officialSourceFor } from './sources'
 export type {
   ObligationFilters,

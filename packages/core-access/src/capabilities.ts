@@ -19,10 +19,10 @@ export const CAPABILITIES = {
     'department_owner',
     'client_viewer',
   ]),
-  'client.edit': define('client', ['firm_admin', 'lead_auditor', 'client_dpo']),
+  'client.edit': define('client', ['firm_admin', 'lead_auditor']),
   'client.assign_staff': define('client', ['firm_admin']),
-  'department.manage': define('client', ['firm_admin', 'lead_auditor', 'auditor', 'client_dpo']),
-  'user.invite': define('client', ['firm_admin', 'lead_auditor', 'client_dpo']),
+  'department.manage': define('client', ['firm_admin', 'lead_auditor', 'auditor']),
+  'user.invite': define('client', ['firm_admin', 'lead_auditor']),
   'assessment.create': define('client', ['firm_admin', 'lead_auditor']),
   'assessment.view': define('client', [
     'firm_admin',
@@ -32,13 +32,9 @@ export const CAPABILITIES = {
     'department_owner',
     'client_viewer',
   ]),
-  'assessment.assign': define('client', ['firm_admin', 'lead_auditor', 'auditor', 'client_dpo']),
-  'assessment.answer': define('department', [
-    'lead_auditor',
-    'auditor',
-    'client_dpo',
-    'department_owner',
-  ]),
+  'assessment.assign': define('client', ['firm_admin', 'lead_auditor', 'auditor']),
+  // Self-audit: the audit team fills the answers; people at the client review and upload.
+  'assessment.answer': define('department', ['lead_auditor', 'auditor']),
   'assessment.review': define('client', ['lead_auditor', 'auditor']),
   'evidence.view': define('client', [
     'firm_admin',
@@ -57,8 +53,9 @@ export const CAPABILITIES = {
   'evidence.review': define('client', ['lead_auditor', 'auditor']),
   'finding.manage': define('client', ['lead_auditor', 'auditor']),
   'risk.manage': define('client', ['lead_auditor', 'auditor']),
-  'risk.accept': define('client', ['client_dpo']),
-  'action.manage': define('client', ['lead_auditor', 'auditor', 'client_dpo']),
+  // The client decides; its DPO records it, or the senior auditor records it for them.
+  'risk.accept': define('client', ['lead_auditor', 'client_dpo']),
+  'action.manage': define('client', ['lead_auditor', 'auditor']),
   'action.update': define('department', [
     'lead_auditor',
     'auditor',
@@ -81,7 +78,7 @@ export const CAPABILITIES = {
     'client_dpo',
     'client_viewer',
   ]),
-  'audit.view': define('client', ['firm_admin', 'lead_auditor', 'client_dpo']),
+  'audit.view': define('client', ['firm_admin', 'lead_auditor']),
   'kb.view': define('firm', [
     'firm_admin',
     'lead_auditor',

@@ -2,10 +2,14 @@
 
 import {
   answerItem,
-  assignItems,
+  assignDepartmentItems,
+  assignItem,
+  cancelEvidenceRequest,
   changeAssessmentStatus,
+  checkAnswered,
+  checkItem,
   createAssessment,
-  reviewItem,
+  requestEvidence,
 } from '@duatf/feature-compliance-api'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
@@ -13,6 +17,10 @@ import { failure, formValues, serviceContext, type FormState } from '@/server/se
 
 const assessmentPath = (client: string, assessment?: string) =>
   `/clients/${encodeURIComponent(client)}/assessments${assessment ? `/${encodeURIComponent(assessment)}` : ''}`
+
+const clientPath = (client: string) => `/clients/${encodeURIComponent(client)}`
+
+type ItemTarget = { clientId: string; clientCode: string; assessmentCode: string; itemId: string }
 
 export const createAssessmentAction = async (
   clientId: string,
@@ -31,59 +39,66 @@ export const createAssessmentAction = async (
   redirect(assessmentPath(clientCode, code))
 }
 
+/** Saves an answer: one option, several ticked choices, free text, or Not applicable. */
 export const answerItemAction = async (
-  target: { clientId: string; clientCode: string; assessmentCode: string; itemId: string },
+  target: ItemTarget,
   _: FormState,
   formData: FormData,
 ): Promise<FormState> => {
   const values = formValues(formData)
   try {
-    await answerItem(await serviceContext(), target.clientId, target.itemId, values)
+    await answerItem(await serviceContext(), target.clientId, target.itemId, {
+      ...values,
+      choices: formData.getAll('choices').filter((item) => typeof item === 'string'),
+    })
   } catch (error) {
     return failure(error, values)
   }
-  revalidatePath(assessmentPath(target.clientCode, target.assessmentCode), 'layout')
+  revalidatePath(clientPath(target.clientCode), 'layout')
   return { status: 'success', message: 'Answer saved.' }
 }
 
-export const reviewItemAction = async (
-  target: { clientId: string; clientCode: string; assessmentCode: string; itemId: string },
+/** Ticks one answer as checked, or takes the tick away. */
+export const checkItemAction = async (
+  target: ItemTarget,
   _: FormState,
   formData: FormData,
 ): Promise<FormState> => {
   const values = formValues(formData)
   try {
-    await reviewItem(await serviceContext(), target.clientId, target.itemId, values)
+    await checkItem(await serviceContext(), target.clientId, target.itemId, values)
   } catch (error) {
     return failure(error, values)
   }
-  revalidatePath(assessmentPath(target.clientCode, target.assessmentCode), 'layout')
+  revalidatePath(clientPath(target.clientCode), 'layout')
   return {
     status: 'success',
-    message: values.decision === 'accepted' ? 'Answer accepted.' : 'Sent back with your note.',
+    message: values.checked === 'true' ? 'Ticked as checked.' : 'Tick removed.',
   }
 }
 
-export const assignItemsAction = async (
-  target: { clientId: string; clientCode: string; assessmentId: string; assessmentCode: string },
+/** Ticks every answered question of a department (or of the whole cycle) as checked. */
+export const checkAllAction = async (
+  target: {
+    clientId: string
+    clientCode: string
+    assessmentId: string
+    assessmentCode: string
+    departmentId?: string
+  },
   _: FormState,
-  formData: FormData,
 ): Promise<FormState> => {
-  const values = formValues(formData)
   try {
-    const changed = await assignItems(
+    const count = await checkAnswered(
       await serviceContext(),
       target.clientId,
       target.assessmentId,
-      values,
+      target.departmentId,
     )
-    revalidatePath(assessmentPath(target.clientCode, target.assessmentCode), 'layout')
-    return {
-      status: 'success',
-      message: `${changed} question${changed === 1 ? '' : 's'} ${values.departmentId ? 'assigned' : 'unassigned'}.`,
-    }
+    revalidatePath(clientPath(target.clientCode), 'layout')
+    return { status: 'success', message: `${count} answer${count === 1 ? '' : 's'} ticked.` }
   } catch (error) {
-    return failure(error, values)
+    return failure(error)
   }
 }
 
@@ -103,6 +118,79 @@ export const changeStatusAction = async (
   } catch (error) {
     return failure(error)
   }
-  revalidatePath(assessmentPath(target.clientCode), 'layout')
+  revalidatePath(clientPath(target.clientCode), 'layout')
   return { status: 'success', message: 'Status updated.' }
+}
+
+/** Gives one question to a person (or takes it back). */
+export const assignItemAction = async (
+  target: ItemTarget,
+  _: FormState,
+  formData: FormData,
+): Promise<FormState> => {
+  const values = formValues(formData)
+  try {
+    await assignItem(await serviceContext(), target.clientId, target.itemId, values)
+  } catch (error) {
+    return failure(error, values)
+  }
+  revalidatePath(clientPath(target.clientCode), 'layout')
+  return { status: 'success', message: values.assigneeUserId ? 'Assigned.' : 'Assignment removed.' }
+}
+
+/** Asks for evidence for one question (ticked suggestions and/or a written item). */
+export const requestEvidenceAction = async (
+  target: ItemTarget,
+  _: FormState,
+  formData: FormData,
+): Promise<FormState> => {
+  const values = formValues(formData)
+  try {
+    const count = await requestEvidence(await serviceContext(), target.clientId, target.itemId, {
+      ...values,
+      titles: formData.getAll('titles').filter((item) => typeof item === 'string'),
+    })
+    revalidatePath(clientPath(target.clientCode), 'layout')
+    return { status: 'success', message: `${count} item${count === 1 ? '' : 's'} requested.` }
+  } catch (error) {
+    return failure(error, values)
+  }
+}
+
+/** Withdraws an evidence request. */
+export const cancelRequestAction = async (
+  target: { clientId: string; clientCode: string },
+  _: FormState,
+  formData: FormData,
+): Promise<FormState> => {
+  const values = formValues(formData)
+  try {
+    await cancelEvidenceRequest(await serviceContext(), target.clientId, values.requestId ?? '')
+  } catch (error) {
+    return failure(error)
+  }
+  revalidatePath(clientPath(target.clientCode), 'layout')
+  return { status: 'success', message: 'Request withdrawn.' }
+}
+
+/** Gives a department's questions in a cycle to one person. */
+export const assignDepartmentAction = async (
+  target: { clientId: string; clientCode: string; assessmentId: string; departmentId: string },
+  _: FormState,
+  formData: FormData,
+): Promise<FormState> => {
+  const values = formValues(formData)
+  try {
+    const count = await assignDepartmentItems(
+      await serviceContext(),
+      target.clientId,
+      target.assessmentId,
+      target.departmentId,
+      values,
+    )
+    revalidatePath(clientPath(target.clientCode), 'layout')
+    return { status: 'success', message: `${count} question${count === 1 ? '' : 's'} assigned.` }
+  } catch (error) {
+    return failure(error, values)
+  }
 }

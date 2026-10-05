@@ -90,6 +90,13 @@ export const createObjectStore = (
     ping: async (): Promise<void> => {
       if (!(await client.bucketExists(bucket))) throw new Error(`Bucket ${bucket} does not exist`)
     },
+
+    /** Creates the bucket when it is missing; true when it was created. */
+    ensureBucket: async (): Promise<boolean> => {
+      if (await client.bucketExists(bucket)) return false
+      await client.makeBucket(bucket, 'us-east-1')
+      return true
+    },
   }
 }
 

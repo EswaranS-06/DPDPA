@@ -1,17 +1,4 @@
-import { createHash, randomBytes, randomUUID } from 'node:crypto'
-import type { Principal, Role } from '@duatf/core-access'
-import { parseEnv, testDatabaseEnvSchema } from '@duatf/core-config'
-import {
-  appUser,
-  assessment,
-  createDatabase,
-  eq,
-  inArray,
-  roleAssignment,
-  tenant,
-  withTenants,
-  type DatabaseHandle,
-} from '@duatf/platform-db'
+import { assessment, eq, withTenants } from '@duatf/platform-db'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import {
   ACTION_FLOW,
@@ -21,119 +8,50 @@ import {
   linkActionEvidence,
   transitionAction,
 } from './actions'
-import { answerItem, assignItems, createAssessment, listItems } from './assessments'
-import { createClient } from './clients'
-import type { EvidenceStorage, ServiceContext } from './context'
-import { createDepartment } from './departments'
-import { RuleError } from './errors'
+import { answerItem, listItems } from './assessments'
+import { RuleError, type ValidationError } from './errors'
 import { reviewEvidence, uploadEvidence } from './evidence'
 import { listFindings } from './findings'
 import { acceptRisk, listRisks } from './risks'
+import {
+  as,
+  closeWorld,
+  newClient,
+  newDepartment,
+  newPerson,
+  openWorld,
+  pdf,
+  type World,
+} from './testing'
 
-const env = parseEnv(testDatabaseEnvSchema)
-
-let app: DatabaseHandle
-let owner: DatabaseHandle
-const codes: string[] = []
-const emails: string[] = []
-const provisioner = {
-  provision: () => Promise.resolve('none'),
-  setEnabled: () => Promise.resolve(),
-}
-const files = new Map<string, Buffer>()
-const storage: EvidenceStorage = {
-  put: (key, content) => {
-    files.set(key, content)
-    return Promise.resolve({
-      sha256: createHash('sha256').update(content).digest('hex'),
-      size: content.length,
-    })
-  },
-  signedUrl: (key) => Promise.resolve(`memory://${key}`),
-  remove: (key) => {
-    files.delete(key)
-    return Promise.resolve()
-  },
-}
-
-const as = (who: Principal): ServiceContext => ({
-  db: app.db,
-  principal: who,
-  provisioner,
-  storage,
+let world: World
+beforeAll(() => {
+  world = openWorld()
 })
-
-/** A real user row with one firm-wide role, so it can own actions. */
-const staff = async (role: Role): Promise<Principal> => {
-  const email = `${role}-${randomBytes(3).toString('hex')}@example.test`
-  emails.push(email)
-  const [user] = await owner.db
-    .insert(appUser)
-    .values({ email, displayName: role, kind: 'firm', status: 'active' })
-    .returning({ id: appUser.id })
-  await owner.db.insert(roleAssignment).values({ userId: user?.id ?? '', role })
-  return {
-    userId: user?.id ?? '',
-    email,
-    displayName: role,
-    assignments: [{ role, clientId: null, departmentId: null }],
-  }
-}
-
-let lead: Principal
-let auditorA: Principal
-let auditorB: Principal
+afterAll(() => closeWorld(world))
 
 const setupFinding = async () => {
-  const tag = randomBytes(3).toString('hex').toUpperCase()
-  const client = await createClient(as(lead), {
-    name: `R${tag} Remediation`,
-    legalName: `R${tag} Remediation Pvt Ltd`,
-    industry: 'Logistics',
-    organisationType: 'private_limited',
-    primaryContactName: 'Farah',
-    primaryContactEmail: 'farah@example.test',
-  })
-  codes.push(client.code)
-  const cycle = await createAssessment(as(lead), client.id, { title: 'Remediation cycle' })
-  const items = await listItems(as(lead), client.id, cycle.id)
-  await answerItem(as(auditorB), client.id, items[0]?.id ?? '', { answer: 'no' })
-  const [found] = await listFindings(as(lead), client.id)
-  return { client, cycle, items, finding: found }
+  const client = await newClient(world, 'Remediation')
+  const tech = await newDepartment(world, client.id, 'IT', ['A1.1', 'A8.2', 'B0.12'])
+  await answerItem(world.ctx, client.id, tech.item('A1.1').id, { answer: 'no' })
+  const [found] = await listFindings(world.ctx, client.id)
+  return { client, department: tech, finding: found }
 }
-
-const pdf = (text: string) => Buffer.from(`%PDF-1.4\n% ${text}\n%%EOF\n`)
-
-beforeAll(async () => {
-  app = createDatabase(env.TEST_APP_DATABASE_URL, { max: 4 })
-  owner = createDatabase(env.TEST_DATABASE_URL, { max: 2 })
-  lead = await staff('lead_auditor')
-  auditorA = await staff('auditor')
-  auditorB = await staff('auditor')
-})
-afterAll(async () => {
-  if (codes.length) {
-    await withTenants(owner.db, 'all', (tx) => tx.delete(tenant).where(inArray(tenant.code, codes)))
-  }
-  if (emails.length) await owner.db.delete(appUser).where(inArray(appUser.email, emails))
-  await Promise.all([app.close(), owner.close()])
-})
 
 describe('remediation workflow', () => {
   it('TC-C9.1-01 accepts only the allowed status transitions', async () => {
     const { client, finding } = await setupFinding()
-    const created = await createAction(as(lead), client.id, finding?.id ?? '', {
-      title: 'Adopt a DPDP programme charter',
+    const created = await createAction(world.ctx, client.id, finding?.id ?? '', {
+      title: 'Publish the DPO contact',
     })
-    const move = (to: string, who = lead) =>
-      transitionAction(as(who), client.id, created.id, { to })
+    const move = (to: string) => transitionAction(world.ctx, client.id, created.id, { to })
 
     await expect(move('closed')).rejects.toBeInstanceOf(RuleError)
     await expect(move('in_progress')).rejects.toBeInstanceOf(RuleError)
     await expect(move('accepted_risk')).rejects.toBeInstanceOf(RuleError)
     await expect(move('assigned')).resolves.toBe('assigned')
     await expect(move('under_review')).rejects.toBeInstanceOf(RuleError)
-    await expect(move('in_progress', auditorA)).resolves.toBe('in_progress')
+    await expect(move('in_progress')).resolves.toBe('in_progress')
 
     const reachable = new Set(
       Object.values(ACTION_FLOW).flatMap((steps) => steps.map((step) => step.to)),
@@ -141,17 +59,12 @@ describe('remediation workflow', () => {
     expect(reachable.has('accepted_risk')).toBe(false)
     expect(ACTION_FLOW.closed).toEqual([])
 
-    // Accepting the finding's risk is the only way to Accepted Risk.
-    const [linkedRisk] = await listRisks(as(lead), client.id)
-    const dpo: Principal = {
-      ...lead,
-      userId: randomUUID(),
-      assignments: [{ role: 'client_dpo', clientId: client.id, departmentId: null }],
-    }
-    await acceptRisk(as(dpo), client.id, linkedRisk?.id ?? '', {
-      note: 'Board accepted this until the March migration.',
+    // Recording the client's acceptance of the risk is the only way to Accepted Risk.
+    const [linkedRisk] = await listRisks(world.ctx, client.id)
+    await acceptRisk(world.ctx, client.id, linkedRisk?.id ?? '', {
+      note: 'Accepted by the client DPO until the March migration.',
     })
-    const detail = await getAction(as(lead), client.id, created.code)
+    const detail = await getAction(world.ctx, client.id, created.code)
     expect(detail.status).toBe('accepted_risk')
     expect(detail.events.map((event) => event.toStatus)).toEqual([
       'open',
@@ -163,72 +76,75 @@ describe('remediation workflow', () => {
 })
 
 describe('verification', () => {
-  it('TC-C9.2-01 refuses closing without accepted evidence or by the owner', async () => {
-    const { client, finding } = await setupFinding()
-    const created = await createAction(as(lead), client.id, finding?.id ?? '', {
+  it('TC-C9.2-01 refuses verifying or closing without accepted evidence, and owners are people of the client', async () => {
+    const { client, department, finding } = await setupFinding()
+    const itHead = await newPerson(world, 'department_owner', {
+      clientId: client.id,
+      departmentId: department.id,
+    })
+    const stranger = await newPerson(world, 'department_owner', {
+      clientId: (await newClient(world, 'Other')).id,
+    })
+    const refused = (await createAction(world.ctx, client.id, finding?.id ?? '', {
       title: 'Publish the DPO contact',
-      ownerUserId: auditorA.userId,
+      ownerUserId: stranger.userId,
+    }).catch((error: unknown) => error)) as ValidationError
+    expect(Object.keys(refused.fieldErrors)).toEqual(['ownerUserId'])
+
+    const created = await createAction(world.ctx, client.id, finding?.id ?? '', {
+      title: 'Publish the DPO contact',
+      ownerUserId: itHead.userId,
       dueDate: '2026-12-31',
     })
-    const move = (to: string, who: Principal) =>
-      transitionAction(as(who), client.id, created.id, { to })
-    await move('in_progress', auditorA)
-    await expect(move('under_review', auditorA)).rejects.toThrow('Attach evidence')
-
+    expect((await getAction(world.ctx, client.id, created.code)).status).toBe('assigned')
+    const move = (to: string, who = world.ctx) =>
+      transitionAction(who, client.id, created.id, { to })
+    // The owner at the client moves their action on and attaches the evidence.
+    await move('in_progress', as(world, itHead))
+    await expect(move('under_review', as(world, itHead))).rejects.toThrow('Attach evidence')
     const uploaded = await uploadEvidence(
-      as(auditorA),
+      as(world, itHead),
       client.id,
-      { title: 'Website screenshot' },
+      { title: 'Website screenshot', departmentId: department.id },
       { name: 'contact.pdf', bytes: pdf('contact') },
     )
-    await linkActionEvidence(as(auditorA), client.id, created.id, uploaded.id)
-    await move('under_review', auditorA)
-    await expect(move('remediated', auditorA)).rejects.toThrow('owner of an action cannot')
-    await expect(move('remediated', auditorB)).rejects.toThrow('must be accepted first')
-
-    await reviewEvidence(as(auditorB), client.id, uploaded.id, { decision: 'accepted' })
-    await expect(move('remediated', auditorB)).resolves.toBe('remediated')
-    await expect(move('closed', auditorA)).rejects.toThrow('owner of an action cannot')
-    await expect(move('closed', auditorB)).resolves.toBe('closed')
-    const detail = await getAction(as(lead), client.id, created.code)
-    expect([detail.status, detail.verifiedBy, detail.evidence.map((row) => row.code)]).toEqual([
+    await linkActionEvidence(as(world, itHead), client.id, created.id, uploaded.id)
+    await move('under_review', as(world, itHead))
+    // A file from the client waits for the audit team's review before the fix can be verified.
+    await expect(move('remediated')).rejects.toThrow('must be accepted first')
+    await reviewEvidence(world.ctx, client.id, uploaded.id, { decision: 'accepted' })
+    await expect(move('remediated')).resolves.toBe('remediated')
+    await expect(move('closed', as(world, itHead))).rejects.toThrow()
+    await expect(move('closed')).resolves.toBe('closed')
+    const detail = await getAction(world.ctx, client.id, created.code)
+    expect([detail.status, detail.verifiedBy, detail.ownerName]).toEqual([
       'closed',
-      auditorB.userId,
-      [uploaded.code],
+      world.ctx.principal.userId,
+      'Test department_owner',
     ])
   })
 })
 
 describe('re-assessment', () => {
-  it('TC-C9.3-01 copies department assignments and links to the previous cycle', async () => {
-    const { client, cycle } = await setupFinding()
-    const hr = await createDepartment(as(lead), client.id, { code: 'HR', name: 'People' })
-    const assigned = await assignItems(as(lead), client.id, cycle.id, {
-      domainCode: 'D01',
-      departmentId: hr.id,
-    })
-    expect(assigned).toBeGreaterThan(0)
-
+  it('TC-C9.3-01 links the next cycle to the previous one and refuses it before completion', async () => {
+    const { client, department } = await setupFinding()
+    const cycleId = department.cycle?.id ?? ''
     await expect(
-      createReassessment(as(lead), client.id, cycle.id, { title: 'Too early' }),
+      createReassessment(world.ctx, client.id, cycleId, { title: 'Too early' }),
     ).rejects.toBeInstanceOf(RuleError)
-    await withTenants(owner.db, 'all', (tx) =>
-      tx.update(assessment).set({ status: 'completed' }).where(eq(assessment.id, cycle.id)),
+    await withTenants(world.owner.db, 'all', (tx) =>
+      tx.update(assessment).set({ status: 'completed' }).where(eq(assessment.id, cycleId)),
     )
-
-    const next = await createReassessment(as(lead), client.id, cycle.id, { title: 'Cycle 2' })
-    expect(next.copied).toBe(assigned)
-    const [row] = await withTenants(owner.db, 'all', (tx) =>
+    const next = await createReassessment(world.ctx, client.id, cycleId, { title: 'Cycle 2' })
+    const [row] = await withTenants(world.owner.db, 'all', (tx) =>
       tx
         .select({ previous: assessment.previousAssessmentId })
         .from(assessment)
         .where(eq(assessment.id, next.id)),
     )
-    expect(row?.previous).toBe(cycle.id)
-    const items = await listItems(as(lead), client.id, next.id)
-    const inHr = items.filter((item) => item.departmentId === hr.id)
-    expect(inHr).toHaveLength(assigned)
-    expect(new Set(inHr.map((item) => item.domainCode))).toEqual(new Set(['D01']))
+    expect(row?.previous).toBe(cycleId)
+    const items = await listItems(world.ctx, client.id, next.id)
+    expect(items.map((item) => item.questionCode).sort()).toEqual(['A1.1', 'A8.2', 'B0.12'])
     expect(items.every((item) => item.answer === 'not_assessed')).toBe(true)
   })
 })

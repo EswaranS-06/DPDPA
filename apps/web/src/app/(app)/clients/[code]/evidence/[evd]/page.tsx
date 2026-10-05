@@ -40,7 +40,6 @@ export default async function Page({ params }: Props) {
   )
   const base = `/clients/${client.code}/evidence`
   const reviewer = can(ctx.principal, 'evidence.review', { clientId: client.id })
-  const ownUpload = item.uploadedBy === ctx.principal.userId
   const uses = item.links.length
 
   return (
@@ -87,16 +86,16 @@ export default async function Page({ params }: Props) {
           {item.reviewNote ? (
             <Callout
               tone={item.status === 'rejected' ? 'danger' : 'neutral'}
-              title={item.status === 'rejected' ? 'Rejected by the reviewer' : 'Review note'}
+              title={item.status === 'rejected' ? 'Rejected' : 'Review note'}
             >
               <p>{item.reviewNote}</p>
             </Callout>
           ) : null}
-          {reviewer && !ownUpload ? (
-            <Panel title="Review this evidence" titleId="review-evidence">
+          {reviewer ? (
+            <Panel title="Accept or reject this evidence" titleId="review-evidence">
               <p className={`${styles.flush} ${styles.muted}`}>
-                Accept when the file shows what the question or action asks for. Reject with a note
-                saying what is missing.
+                Files are accepted as you upload them. Reject one with a note when it no longer
+                shows what the question or action asks for, for example once it has expired.
               </p>
               <EvidenceReviewForm
                 action={reviewEvidenceAction.bind(null, {
@@ -108,11 +107,6 @@ export default async function Page({ params }: Props) {
               />
             </Panel>
           ) : null}
-          {reviewer && ownUpload ? (
-            <Callout tone="locked" title="Another auditor reviews this file">
-              <p>You uploaded it, so someone else accepts or rejects it.</p>
-            </Callout>
-          ) : null}
           <Panel title="Used for" titleId="used-for">
             {uses === 0 ? (
               <EmptyState icon={Link2} title="Not linked to a question yet" size="quiet">
@@ -123,12 +117,15 @@ export default async function Page({ params }: Props) {
                 {item.links.map((link) => (
                   <li key={link.itemId}>
                     <Link
-                      href={`/clients/${client.code}/assessments/${link.assessmentCode}/items/${link.questionCode}`}
+                      href={`/clients/${client.code}/assessments/${link.assessmentCode}/items/${link.departmentCode ?? '-'}/${link.questionCode}`}
                       className="code"
                     >
                       {link.questionCode}
                     </Link>{' '}
-                    <span className={styles.muted}>in {link.assessmentTitle}</span>
+                    <span className={styles.muted}>
+                      {link.departmentName ? `${link.departmentName}, ` : ''}in{' '}
+                      {link.assessmentTitle}
+                    </span>
                   </li>
                 ))}
               </ul>

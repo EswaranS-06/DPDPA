@@ -9,6 +9,7 @@ import {
   ListChecks,
   Network,
   ShieldCheck,
+  SlidersHorizontal,
   TriangleAlert,
   UserCog,
   Users,
@@ -22,7 +23,6 @@ export const NAV_ICON: Record<NavIcon, LucideIcon> = {
   overview: LayoutDashboard,
   clients: Building,
   kb: BookOpen,
-  staff: UserCog,
   bands: Gauge,
   clientHome: ShieldCheck,
   assessments: ClipboardList,
@@ -33,4 +33,6 @@ export const NAV_ICON: Record<NavIcon, LucideIcon> = {
   reports: FileText,
   departments: Network,
   people: Users,
+  controls: SlidersHorizontal,
+  team: UserCog,
 }

@@ -5,8 +5,8 @@ export const ROLES = [...FIRM_ROLES, ...CLIENT_ROLES] as const
 export type Role = (typeof ROLES)[number]
 
 export const ROLE_LABEL: Record<Role, string> = {
-  firm_admin: 'Firm administrator',
-  lead_auditor: 'Lead auditor',
+  firm_admin: 'Administrator',
+  lead_auditor: 'Senior auditor',
   auditor: 'Auditor',
   client_dpo: 'Client DPO',
   department_owner: 'Department owner',
@@ -14,11 +14,11 @@ export const ROLE_LABEL: Record<Role, string> = {
 }
 
 export const ROLE_DESCRIPTION: Record<Role, string> = {
-  firm_admin: 'Manages ComplyX staff, all clients and the knowledge base.',
-  lead_auditor: 'Runs engagements: onboards clients, opens assessments, signs off findings.',
-  auditor: 'Assesses assigned clients: answers, reviews evidence, records findings and risks.',
-  client_dpo: 'The client’s privacy lead: manages their people, responds, accepts risks.',
-  department_owner: 'Answers questions and uploads evidence for one department.',
+  firm_admin: 'Manages the ComplyX team, people at clients, all clients and the knowledge base.',
+  lead_auditor: 'Runs engagements: onboards clients, adds people, answers, checks, signs off.',
+  auditor: 'Answers questions, attaches evidence, records findings, risks and actions.',
+  client_dpo: 'The client’s privacy lead: sees everything of the client, uploads, accepts risks.',
+  department_owner: 'Sees the questions and evidence requests given to them, and uploads files.',
   client_viewer: 'Read-only access to the client’s dashboard and reports.',
 }
 

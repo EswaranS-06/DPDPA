@@ -28,7 +28,7 @@ export const navigationFor = (principal: Principal, clients: ClientSummary[]): N
     groups.push({
       label: 'Administration',
       links: [
-        { href: '/admin/staff', label: 'Staff', icon: 'staff' },
+        { href: '/admin/team', label: 'Team', icon: 'team' },
         { href: '/admin/risk-bands', label: 'Risk bands', icon: 'bands' },
       ],
     })

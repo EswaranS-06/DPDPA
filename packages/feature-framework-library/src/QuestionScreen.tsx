@@ -5,19 +5,13 @@ import {
   type FrameworkLibraryApi,
 } from '@duatf/feature-framework-library-api'
 import Link from 'next/link'
-import { ImpactChip } from './components/ImpactChip'
 import { ObligationRow } from './components/ObligationRow'
+import { PenaltyChip } from './components/PenaltyChip'
+import { ANSWER_TYPE_LABEL, OUTCOME_LABEL, RiskLevelChip } from './components/QuestionBits'
 import { orNotFound } from './orNotFound'
 import styles from './screens.module.css'
 
 type Props = { api: FrameworkLibraryApi; code: string; today: string }
-
-const ANSWERS = [
-  { answer: 'Yes', outcome: 'Compliant, once the required evidence is accepted.' },
-  { answer: 'Partial', outcome: 'Potential gap: a finding is raised for review.' },
-  { answer: 'No', outcome: 'Gap: a finding is raised with the recommendation below.' },
-  { answer: 'Not applicable', outcome: 'Excluded from the score; a reason is required.' },
-]
 
 const EvidenceList = ({ items, empty }: { items: string[]; empty: string }) =>
   items.length ? (
@@ -30,26 +24,35 @@ const EvidenceList = ({ items, empty }: { items: string[]; empty: string }) =>
     <p className={`${styles.flush} ${styles.muted}`}>{empty}</p>
   )
 
+const Lines = ({ text }: { text: string }) =>
+  text.split('\n').map((line) => (
+    <p key={line} className={styles.flush}>
+      {line}
+    </p>
+  ))
+
+/** One template question: how it is answered, what each answer means, and its KB mapping. */
 export const QuestionScreen = async ({ api, code, today }: Props) => {
   const item = await orNotFound(api.question({ code }))
   return (
     <div className={styles.page}>
       <PageHeader
-        kicker={<Citation>{item.code}</Citation>}
+        kicker={
+          <span>
+            <Citation>{item.code}</Citation> {item.questionnaire.code} {item.questionnaire.title},{' '}
+            {item.section}
+          </span>
+        }
         title={item.text}
-        lede={describeApplicability(item.applicability)}
+        lede={item.title}
       >
-        <ImpactChip weight={item.riskWeight} />
+        <Chip>{ANSWER_TYPE_LABEL[item.answerType]}</Chip>
+        <RiskLevelChip level={item.riskLevel} />
         {item.reviewStatus === 'draft' ? (
-          <Chip tone="warning">Draft wording, awaiting legal review</Chip>
+          <Chip tone="warning">KB mapping awaiting legal review</Chip>
         ) : (
           <Chip tone="success">Reviewed</Chip>
         )}
-        <Chip>
-          <Link href={kbHref('controls', item.control.code)}>
-            {item.control.code} {item.control.title}
-          </Link>
-        </Chip>
         <Chip>
           <Link href={kbHref('domains', item.domain.code)}>
             {item.domain.code} {item.domain.title}
@@ -58,6 +61,32 @@ export const QuestionScreen = async ({ api, code, today }: Props) => {
       </PageHeader>
 
       <div>
+        <MarginRow margin="Answers">
+          <ul className={`${styles.bullets} ${styles.flush}`}>
+            {item.options.map((option) => (
+              <li key={option.value}>
+                <strong>{option.label}</strong>: {OUTCOME_LABEL[option.outcome]}
+                {option.hint ? `. ${option.hint}` : ''}
+              </li>
+            ))}
+            {item.answerType === 'text' ? <li>Free text, recorded, not scored.</li> : null}
+            <li>
+              <strong>Not applicable</strong>: left out of the score; a reason is required.
+            </li>
+          </ul>
+        </MarginRow>
+        <MarginRow margin="Applies">
+          <p className={styles.flush}>{describeApplicability(item.applicability)}</p>
+        </MarginRow>
+        <MarginRow margin="Highest penalty">
+          {item.penalty ? (
+            <p className={styles.flush}>
+              {item.penalty.text} <PenaltyChip tier={item.penalty.tier} />
+            </p>
+          ) : (
+            <p className={`${styles.flush} ${styles.muted}`}>No DPDP penalty tier is linked.</p>
+          )}
+        </MarginRow>
         <MarginRow margin="Law">
           {item.references.length ? (
             <span className={styles.chips}>
@@ -69,8 +98,30 @@ export const QuestionScreen = async ({ api, code, today }: Props) => {
             <p className={styles.flush}>No citation is recorded.</p>
           )}
         </MarginRow>
+        <MarginRow margin="From the template">
+          <p className={styles.flush}>
+            {item.questionnaire.code} reference: {item.sourceRef ?? 'none given'}
+          </p>
+          {item.mappingNote ? (
+            <p className={styles.flush}>
+              <strong>ComplyX note:</strong> {item.mappingNote}
+            </p>
+          ) : null}
+        </MarginRow>
+        <MarginRow margin="Controls">
+          <ul className={`${styles.bullets} ${styles.flush}`}>
+            {item.controls.map((row) => (
+              <li key={row.code}>
+                <Link href={kbHref('controls', row.code)} className="code">
+                  {row.code}
+                </Link>{' '}
+                <strong>{row.title}.</strong> {row.description}
+              </li>
+            ))}
+          </ul>
+        </MarginRow>
         <MarginRow margin="How to test it">
-          <p className={styles.flush}>{item.guidance}</p>
+          <Lines text={item.guidance} />
         </MarginRow>
         <MarginRow margin="Evidence required">
           <EvidenceList items={item.evidenceRequired} empty="None listed." />
@@ -81,17 +132,8 @@ export const QuestionScreen = async ({ api, code, today }: Props) => {
         <MarginRow margin="Supporting documents">
           <EvidenceList items={item.evidenceSupporting} empty="None for this domain." />
         </MarginRow>
-        <MarginRow margin="Recommendation if No or Partial">
-          <p className={styles.flush}>{item.recommendation}</p>
-        </MarginRow>
-        <MarginRow margin="Answers">
-          <ul className={`${styles.bullets} ${styles.flush}`}>
-            {ANSWERS.map((row) => (
-              <li key={row.answer}>
-                <strong>{row.answer}</strong>: {row.outcome}
-              </li>
-            ))}
-          </ul>
+        <MarginRow margin="If there is a gap">
+          <Lines text={item.recommendation} />
         </MarginRow>
       </div>
 

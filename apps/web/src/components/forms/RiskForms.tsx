@@ -10,7 +10,7 @@ import {
 } from '@duatf/core-ui'
 import { useActionState } from 'react'
 import { IDLE, type FormState } from '@/lib/formState'
-import { Feedback } from './PeopleForms'
+import { Feedback } from './Feedback'
 import styles from './forms.module.css'
 
 type Action = (state: FormState, formData: FormData) => Promise<FormState>

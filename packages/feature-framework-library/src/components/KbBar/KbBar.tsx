@@ -26,7 +26,7 @@ export const KbBar = ({ section, query }: KbBarProps) => (
         name="q"
         type="search"
         defaultValue={query ?? ''}
-        placeholder="Citation, code or words: s.8(6), Rule 7, OBL-CON-01, Q-BRE-01, withdrawal"
+        placeholder="Citation, code or words: s.8(6), Rule 7, OBL-CON-01, C1.5, withdrawal"
       />
       <button type="submit">Search</button>
     </form>

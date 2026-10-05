@@ -19,20 +19,20 @@ export default async function Page({ params }: { params: Promise<{ code: string 
   const client = await loadClient((await params).code)
   const ctx = await serviceContext()
   const assessments = await listAssessments(ctx, client.id)
-  const canCreate = can(ctx.principal, 'assessment.create', { clientId: client.id })
+  const canCreate =
+    can(ctx.principal, 'assessment.create', { clientId: client.id }) && assessments.length === 0
   const year = new Date().getFullYear()
 
   return (
     <>
       <PageHeader
         title="Assessments"
-        lede="Each assessment asks every question of the knowledge base release it starts on. No and Partial answers become findings, each with the recommended action."
+        lede="An assessment is one cycle of the questions you gave the departments, on the knowledge base release it starts on. Gaps and partial answers become findings, each with the recommended action. One cycle is open at a time; start the next from a completed one."
       />
       {assessments.length === 0 ? (
         <EmptyState icon={ClipboardList} title="No assessment yet">
-          {canCreate
-            ? 'Start the first one below. Questions are then assigned to departments, answered with evidence and reviewed.'
-            : 'The audit team starts assessments. You will see them here once one is open.'}
+          The first cycle opens by itself when you give a department its questions, or start it
+          below.
         </EmptyState>
       ) : (
         <section className={styles.section} aria-label="All assessments">
@@ -103,9 +103,8 @@ export default async function Page({ params }: { params: Promise<{ code: string 
       {canCreate ? (
         <Panel title="Start an assessment" titleId="new-assessment">
           <p className={`${styles.flush} ${styles.sectionIntro}`}>
-            The assessment uses the current knowledge base release. A re-assessment of a completed
-            cycle is started from that cycle&apos;s page, so earlier answers and findings carry
-            over.
+            The assessment uses the current knowledge base release. Its questions come from the
+            departments: add a department and choose its questions next.
           </p>
           <NewAssessmentForm
             action={createAssessmentAction.bind(null, client.id, client.code)}

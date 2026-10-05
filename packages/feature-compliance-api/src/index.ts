@@ -3,7 +3,6 @@ export {
   inClient,
   firmWide,
   type ServiceContext,
-  type UserProvisioner,
   type EvidenceStorage,
 } from './context'
 export { ValidationError, NotFoundError, RuleError, parseInput } from './errors'
@@ -27,20 +26,39 @@ export {
   type DepartmentInput,
   type DepartmentRow,
 } from './departments'
+export { objectEvidenceStorage } from './storage'
 export {
-  inviteClientUser,
-  inviteFirmStaff,
-  assignStaff,
-  removeAssignment,
   listClientPeople,
-  listFirmStaff,
-  resetTemporaryPassword,
-  setUserEnabled,
-  type InviteResult,
+  assignablePeople,
+  listStaff,
+  createClientPerson,
+  updateClientPerson,
+  addClientRole,
+  removeClientRole,
+  issueClientLogin,
+  revokeClientLogin,
+  createStaff,
+  issueStaffLogin,
+  revokeStaffLogin,
   type Person,
-  type PersonAssignment,
+  type PersonRole,
+  type LoginIssued,
 } from './people'
-export { keycloakProvisioner, objectEvidenceStorage } from './provisioner'
+export {
+  assignItem,
+  assignDepartmentItems,
+  requestEvidence,
+  cancelEvidenceRequest,
+  listEvidenceRequests,
+  listClientControls,
+  setControlOwner,
+  myWork,
+  type EvidenceRequestRow,
+  type RequestFilters,
+  type ClientControlRow,
+  type MyWork,
+} from './assignments'
+export { readGate, gateConflict, verdict, type GateReading } from './reconcile'
 export {
   ORGANISATION_TYPE_LABEL,
   CLIENT_STATUS_LABEL,
@@ -59,16 +77,32 @@ export {
   listItems,
   getItem,
   answerItem,
-  reviewItem,
-  assignItems,
+  checkItem,
+  checkAnswered,
   changeAssessmentStatus,
+  departmentQuestionPicker,
+  setDepartmentQuestions,
+  openCycle,
   TRANSITIONS,
   type AssessmentSummary,
   type AssessmentDetail,
   type ItemFilters,
   type ItemRow,
   type ItemDetail,
+  type QuestionChange,
+  type QuestionPicker,
+  type PickerQuestionnaire,
+  type PickerQuestion,
 } from './assessments'
+export {
+  evaluateResponse,
+  describeResponse,
+  responseValues,
+  maturityOf,
+  ANSWER_TYPE_LABEL,
+  type AnswerShape,
+  type ResponseInput,
+} from './responses'
 export {
   summariseProgress,
   explainCompliance,

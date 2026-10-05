@@ -10,7 +10,7 @@ export const CAPABILITY_LABEL: Record<Capability, string> = {
   'client.edit': "edit this client's profile",
   'client.assign_staff': 'assign ComplyX staff to clients',
   'department.manage': 'manage departments',
-  'user.invite': 'invite people',
+  'user.invite': 'add people and manage their logins',
   'assessment.create': 'start assessments',
   'assessment.view': 'view assessments',
   'assessment.assign': 'assign questions to departments',
@@ -67,6 +67,6 @@ export const describeDenial = (
       ),
     ask: principal.assignments.some((assignment) => isFirmRole(assignment.role))
       ? 'your DUATF administrator'
-      : 'your organisation’s DPO or the ComplyX team',
+      : 'the ComplyX audit team',
   }
 }

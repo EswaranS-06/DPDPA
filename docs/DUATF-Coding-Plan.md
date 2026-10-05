@@ -433,6 +433,42 @@ Built after C17, at ComplyX's request: a separate site on port 53001 that lists 
 | TC-C18.4-01 | Show me opens a visible Chrome on DUATF, waits for sign-in, and a second task reuses the tab | manual |
 | TC-C18.4-02 | ComplyX signs in and follows a task to its end in the guide window | manual |
 
+### C19: Self-audit edition (R2, branch `self-audit`, then `main`)
+Built after C18, at ComplyX's request. The auditor runs the whole assessment alone: they create the departments, choose each department's questions from the three ComplyX templates, answer, attach evidence and track everything. DUATF has its own sign-in page, and role-based access stays. People such as an IT Head can be given work with or without a login, and questions reconcile Not applicable among themselves. The multi-user edition continues on `multi-view`. Decisions are in ADR-0006.
+
+| Sub | Build |
+|---|---|
+| C19.1 | `pnpm questions:import` reads TPL-001, TPL-002 and TPL-003 (142 questions) into `templates.yaml`; `kb-mapping.yaml` maps each one to a domain, obligations, controls, scoring and gates |
+| C19.2 | Release 1.1.0 is built with the questionnaires and questions: answer options and outcomes, references, penalty and phase from the obligations, guidance, evidence and recommendation from the controls |
+| C19.3 | Departments choose questions one by one, by section or by whole template; answers are per department; the first cycle opens by itself |
+| C19.4 | Yes / Partial / No, maturity 0-4, choices and text; reversed and recorded-only questions; the posture leaves recorded answers out |
+| C19.5 | Self-check: each answer is ticked as checked; a cycle completes when all are answered and checked; the next cycle takes over the departments' questions |
+| C19.6 | Gates: a ruled-out question becomes Not applicable with the reason; a question that applies cannot be Not applicable; changes undo it |
+| C19.7 | Username and password sign-in on DUATF's own page (scrypt, lockout, one-time password); people at a client added without a login, and logins issued or revoked by the Administrator or Senior auditor |
+| C19.8 | Questions, evidence requests, actions and controls given to people; "your work" for them; open requests and pending reviews for the auditor |
+| C19.9 | `setup.sh` and `setup.ps1` over `pnpm duatf`: install, update, pull, repair, switch, start/stop, status, logs, account, backup, doctor, uninstall |
+
+| Test | Expected | Source |
+|---|---|---|
+| TC-C19.1-01 | templates.yaml is exactly what the three ComplyX workbooks hold | oracle |
+| TC-C19.1-02 | Every question is mapped to the knowledge base, with valid answer options and gates | literal |
+| TC-C19.2-01 | The release holds the three questionnaires and 142 complete questions with law, penalty, controls and gates | oracle |
+| TC-C19.3-01 | A new department gets exactly the chosen questions, whole questionnaires and sections included, in the first cycle | oracle |
+| TC-C19.3-02 | The same question for two departments is answered separately | literal |
+| TC-C19.3-03 | Taking questions away removes unanswered ones and keeps answered ones | literal |
+| TC-C19.4-01 | Every option of every chosen question gives the outcome the knowledge base sets for it | oracle |
+| TC-C19.4-02 | The posture counts maturity and choices like Yes, Partial and No and leaves recorded answers out | literal |
+| TC-C19.5-01 | A cycle completes only when every question is answered and every answer is ticked as checked | literal |
+| TC-C19.5-02 | After a completed cycle, questions change only in the next cycle | literal |
+| TC-C19.5-03 | The next cycle copies each active department's questions, with no answers | literal |
+| TC-C19.6-01 | A gate answer marks the questions it rules out Not applicable, across departments, and undoes it when it changes | literal |
+| TC-C19.7-01 | A person is added without a login, can be given work, and signs in only once a login is issued | literal |
+| TC-C19.8-01 | The person given a question sees it and uploads for it; evidence requests go from requested to accepted | literal |
+| TC-C19.8-02 | Controls get owners, and actions and controls show under the owner's work | literal |
+| TC-C19.9-01 | setup.sh and setup.ps1 install, update, repair and report status | manual |
+
+In this edition, the tests of C3.1 (Keycloak realm), C4.2-02 (one question per control), C5.3 (invitations), C6 (the earlier assessment model), C10.4 (demo clients) and C18 (playbook) are marked `deferredTo: multi-view`. TC-C3.2-01 and TC-C3.2-02 now test the password sign-in.
+
 ### C12: Hardening (R3) and C13: Pilots and production (R3)
 Unchanged in intent: isolation tests for every route, load test, restore drill, ClamAV, accessibility, self-assessment; then pilots and 1.0.
 

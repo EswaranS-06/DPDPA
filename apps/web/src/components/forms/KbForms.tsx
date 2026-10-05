@@ -14,7 +14,7 @@ import type { EntryField, EntryForm } from '@duatf/feature-framework-library-api
 import Link from 'next/link'
 import { useActionState, type MouseEvent } from 'react'
 import { IDLE, type FormState } from '@/lib/formState'
-import { Feedback } from './PeopleForms'
+import { Feedback } from './Feedback'
 import styles from './forms.module.css'
 import kb from './KbForms.module.css'
 

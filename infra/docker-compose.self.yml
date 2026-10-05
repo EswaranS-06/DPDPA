@@ -1,0 +1,45 @@
+# DUATF self-audit edition: the services an installation runs for itself (setup --services docker).
+# Started by `pnpm duatf services up` as project "duatf-self"; values come from infra/.env, which
+# the installer creates. Ports default to a range that does not clash with the main DUATF stack.
+name: duatf-self
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-duatf_self}
+      TZ: Asia/Kolkata
+    ports: ["127.0.0.1:${POSTGRES_PORT:-55433}:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD}"]
+    ports: ["127.0.0.1:${REDIS_PORT:-56380}:6379"]
+    volumes: [redisdata:/data]
+
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    ports:
+      - "${MINIO_API_PORT:-59010}:9000"
+      - "127.0.0.1:${MINIO_CONSOLE_PORT:-59011}:9001"
+    volumes: [miniodata:/data]
+
+volumes:
+  pgdata:
+  redisdata:
+  miniodata:

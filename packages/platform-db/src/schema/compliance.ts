@@ -8,6 +8,7 @@ import {
   jsonb,
   integer,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   unique,
@@ -123,7 +124,18 @@ export const assessment = pgTable(
   (table) => [unique('assessment_tenant_code').on(table.tenantId, table.code)],
 )
 
-export const ANSWERS = ['not_assessed', 'yes', 'partial', 'no', 'not_applicable'] as const
+/**
+ * The scored meaning of an answer. A question's options say which one each choice stands for:
+ * Yes, maturity level 3 or 4 and most choices mean "yes"; "recorded" is an informational answer.
+ */
+export const ANSWERS = [
+  'not_assessed',
+  'yes',
+  'partial',
+  'no',
+  'not_applicable',
+  'recorded',
+] as const
 export type Answer = (typeof ANSWERS)[number]
 
 export const COMPLIANCE_STATES = [
@@ -132,13 +144,20 @@ export const COMPLIANCE_STATES = [
   'potential_gap',
   'gap',
   'excluded',
+  'informational',
 ] as const
 export type ComplianceState = (typeof COMPLIANCE_STATES)[number]
 
 export const REVIEW_STATES = ['not_reviewed', 'accepted', 'returned'] as const
 export type ReviewState = (typeof REVIEW_STATES)[number]
 
-/** One question of an assessment: who answers it, the answer and the review. */
+/** What was actually chosen or written: option values (one for single-choice types) or free text. */
+export type ItemResponse = { values: string[] } | { text: string }
+
+/**
+ * One question of an assessment for one department: the response, its scored meaning and the
+ * self-check. The same question can be given to several departments, each with its own item.
+ */
 export const assessmentItem = pgTable(
   'assessment_item',
   {
@@ -154,16 +173,21 @@ export const assessmentItem = pgTable(
     domainCode: text('domain_code').notNull(),
     seq: integer('seq').notNull(),
     departmentId: uuid('department_id').references(() => department.id, { onDelete: 'set null' }),
+    /** The person at the client the question is assigned to (sees it, uploads evidence for it). */
+    assigneeUserId: uuid('assignee_user_id'),
     answer: text('answer').$type<Answer>().notNull().default('not_assessed'),
     // The gap rule, enforced by the database: Yes compliant, Partial potential gap, No gap,
-    // Not applicable excluded, not yet assessed pending.
+    // Not applicable excluded, an informational answer recorded, not yet assessed pending.
     complianceState: text('compliance_state')
       .$type<ComplianceState>()
       .notNull()
       .generatedAlwaysAs(
-        sql`case answer when 'yes' then 'compliant' when 'partial' then 'potential_gap' when 'no' then 'gap' when 'not_applicable' then 'excluded' else 'pending' end`,
+        sql`case answer when 'yes' then 'compliant' when 'partial' then 'potential_gap' when 'no' then 'gap' when 'not_applicable' then 'excluded' when 'recorded' then 'informational' else 'pending' end`,
       ),
+    response: jsonb('response').$type<ItemResponse>(),
     naReason: text('na_reason'),
+    /** Set when Not applicable was decided by another question's answer (self-reconciliation). */
+    autoNaFrom: text('auto_na_from'),
     comment: text('comment'),
     answeredBy: uuid('answered_by'),
     answeredAt: timestamp('answered_at', { withTimezone: true }),
@@ -173,7 +197,9 @@ export const assessmentItem = pgTable(
     reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
   },
   (table) => [
-    unique('assessment_item_question').on(table.assessmentId, table.questionCode),
+    unique('assessment_item_question_department')
+      .on(table.assessmentId, table.questionCode, table.departmentId)
+      .nullsNotDistinct(),
     index('assessment_item_department').on(table.departmentId),
     check(
       'assessment_item_na_reason',
@@ -237,6 +263,56 @@ export const evidenceLink = pgTable(
     index('evidence_link_item_idx').on(table.itemId),
     index('evidence_link_action_idx').on(table.actionId),
     check('evidence_link_target', sql`num_nonnulls(${table.itemId}, ${table.actionId}) = 1`),
+  ],
+)
+
+export const EVIDENCE_REQUEST_STATUSES = ['requested', 'received', 'accepted', 'cancelled'] as const
+export type EvidenceRequestStatus = (typeof EVIDENCE_REQUEST_STATUSES)[number]
+
+/**
+ * A piece of evidence the auditor asks someone for, against one question of a department:
+ * requested, received when a file is attached to it, accepted with that file.
+ */
+export const evidenceRequest = pgTable(
+  'evidence_request',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenant.id, { onDelete: 'cascade' }),
+    itemId: uuid('item_id')
+      .notNull()
+      .references(() => assessmentItem.id, { onDelete: 'cascade' }),
+    title: text('title').notNull(),
+    note: text('note'),
+    assigneeUserId: uuid('assignee_user_id'),
+    dueDate: date('due_date', { mode: 'string' }),
+    status: text('status').$type<EvidenceRequestStatus>().notNull().default('requested'),
+    evidenceId: uuid('evidence_id').references(() => evidence.id, { onDelete: 'set null' }),
+    requestedBy: uuid('requested_by'),
+    requestedAt: timestamp('requested_at', { withTimezone: true }).notNull().defaultNow(),
+    fulfilledAt: timestamp('fulfilled_at', { withTimezone: true }),
+  },
+  (table) => [
+    index('evidence_request_item').on(table.itemId),
+    index('evidence_request_assignee').on(table.assigneeUserId),
+  ],
+)
+
+/** Who owns each knowledge-base control at a client. */
+export const controlOwner = pgTable(
+  'control_owner',
+  {
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenant.id, { onDelete: 'cascade' }),
+    controlCode: text('control_code').notNull(),
+    userId: uuid('user_id').notNull(),
+    assignedBy: uuid('assigned_by'),
+    assignedAt: timestamp('assigned_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    primaryKey({ name: 'control_owner_pk', columns: [table.tenantId, table.controlCode] }),
   ],
 )
 
@@ -383,6 +459,8 @@ export const remediationAction = pgTable(
     title: text('title').notNull(),
     description: text('description'),
     ownerUserId: uuid('owner_user_id'),
+    /** The person at the client who carries the action out (free text in the self edition). */
+    ownerName: text('owner_name'),
     departmentId: uuid('department_id').references(() => department.id, { onDelete: 'set null' }),
     dueDate: date('due_date', { mode: 'string' }),
     status: text('status').$type<ActionStatus>().notNull().default('open'),

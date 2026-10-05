@@ -10,17 +10,6 @@ import {
 } from '@duatf/platform-db'
 import { tenantScope } from '@duatf/platform-identity'
 
-/** Creates and updates sign-in accounts (Keycloak in production, a fake in tests). */
-export type UserProvisioner = {
-  /** Creates the account, or resets it when the email exists; returns the account id. */
-  provision: (input: {
-    email: string
-    displayName: string
-    temporaryPassword: string
-  }) => Promise<string>
-  setEnabled: (accountId: string, enabled: boolean) => Promise<void>
-}
-
 /** Where evidence files live (MinIO in production). */
 export type EvidenceStorage = {
   put: (
@@ -32,11 +21,10 @@ export type EvidenceStorage = {
   remove: (key: string) => Promise<void>
 }
 
-/** Everything a service call needs: the database, who is acting, accounts and file storage. */
+/** Everything a service call needs: the database, who is acting and file storage. */
 export type ServiceContext = {
   db: Database
   principal: Principal
-  provisioner: UserProvisioner
   storage?: EvidenceStorage
 }
 

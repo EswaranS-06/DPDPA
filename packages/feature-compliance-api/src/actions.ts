@@ -15,12 +15,9 @@ import {
   evidenceLink,
   finding,
   inArray,
-  isNotNull,
-  ne,
   nextCode,
   notInArray,
   remediationAction,
-  roleAssignment,
   tenant,
   type ActionStatus,
   type Executor,
@@ -28,6 +25,7 @@ import {
 } from '@duatf/platform-db'
 import { z } from 'zod'
 import { createAssessment } from './assessments'
+import { checkAssignable } from './assignments'
 import { audit, inClient, type ServiceContext } from './context'
 import { closeRemediatedFinding } from './findings'
 import {
@@ -86,6 +84,21 @@ const actionSchema = z.object({
   dueDate: optionalDate(),
 })
 
+/**
+ * Whether the user may take a step on an action: by their role (for its department), or as the
+ * action's owner for the owner's own steps (working on it and submitting it for review).
+ */
+const mayDo = (
+  ctx: ServiceContext,
+  clientId: string,
+  capability: Capability,
+  action: { departmentId: string | null; ownerUserId: string | null },
+) =>
+  can(ctx.principal, capability, { clientId, departmentId: action.departmentId }) ||
+  (capability === 'action.update' &&
+    action.ownerUserId === ctx.principal.userId &&
+    can(ctx.principal, 'client.view', { clientId }))
+
 const recordEvent = (
   tx: Executor,
   ctx: ServiceContext,
@@ -106,19 +119,6 @@ const recordEvent = (
     note: input.note ?? null,
   })
 
-/** The owner must hold a role on this client (or be firm-wide staff) and not be disabled. */
-const checkOwner = async (tx: Transaction, clientId: string, ownerUserId: string | undefined) => {
-  if (!ownerUserId) return
-  const roles = await tx
-    .select({ tenantId: roleAssignment.tenantId })
-    .from(roleAssignment)
-    .innerJoin(appUser, eq(appUser.id, roleAssignment.userId))
-    .where(and(eq(roleAssignment.userId, ownerUserId), ne(appUser.status, 'disabled')))
-  if (!roles.some((row) => row.tenantId === null || row.tenantId === clientId)) {
-    throw new ValidationError({ ownerUserId: 'Choose someone with access to this client.' })
-  }
-}
-
 const checkDepartment = async (
   tx: Transaction,
   clientId: string,
@@ -132,7 +132,10 @@ const checkDepartment = async (
   if (!row?.active) throw new ValidationError({ departmentId: 'Choose an active department.' })
 }
 
-/** Plans a remediation action for a finding; with an owner it starts as Assigned. */
+/**
+ * Plans a remediation action for a finding; with an owner (a person at the client such as
+ * IT Head, or someone at ComplyX) it starts as Assigned.
+ */
 export const createAction = async (
   ctx: ServiceContext,
   clientId: string,
@@ -143,12 +146,17 @@ export const createAction = async (
   const input = parseInput(actionSchema, raw)
   return inClient(ctx, clientId, async (tx) => {
     const [found] = await tx
-      .select({ code: finding.code, clientCode: tenant.code })
+      .select({
+        code: finding.code,
+        clientCode: tenant.code,
+        departmentId: assessmentItem.departmentId,
+      })
       .from(finding)
       .innerJoin(tenant, eq(tenant.id, finding.tenantId))
+      .innerJoin(assessmentItem, eq(assessmentItem.id, finding.itemId))
       .where(and(eq(finding.id, findingId), eq(finding.tenantId, clientId)))
     if (!found) throw new NotFoundError('Finding')
-    await checkOwner(tx, clientId, input.ownerUserId)
+    await checkAssignable(tx, clientId, input.ownerUserId, 'ownerUserId')
     await checkDepartment(tx, clientId, input.departmentId)
     const status: ActionStatus = input.ownerUserId ? 'assigned' : 'open'
     const code = await nextCode(tx, clientId, sequenceScope('REM', found.clientCode))
@@ -161,7 +169,8 @@ export const createAction = async (
         title: input.title,
         description: input.description ?? null,
         ownerUserId: input.ownerUserId ?? null,
-        departmentId: input.departmentId ?? null,
+        // The finding's department unless another is chosen.
+        departmentId: input.departmentId ?? found.departmentId,
         dueDate: input.dueDate ?? null,
         status,
         createdBy: ctx.principal.userId,
@@ -180,7 +189,7 @@ export const createAction = async (
   })
 }
 
-/** Changes owner, department or due date. Giving an open action an owner assigns it. */
+/** Changes owner, department or due date. Naming an owner for an open action assigns it. */
 export const updateActionPlan = async (
   ctx: ServiceContext,
   clientId: string,
@@ -197,7 +206,7 @@ export const updateActionPlan = async (
     if (!current) throw new NotFoundError('Action')
     if (FINAL_ACTION_STATUSES.includes(current.status))
       throw new RuleError('This action is finished.')
-    await checkOwner(tx, clientId, input.ownerUserId)
+    await checkAssignable(tx, clientId, input.ownerUserId, 'ownerUserId')
     await checkDepartment(tx, clientId, input.departmentId)
     const status: ActionStatus =
       current.status === 'open' && input.ownerUserId ? 'assigned' : current.status
@@ -240,8 +249,8 @@ const evidenceCounts = async (tx: Transaction, actionId: string) => {
 
 /**
  * Moves an action along the workflow. Refuses moves the workflow does not allow, submitting
- * without evidence, rejecting without a note, and verification or closing by the owner or
- * without accepted evidence.
+ * without evidence, rejecting without a note, and verification or closing without accepted
+ * evidence.
  */
 export const transitionAction = async (
   ctx: ServiceContext,
@@ -266,11 +275,10 @@ export const transitionAction = async (
         `An action that is ${current.status.replace(/_/g, ' ')} cannot move to ${input.to.replace(/_/g, ' ')}.`,
       )
     }
-    authorize(ctx.principal, step.capability, { clientId, departmentId: current.departmentId })
-    const verifying = step.to === 'remediated' || step.to === 'closed'
-    if (verifying && current.ownerUserId === ctx.principal.userId) {
-      throw new RuleError('The owner of an action cannot verify or close it.')
+    if (!mayDo(ctx, clientId, step.capability, current)) {
+      authorize(ctx.principal, step.capability, { clientId, departmentId: current.departmentId })
     }
+    const verifying = step.to === 'remediated' || step.to === 'closed'
     const counts = await evidenceCounts(tx, actionId)
     if (step.to === 'under_review' && counts.total === 0) {
       throw new RuleError('Attach evidence of the fix before submitting it for review.')
@@ -358,12 +366,15 @@ export const linkActionEvidence = async (
       .select({
         code: remediationAction.code,
         departmentId: remediationAction.departmentId,
+        ownerUserId: remediationAction.ownerUserId,
         status: remediationAction.status,
       })
       .from(remediationAction)
       .where(and(eq(remediationAction.id, actionId), eq(remediationAction.tenantId, clientId)))
     if (!current) throw new NotFoundError('Action')
-    authorize(ctx.principal, 'action.update', { clientId, departmentId: current.departmentId })
+    if (!mayDo(ctx, clientId, 'action.update', current)) {
+      authorize(ctx.principal, 'action.update', { clientId, departmentId: current.departmentId })
+    }
     if (FINAL_ACTION_STATUSES.includes(current.status))
       throw new RuleError('This action is finished.')
     const [found] = await tx
@@ -515,15 +526,12 @@ export type ActionDetail = Awaited<ReturnType<typeof getAction>>
 export const nextSteps = (
   ctx: ServiceContext,
   clientId: string,
-  action: { status: ActionStatus; departmentId: string | null },
-) =>
-  ACTION_FLOW[action.status].filter((step) =>
-    can(ctx.principal, step.capability, { clientId, departmentId: action.departmentId }),
-  )
+  action: { status: ActionStatus; departmentId: string | null; ownerUserId: string | null },
+) => ACTION_FLOW[action.status].filter((step) => mayDo(ctx, clientId, step.capability, action))
 
 /**
- * Starts the next cycle from a previous assessment: same client, the current knowledge-base
- * release, and the previous department assignment for every question that still exists.
+ * Starts the next cycle from a completed assessment: same client, the current knowledge-base
+ * release, and every question each active department had (when it is still in the release).
  */
 export const createReassessment = async (
   ctx: ServiceContext,
@@ -543,52 +551,5 @@ export const createReassessment = async (
   if (previous.status !== 'completed') {
     throw new RuleError('Complete the previous assessment before starting the next cycle.')
   }
-  const created = await createAssessment(ctx, clientId, raw, { previousAssessmentId })
-  const copied = await inClient(ctx, clientId, async (tx) => {
-    const scope = await tx
-      .select({
-        questionCode: assessmentItem.questionCode,
-        departmentId: assessmentItem.departmentId,
-      })
-      .from(assessmentItem)
-      .innerJoin(department, eq(department.id, assessmentItem.departmentId))
-      .where(
-        and(
-          eq(assessmentItem.assessmentId, previousAssessmentId),
-          isNotNull(assessmentItem.departmentId),
-          eq(department.active, true),
-        ),
-      )
-    let changed = 0
-    const byDepartment = new Map<string, string[]>()
-    for (const row of scope) {
-      if (!row.departmentId) continue
-      byDepartment.set(row.departmentId, [
-        ...(byDepartment.get(row.departmentId) ?? []),
-        row.questionCode,
-      ])
-    }
-    for (const [departmentId, questionCodes] of byDepartment) {
-      const updated = await tx
-        .update(assessmentItem)
-        .set({ departmentId })
-        .where(
-          and(
-            eq(assessmentItem.assessmentId, created.id),
-            inArray(assessmentItem.questionCode, questionCodes),
-          ),
-        )
-        .returning({ id: assessmentItem.id })
-      changed += updated.length
-    }
-    await audit(tx, ctx, {
-      tenantId: clientId,
-      action: 'assessment.reassess',
-      entity: 'assessment',
-      entityId: created.code,
-      detail: { previous: previousAssessmentId, assignmentsCopied: changed },
-    })
-    return changed
-  })
-  return { ...created, copied }
+  return createAssessment(ctx, clientId, raw, { previousAssessmentId })
 }

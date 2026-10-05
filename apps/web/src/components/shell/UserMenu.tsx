@@ -1,6 +1,16 @@
 'use client'
 
-import { ChevronsUpDown, LogOut, Monitor, Moon, Rows3, Sun, SunMoon, Rows4 } from 'lucide-react'
+import {
+  ChevronsUpDown,
+  KeyRound,
+  LogOut,
+  Monitor,
+  Moon,
+  Rows3,
+  Sun,
+  SunMoon,
+  Rows4,
+} from 'lucide-react'
 import { useState } from 'react'
 import {
   DENSITIES,
@@ -105,6 +115,12 @@ export const UserMenu = ({ user }: { user: ShellUser }) => {
             )
           })}
         </fieldset>
+        <div className={styles.menuGroup}>
+          <a href="/account/password" className={styles.signOut}>
+            <KeyRound size={16} strokeWidth={1.75} aria-hidden="true" />
+            Change password
+          </a>
+        </div>
         <form action="/auth/logout" method="post" className={styles.menuGroup}>
           <button type="submit" className={styles.signOut}>
             <LogOut size={16} strokeWidth={1.75} aria-hidden="true" />

@@ -9,27 +9,27 @@ const GOLDEN: Record<Capability, string> = {
   'platform.admin': 'Y.....',
   'client.create': 'YY....',
   'client.view': 'YYYYYY',
-  'client.edit': 'YY.Y..',
+  'client.edit': 'YY....',
   'client.assign_staff': 'Y.....',
-  'department.manage': 'YYYY..',
-  'user.invite': 'YY.Y..',
+  'department.manage': 'YYY...',
+  'user.invite': 'YY....',
   'assessment.create': 'YY....',
   'assessment.view': 'YYYYYY',
-  'assessment.assign': 'YYYY..',
-  'assessment.answer': '.YYYY.',
+  'assessment.assign': 'YYY...',
+  'assessment.answer': '.YY...',
   'assessment.review': '.YY...',
   'evidence.view': 'YYYYYY',
   'evidence.upload': '.YYYY.',
   'evidence.review': '.YY...',
   'finding.manage': '.YY...',
   'risk.manage': '.YY...',
-  'risk.accept': '...Y..',
-  'action.manage': '.YYY..',
+  'risk.accept': '.Y.Y..',
+  'action.manage': '.YY...',
   'action.update': '.YYYY.',
   'action.verify': '.YY...',
   'report.view': 'YYYYYY',
   'report.export': 'YYYY.Y',
-  'audit.view': 'YY.Y..',
+  'audit.view': 'YY....',
   'kb.view': 'YYYYYY',
   'kb.edit': 'YY....',
   'kb.publish': 'Y.....',
@@ -86,13 +86,13 @@ describe('scoping', () => {
     )
 
     const owner = principalWith('department_owner', CLIENT, DEPARTMENT)
+    expect(can(owner, 'evidence.upload', { clientId: CLIENT, departmentId: DEPARTMENT })).toBe(true)
+    expect(can(owner, 'evidence.upload', { clientId: CLIENT, departmentId: 'dept-it' })).toBe(false)
+    expect(can(owner, 'evidence.upload', { clientId: CLIENT })).toBe(false)
+    // In the self-audit edition only the audit team answers, in any department.
     expect(can(owner, 'assessment.answer', { clientId: CLIENT, departmentId: DEPARTMENT })).toBe(
-      true,
-    )
-    expect(can(owner, 'assessment.answer', { clientId: CLIENT, departmentId: 'dept-it' })).toBe(
       false,
     )
-    expect(can(owner, 'assessment.answer', { clientId: CLIENT })).toBe(false)
     expect(can(owner, 'client.view', { clientId: CLIENT })).toBe(true)
     expect(can(owner, 'client.view', { clientId: OTHER_CLIENT })).toBe(false)
   })

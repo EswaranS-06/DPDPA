@@ -97,7 +97,8 @@ export default async function Page({ params, searchParams }: Props) {
                 : 'No finding matches these filters'
             }
           >
-            Findings appear here when a question is answered No or Partial. Each one carries the
+            Findings appear here when an answer shows a gap or a partial gap: No or Partial, a
+            maturity level from 0 to 2, or a choice scored as a gap. Each one carries the
             recommended action and a risk rating.
           </EmptyState>
         ) : (
@@ -116,7 +117,7 @@ export default async function Page({ params, searchParams }: Props) {
                     <span className={styles.muted}>
                       <span className="code">{row.code}</span>, question{' '}
                       <Link
-                        href={`/clients/${client.code}/assessments/${row.assessmentCode}/items/${row.questionCode}`}
+                        href={`/clients/${client.code}/assessments/${row.assessmentCode}/items/${row.departmentCode ?? '-'}/${row.questionCode}`}
                         className="code"
                       >
                         {row.questionCode}

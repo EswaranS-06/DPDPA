@@ -21,7 +21,13 @@ export const uploadEvidenceAction = async (
   _: FormState,
   formData: FormData,
 ): Promise<FormState> => {
-  const values = formValues(formData)
+  const values = {
+    ...formValues(formData),
+    requestIds: formData
+      .getAll('requestIds')
+      .filter((item) => typeof item === 'string')
+      .join(','),
+  }
   const file = formData.get('file')
   try {
     if (!(file instanceof File) || file.size === 0) {

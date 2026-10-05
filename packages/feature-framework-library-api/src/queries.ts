@@ -18,6 +18,7 @@ import {
   playbookDoc,
   processTemplate,
   question,
+  questionnaire,
   acceptanceCriterion,
   retentionAnchor,
   sectorLaw,
@@ -557,14 +558,22 @@ export const getPlaybook = async (db: Database, release: Release, slug: string) 
 export const listQuestions = (
   db: Database,
   release: Release,
-  filters: { domain?: string; text?: string },
+  filters: { domain?: string; text?: string; questionnaire?: string },
 ) =>
   db
     .select({
       code: question.code,
       seq: question.seq,
       text: question.text,
+      title: question.title,
+      questionnaireCode: question.questionnaireCode,
+      section: question.section,
+      answerType: question.answerType,
+      riskLevel: question.riskLevel,
+      scored: question.scored,
       controlCode: question.controlCode,
+      controlCodes: question.controlCodes,
+      obligationCodes: question.obligationCodes,
       domainCode: question.domainCode,
       riskWeight: question.riskWeight,
       applicability: question.applicability,
@@ -575,11 +584,13 @@ export const listQuestions = (
       and(
         eq(question.releaseId, release.id),
         filters.domain ? eq(question.domainCode, filters.domain) : undefined,
+        filters.questionnaire ? eq(question.questionnaireCode, filters.questionnaire) : undefined,
         filters.text
           ? or(
               ilike(question.code, likePattern(filters.text)),
               ilike(question.text, likePattern(filters.text)),
-              ilike(question.controlCode, likePattern(filters.text)),
+              ilike(question.title, likePattern(filters.text)),
+              ilike(question.section, likePattern(filters.text)),
             )
           : undefined,
       ),
@@ -587,26 +598,51 @@ export const listQuestions = (
     .orderBy(asc(question.seq))
 export type QuestionListItem = Awaited<ReturnType<typeof listQuestions>>[number]
 
+/** The ComplyX question templates of the release, in order. */
+export const listQuestionnaires = (db: Database, release: Release) =>
+  db
+    .select()
+    .from(questionnaire)
+    .where(eq(questionnaire.releaseId, release.id))
+    .orderBy(asc(questionnaire.seq))
+export type QuestionnaireItem = Awaited<ReturnType<typeof listQuestionnaires>>[number]
+
 export const getQuestion = async (db: Database, release: Release, code: string) => {
   const [item] = await db
     .select()
     .from(question)
     .where(and(eq(question.releaseId, release.id), eq(question.code, code)))
   if (!item) return undefined
-  const [controlRow] = await db
+  const controlCodes = item.controlCodes.length ? item.controlCodes : [item.controlCode]
+  const controls = await db
     .select({
       code: control.code,
       title: control.title,
       description: control.description,
       controlType: control.controlType,
       ownerRole: control.ownerRole,
+      testProcedure: control.testProcedure,
     })
     .from(control)
-    .where(and(eq(control.releaseId, release.id), eq(control.code, item.controlCode)))
+    .where(and(eq(control.releaseId, release.id), inArray(control.code, controlCodes)))
+  const orderedControls = controlCodes.flatMap((codeOf) => {
+    const row = controls.find((entry) => entry.code === codeOf)
+    return row ? [row] : []
+  })
   const [domainRow] = await db
     .select({ code: domain.code, title: domain.title })
     .from(domain)
     .where(and(eq(domain.releaseId, release.id), eq(domain.code, item.domainCode)))
+  const [group] = await db
+    .select({
+      code: questionnaire.code,
+      title: questionnaire.title,
+      respondent: questionnaire.respondent,
+    })
+    .from(questionnaire)
+    .where(
+      and(eq(questionnaire.releaseId, release.id), eq(questionnaire.code, item.questionnaireCode)),
+    )
   const obligations = item.obligationCodes.length
     ? await db
         .select(obligationColumns)
@@ -635,17 +671,41 @@ export const getQuestion = async (db: Database, release: Release, code: string) 
   return {
     ...item,
     applicability: item.applicability satisfies QuestionApplicability,
-    control: controlRow ?? {
+    controls: orderedControls,
+    control: orderedControls[0] ?? {
       code: item.controlCode,
       title: item.controlCode,
       description: '',
       controlType: '',
       ownerRole: '',
+      testProcedure: '',
     },
     domain: domainRow ?? { code: item.domainCode, title: item.domainCode },
+    questionnaire: group ?? {
+      code: item.questionnaireCode,
+      title: item.questionnaireCode,
+      respondent: 'organisation' as const,
+    },
     obligations,
+    penalty: highestPenalty(obligations),
     criteria,
   }
+}
+
+// Penalty tiers of the Schedule to the Act, heaviest first (P2 and P3 share Rs 200 crore).
+const TIER_RANK: Record<string, number> = { P1: 7, P2: 6, P3: 6, P4: 5, P7: 4, P6: 3, P5: 1 }
+
+/** The heaviest penalty among a question's obligations, or null when none carries a tier. */
+export const highestPenalty = (
+  obligations: readonly { penaltyTier: string | null; penaltyText: string | null }[],
+): { tier: string; text: string } | null => {
+  const ranked = obligations
+    .filter((row) => row.penaltyTier && row.penaltyText)
+    .sort((a, b) => (TIER_RANK[b.penaltyTier ?? ''] ?? 0) - (TIER_RANK[a.penaltyTier ?? ''] ?? 0))
+  const top = ranked[0]
+  return top?.penaltyTier && top.penaltyText
+    ? { tier: top.penaltyTier, text: top.penaltyText }
+    : null
 }
 export type QuestionDetail = NonNullable<Awaited<ReturnType<typeof getQuestion>>>
 

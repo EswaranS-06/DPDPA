@@ -1,4 +1,4 @@
-import { authorize, can, CLIENT_ROLES, FIRM_ROLES, isFirmRole, type Role } from '@duatf/core-access'
+import { authorize, CLIENT_ROLES, FIRM_ROLES, isFirmRole, type Role } from '@duatf/core-access'
 import {
   and,
   appUser,
@@ -8,431 +8,518 @@ import {
   inArray,
   isNull,
   ne,
+  or,
   roleAssignment,
-  tenant,
   type Executor,
 } from '@duatf/platform-db'
-import { generateTemporaryPassword, revokeUserSessions } from '@duatf/platform-identity'
+import { issueLogin, revokeLogin, UsernameTakenError } from '@duatf/platform-identity'
 import { z } from 'zod'
-import { audit, firmWide, inClient, type ServiceContext } from './context'
+import { audit, inClient, type ServiceContext } from './context'
 import {
+  isUniqueViolation,
   NotFoundError,
+  optionalEmail,
+  optionalText,
   parseInput,
-  requiredEmail,
   requiredText,
   RuleError,
   ValidationError,
 } from './errors'
 
-const blankToUndefined = (value: unknown) =>
-  typeof value === 'string' && value.trim() === '' ? undefined : value
+// People in the self-audit edition. Admins and senior auditors add people at a client (such as
+// "IT Head") to give them questions, evidence requests, actions and controls. A person signs in
+// only when their login is enabled; then they see their work and can upload evidence.
 
-const clientInviteSchema = z
-  .object({
-    email: requiredEmail('Email'),
-    displayName: requiredText('Name', 120),
-    role: z.enum(CLIENT_ROLES, { error: 'Choose a role.' }),
-    departmentId: z.preprocess(blankToUndefined, z.uuid('Choose a department.').optional()),
-  })
-  .refine((value) => value.role !== 'department_owner' || value.departmentId, {
-    path: ['departmentId'],
-    message: 'Choose the department this person answers for.',
-  })
-
-const staffInviteSchema = z.object({
-  email: requiredEmail('Email'),
-  displayName: requiredText('Name', 120),
-  role: z.enum(FIRM_ROLES, { error: 'Choose a role.' }),
-  clientId: z.preprocess(blankToUndefined, z.uuid().optional()),
-})
-
-const staffAssignSchema = z.object({
-  userId: z.uuid('Choose a person.'),
-  role: z.enum(['lead_auditor', 'auditor'], { error: 'Choose a role.' }),
-})
-
-export type InviteResult = {
-  userId: string
-  /** True when a new account was created. */
-  created: boolean
-  /** One-time password for a new account; shown once, never stored by DUATF. */
-  temporaryPassword: string | null
-}
-
-const findUserByEmail = async (db: Executor, email: string) => {
-  const [row] = await db.select().from(appUser).where(eq(appUser.email, email))
-  return row
-}
-
-/**
- * Finds or creates the person, then grants the role. A repeat invitation reuses the account
- * and the existing role, so nothing is duplicated.
- */
-const grant = async (
-  ctx: ServiceContext,
-  input: {
-    email: string
-    displayName: string
-    kind: 'firm' | 'client'
-    role: Role
-    clientId: string | null
-    departmentId: string | null
-  },
-): Promise<InviteResult> => {
-  const existing = await findUserByEmail(ctx.db, input.email)
-  if (existing && existing.kind !== input.kind) {
-    throw new ValidationError({
-      email:
-        existing.kind === 'firm'
-          ? 'This person is ComplyX staff. Assign them to the client from Staff instead.'
-          : 'This person is a client user and cannot be given a ComplyX staff role.',
-    })
-  }
-  if (existing?.status === 'disabled') {
-    throw new ValidationError({ email: 'This account is disabled. Enable it first.' })
-  }
-  let temporaryPassword: string | null = null
-  let keycloakId = existing?.keycloakId ?? null
-  if (!existing) {
-    temporaryPassword = generateTemporaryPassword()
-    keycloakId = await ctx.provisioner.provision({
-      email: input.email,
-      displayName: input.displayName,
-      temporaryPassword,
-    })
-  }
-  return ctx.db.transaction(async (tx) => {
-    let userId = existing?.id
-    if (!userId) {
-      const [created] = await tx
-        .insert(appUser)
-        .values({
-          email: input.email,
-          displayName: input.displayName,
-          kind: input.kind,
-          keycloakId,
-          createdBy: ctx.principal.userId,
-        })
-        .onConflictDoNothing({ target: appUser.email })
-        .returning({ id: appUser.id })
-      userId = created?.id ?? (await findUserByEmail(tx, input.email))?.id
-    }
-    if (!userId) throw new Error('The user could not be created.')
-    const granted = await tx
-      .insert(roleAssignment)
-      .values({
-        userId,
-        role: input.role,
-        tenantId: input.clientId,
-        departmentId: input.departmentId,
-        createdBy: ctx.principal.userId,
-      })
-      .onConflictDoNothing()
-      .returning({ id: roleAssignment.id })
-    await audit(tx, ctx, {
-      tenantId: input.clientId,
-      action: existing ? 'user.grant' : 'user.invite',
-      entity: 'app_user',
-      entityId: userId,
-      detail: {
-        email: input.email,
-        role: input.role,
-        departmentId: input.departmentId,
-        alreadyHeld: granted.length === 0,
-      },
-    })
-    return { userId, created: !existing, temporaryPassword }
-  })
-}
-
-/** Invites a person from the client organisation with one client role. */
-export const inviteClientUser = async (
-  ctx: ServiceContext,
-  clientId: string,
-  raw: unknown,
-): Promise<InviteResult> => {
-  authorize(ctx.principal, 'user.invite', { clientId })
-  const input = parseInput(clientInviteSchema, raw)
-  const departmentId = input.role === 'department_owner' ? (input.departmentId ?? null) : null
-  if (departmentId) {
-    const found = await inClient(ctx, clientId, (tx) =>
-      tx
-        .select({ id: department.id })
-        .from(department)
-        .where(and(eq(department.id, departmentId), eq(department.active, true))),
-    )
-    if (found.length === 0) throw new ValidationError({ departmentId: 'Choose a department.' })
-  }
-  return grant(ctx, { ...input, kind: 'client', clientId, departmentId })
-}
-
-/** Invites ComplyX staff, firm-wide or for one client. Firm administrators only. */
-export const inviteFirmStaff = async (ctx: ServiceContext, raw: unknown): Promise<InviteResult> => {
-  authorize(ctx.principal, 'platform.admin')
-  const input = parseInput(staffInviteSchema, raw)
-  if (input.role === 'firm_admin' && input.clientId) {
-    throw new ValidationError({ clientId: 'Firm administrators work across all clients.' })
-  }
-  return grant(ctx, {
-    ...input,
-    kind: 'firm',
-    clientId: input.clientId ?? null,
-    departmentId: null,
-  })
-}
-
-/** Puts a member of ComplyX staff on a client's team. */
-export const assignStaff = async (
-  ctx: ServiceContext,
-  clientId: string,
-  raw: unknown,
-): Promise<void> => {
-  authorize(ctx.principal, 'client.assign_staff', { clientId })
-  const input = parseInput(staffAssignSchema, raw)
-  const [user] = await ctx.db.select().from(appUser).where(eq(appUser.id, input.userId))
-  if (!user || user.kind !== 'firm' || user.status === 'disabled') {
-    throw new ValidationError({ userId: 'Choose an active member of ComplyX staff.' })
-  }
-  await ctx.db.transaction(async (tx) => {
-    await tx
-      .insert(roleAssignment)
-      .values({
-        userId: user.id,
-        role: input.role,
-        tenantId: clientId,
-        createdBy: ctx.principal.userId,
-      })
-      .onConflictDoNothing()
-    await audit(tx, ctx, {
-      tenantId: clientId,
-      action: 'staff.assign',
-      entity: 'app_user',
-      entityId: user.id,
-      detail: { role: input.role },
-    })
-  })
-}
-
-/** Removes one role. The last firm administrator cannot be removed. */
-export const removeAssignment = async (
-  ctx: ServiceContext,
-  assignmentId: string,
-): Promise<void> => {
-  const [row] = await ctx.db
-    .select({ assignment: roleAssignment, kind: appUser.kind })
-    .from(roleAssignment)
-    .innerJoin(appUser, eq(appUser.id, roleAssignment.userId))
-    .where(eq(roleAssignment.id, assignmentId))
-  if (!row) throw new NotFoundError('Role')
-  const { assignment } = row
-  const clientId = assignment.tenantId
-  if (clientId === null) authorize(ctx.principal, 'platform.admin')
-  else if (isFirmRole(assignment.role as Role)) {
-    authorize(ctx.principal, 'client.assign_staff', { clientId })
-  } else authorize(ctx.principal, 'user.invite', { clientId })
-
-  await ctx.db.transaction(async (tx) => {
-    if (assignment.role === 'firm_admin' && clientId === null) {
-      const others = await tx
-        .select({ id: roleAssignment.id })
-        .from(roleAssignment)
-        .innerJoin(appUser, eq(appUser.id, roleAssignment.userId))
-        .where(
-          and(
-            eq(roleAssignment.role, 'firm_admin'),
-            isNull(roleAssignment.tenantId),
-            ne(roleAssignment.id, assignmentId),
-            ne(appUser.status, 'disabled'),
-          ),
-        )
-      if (others.length === 0) throw new RuleError('DUATF needs at least one firm administrator.')
-    }
-    await tx.delete(roleAssignment).where(eq(roleAssignment.id, assignmentId))
-    await audit(tx, ctx, {
-      tenantId: clientId,
-      action: 'user.revoke',
-      entity: 'app_user',
-      entityId: assignment.userId,
-      detail: { role: assignment.role, departmentId: assignment.departmentId },
-    })
-  })
-}
-
-const peopleColumns = {
-  assignmentId: roleAssignment.id,
-  role: roleAssignment.role,
-  tenantId: roleAssignment.tenantId,
-  departmentId: roleAssignment.departmentId,
-  userId: appUser.id,
-  email: appUser.email,
-  displayName: appUser.displayName,
-  kind: appUser.kind,
-  status: appUser.status,
-  lastLoginAt: appUser.lastLoginAt,
-}
-
-export type PersonAssignment = {
-  assignmentId: string
+export type PersonRole = {
+  id: string
   role: Role
-  clientCode: string | null
+  clientId: string | null
+  departmentId: string | null
   departmentName: string | null
 }
 
 export type Person = {
   userId: string
-  email: string
   displayName: string
-  kind: 'firm' | 'client'
+  jobTitle: string | null
+  email: string | null
+  username: string | null
+  loginEnabled: boolean
+  mustChangePassword: boolean
   status: 'invited' | 'active' | 'disabled'
+  kind: 'firm' | 'client'
   lastLoginAt: Date | null
-  assignments: PersonAssignment[]
+  roles: PersonRole[]
 }
 
-type PeopleRow = {
-  assignmentId: string
-  role: string
-  tenantId: string | null
-  departmentId: string | null
-  userId: string
-  email: string
-  displayName: string
-  kind: 'firm' | 'client'
-  status: 'invited' | 'active' | 'disabled'
-  lastLoginAt: Date | null
-}
+/** A one-time password shown once to the person who issued it, never stored in clear. */
+export type LoginIssued = { username: string; oneTimePassword: string }
 
-const groupPeople = (
-  rows: PeopleRow[],
-  clientCodes: Map<string, string>,
-  departmentNames: Map<string, string>,
-): Person[] => {
-  const people = new Map<string, Person>()
-  for (const row of rows) {
-    const person = people.get(row.userId) ?? {
-      userId: row.userId,
-      email: row.email,
-      displayName: row.displayName,
-      kind: row.kind,
-      status: row.status,
-      lastLoginAt: row.lastLoginAt,
-      assignments: [],
-    }
-    person.assignments.push({
-      assignmentId: row.assignmentId,
-      role: row.role as Role,
-      clientCode: row.tenantId ? (clientCodes.get(row.tenantId) ?? null) : null,
-      departmentName: row.departmentId ? (departmentNames.get(row.departmentId) ?? null) : null,
+const blankToUndefined = (value: unknown) =>
+  typeof value === 'string' && value.trim() === '' ? undefined : value
+
+const ticked = (value: unknown) => value === true || value === 'on' || value === 'true'
+
+const usernameField = z.preprocess(
+  (value) => (typeof value === 'string' ? value.trim().toLowerCase() : value),
+  z
+    .string({ error: 'Choose a username.' })
+    .regex(
+      /^[a-z0-9][a-z0-9._@-]{1,63}$/,
+      'Use 2 to 64 letters, digits, dots, dashes, underscores or @, e.g. it-head.',
+    ),
+)
+
+const peopleOf = async (db: Executor, userIds: string[]): Promise<Person[]> => {
+  if (userIds.length === 0) return []
+  const users = await db
+    .select()
+    .from(appUser)
+    .where(inArray(appUser.id, userIds))
+    .orderBy(asc(appUser.displayName))
+  const roles = await db
+    .select({
+      id: roleAssignment.id,
+      userId: roleAssignment.userId,
+      role: roleAssignment.role,
+      clientId: roleAssignment.tenantId,
+      departmentId: roleAssignment.departmentId,
+      departmentName: department.name,
     })
-    people.set(row.userId, person)
-  }
-  return [...people.values()].sort((a, b) => a.displayName.localeCompare(b.displayName))
+    .from(roleAssignment)
+    .leftJoin(department, eq(department.id, roleAssignment.departmentId))
+    .where(inArray(roleAssignment.userId, userIds))
+  return users.map((user) => ({
+    userId: user.id,
+    displayName: user.displayName,
+    jobTitle: user.jobTitle,
+    email: user.email,
+    username: user.username,
+    loginEnabled: user.loginEnabled,
+    mustChangePassword: user.mustChangePassword,
+    status: user.status,
+    kind: user.kind,
+    lastLoginAt: user.lastLoginAt,
+    roles: roles
+      .filter((row) => row.userId === user.id)
+      .map(({ userId: _userId, ...row }) => ({ ...row, role: row.role as Role })),
+  }))
 }
 
-/** Everyone with a role on this client: the client's own people and the ComplyX team. */
+/** People with a role at this client (client people first, then ComplyX staff on the client). */
 export const listClientPeople = async (ctx: ServiceContext, clientId: string) => {
   authorize(ctx.principal, 'client.view', { clientId })
-  const rows = await ctx.db
-    .select(peopleColumns)
+  const ids = await ctx.db
+    .selectDistinct({ userId: roleAssignment.userId })
+    .from(roleAssignment)
+    .where(eq(roleAssignment.tenantId, clientId))
+  // Department names are read under the client's row-level security.
+  const people = await inClient(ctx, clientId, (tx) =>
+    peopleOf(
+      tx,
+      ids.map((row) => row.userId),
+    ),
+  )
+  return people.sort((a, b) => Number(a.kind === 'firm') - Number(b.kind === 'firm'))
+}
+
+/**
+ * Who work can be given to at a client: its active people and the active ComplyX team. Used
+ * for question assignees, evidence requests, action owners and control owners.
+ */
+export const assignablePeople = async (ctx: ServiceContext, clientId: string) => {
+  authorize(ctx.principal, 'client.view', { clientId })
+  const ids = await ctx.db
+    .selectDistinct({ userId: roleAssignment.userId })
     .from(roleAssignment)
     .innerJoin(appUser, eq(appUser.id, roleAssignment.userId))
-    .where(eq(roleAssignment.tenantId, clientId))
-    .orderBy(asc(appUser.displayName))
-  const departments = await inClient(ctx, clientId, (tx) =>
-    tx.select({ id: department.id, name: department.name }).from(department),
+    .where(
+      and(
+        or(eq(roleAssignment.tenantId, clientId), isNull(roleAssignment.tenantId)),
+        ne(appUser.status, 'disabled'),
+      ),
+    )
+  const people = await inClient(ctx, clientId, (tx) =>
+    peopleOf(
+      tx,
+      ids.map((row) => row.userId),
+    ),
   )
-  const people = groupPeople(rows, new Map(), new Map(departments.map((row) => [row.id, row.name])))
-  return {
-    clientUsers: people.filter((person) => person.kind === 'client'),
-    firmTeam: people.filter((person) => person.kind === 'firm'),
+  return people.map((person) => ({
+    value: person.userId,
+    label: `${person.displayName}${person.jobTitle ? `, ${person.jobTitle}` : ''}${person.kind === 'firm' ? ' (ComplyX)' : ''}`,
+  }))
+}
+
+/** The ComplyX team: people with a firm-wide role. */
+export const listStaff = async (ctx: ServiceContext) => {
+  authorize(ctx.principal, 'platform.admin')
+  const ids = await ctx.db
+    .selectDistinct({ userId: roleAssignment.userId })
+    .from(roleAssignment)
+    .where(isNull(roleAssignment.tenantId))
+  return peopleOf(
+    ctx.db,
+    ids.map((row) => row.userId),
+  )
+}
+
+const personSchema = z.object({
+  displayName: requiredText('Name', 120),
+  jobTitle: optionalText(120),
+  email: optionalEmail(),
+})
+
+const clientPersonSchema = personSchema
+  .extend({
+    role: z.enum(CLIENT_ROLES, { error: 'Choose a role.' }),
+    departmentId: z.preprocess(blankToUndefined, z.uuid().optional()),
+    allowLogin: z.preprocess(ticked, z.boolean()),
+    username: z.preprocess(blankToUndefined, usernameField.optional()),
+  })
+  .refine((value) => value.role !== 'department_owner' || value.departmentId, {
+    path: ['departmentId'],
+    message: 'Choose the department this person owns.',
+  })
+  .refine((value) => !value.allowLogin || value.username, {
+    path: ['username'],
+    message: 'Choose a username to let this person sign in.',
+  })
+
+const checkDepartment = async (ctx: ServiceContext, clientId: string, departmentId?: string) => {
+  if (!departmentId) return
+  const [found] = await inClient(ctx, clientId, (tx) =>
+    tx
+      .select({ id: department.id })
+      .from(department)
+      .where(and(eq(department.id, departmentId), eq(department.tenantId, clientId))),
+  )
+  if (!found) throw new ValidationError({ departmentId: 'Choose a department of this client.' })
+}
+
+const loginFor = async (
+  tx: Executor,
+  ctx: ServiceContext,
+  userId: string,
+  username: string,
+): Promise<LoginIssued> => {
+  try {
+    return {
+      username,
+      oneTimePassword: await issueLogin(tx, {
+        userId,
+        username,
+        actorUserId: ctx.principal.userId,
+      }),
+    }
+  } catch (error) {
+    if (error instanceof UsernameTakenError) {
+      throw new ValidationError({ username: `The username ${username} is taken.` })
+    }
+    throw error
   }
 }
 
-/** All ComplyX staff with their firm-wide and per-client roles. Firm administrators only. */
-export const listFirmStaff = async (ctx: ServiceContext) => {
-  authorize(ctx.principal, 'platform.admin')
-  const rows = await ctx.db
-    .select(peopleColumns)
+/**
+ * Adds a person at a client with one role (for example a department owner such as IT Head).
+ * Without a login they can still be given work; with one, a one-time password is returned.
+ */
+export const createClientPerson = async (
+  ctx: ServiceContext,
+  clientId: string,
+  raw: unknown,
+): Promise<{ userId: string; login: LoginIssued | null }> => {
+  authorize(ctx.principal, 'user.invite', { clientId })
+  const input = parseInput(clientPersonSchema, raw)
+  const departmentId = input.role === 'department_owner' ? input.departmentId : undefined
+  await checkDepartment(ctx, clientId, departmentId)
+  try {
+    return await ctx.db.transaction(async (tx) => {
+      const [created] = await tx
+        .insert(appUser)
+        .values({
+          displayName: input.displayName,
+          jobTitle: input.jobTitle ?? null,
+          email: input.email ?? null,
+          kind: 'client',
+          status: 'active',
+          createdBy: ctx.principal.userId,
+        })
+        .returning({ id: appUser.id })
+      const userId = created?.id ?? ''
+      await tx.insert(roleAssignment).values({
+        userId,
+        role: input.role,
+        tenantId: clientId,
+        departmentId: departmentId ?? null,
+        createdBy: ctx.principal.userId,
+      })
+      const login =
+        input.allowLogin && input.username ? await loginFor(tx, ctx, userId, input.username) : null
+      await audit(tx, ctx, {
+        tenantId: clientId,
+        action: 'person.create',
+        entity: 'app_user',
+        entityId: userId,
+        detail: { role: input.role, departmentId: departmentId ?? null, login: Boolean(login) },
+      })
+      return { userId, login }
+    })
+  } catch (error) {
+    if (isUniqueViolation(error)) {
+      throw new ValidationError({ email: 'Someone already has this email address.' })
+    }
+    throw error
+  }
+}
+
+const roleSchema = z
+  .object({
+    role: z.enum(CLIENT_ROLES, { error: 'Choose a role.' }),
+    departmentId: z.preprocess(blankToUndefined, z.uuid().optional()),
+  })
+  .refine((value) => value.role !== 'department_owner' || value.departmentId, {
+    path: ['departmentId'],
+    message: 'Choose the department.',
+  })
+
+/** The person must be someone at this client (not ComplyX staff) for client-level changes. */
+const clientPerson = async (ctx: ServiceContext, clientId: string, userId: string) => {
+  const [row] = await ctx.db
+    .select({ user: appUser })
     .from(appUser)
     .innerJoin(roleAssignment, eq(roleAssignment.userId, appUser.id))
-    .where(eq(appUser.kind, 'firm'))
-    .orderBy(asc(appUser.displayName))
-  const tenantIds = [...new Set(rows.map((row) => row.tenantId).filter((id) => id !== null))]
-  const clients = tenantIds.length
-    ? await firmWide(ctx, (tx) =>
-        tx
-          .select({ id: tenant.id, code: tenant.code })
-          .from(tenant)
-          .where(inArray(tenant.id, tenantIds)),
-      )
-    : []
-  return groupPeople(rows, new Map(clients.map((row) => [row.id, row.code])), new Map())
+    .where(and(eq(appUser.id, userId), eq(roleAssignment.tenantId, clientId)))
+    .limit(1)
+  if (!row) throw new NotFoundError('Person')
+  if (row.user.kind === 'firm') {
+    throw new RuleError('ComplyX staff are managed under Administration, Team.')
+  }
+  return row.user
 }
 
-/** Whether the acting user may manage this person's account (reset, disable). */
-const mayManage = async (ctx: ServiceContext, userId: string) => {
-  const [user] = await ctx.db.select().from(appUser).where(eq(appUser.id, userId))
-  if (!user) throw new NotFoundError('Person')
-  if (user.kind === 'firm') {
-    authorize(ctx.principal, 'platform.admin')
-    return user
+/** Changes a person's name, job title or email. */
+export const updateClientPerson = async (
+  ctx: ServiceContext,
+  clientId: string,
+  userId: string,
+  raw: unknown,
+): Promise<void> => {
+  authorize(ctx.principal, 'user.invite', { clientId })
+  const input = parseInput(personSchema, raw)
+  await clientPerson(ctx, clientId, userId)
+  try {
+    await ctx.db.transaction(async (tx) => {
+      await tx
+        .update(appUser)
+        .set({
+          displayName: input.displayName,
+          jobTitle: input.jobTitle ?? null,
+          email: input.email ?? null,
+        })
+        .where(eq(appUser.id, userId))
+      await audit(tx, ctx, {
+        tenantId: clientId,
+        action: 'person.update',
+        entity: 'app_user',
+        entityId: userId,
+      })
+    })
+  } catch (error) {
+    if (isUniqueViolation(error)) {
+      throw new ValidationError({ email: 'Someone already has this email address.' })
+    }
+    throw error
   }
-  const clients = await ctx.db
-    .select({ tenantId: roleAssignment.tenantId })
-    .from(roleAssignment)
-    .where(eq(roleAssignment.userId, userId))
-  const allowed = clients.some(
-    (row) => row.tenantId !== null && can(ctx.principal, 'user.invite', { clientId: row.tenantId }),
+}
+
+/** Gives a person at the client another role (for example owner of a second department). */
+export const addClientRole = async (
+  ctx: ServiceContext,
+  clientId: string,
+  userId: string,
+  raw: unknown,
+): Promise<void> => {
+  authorize(ctx.principal, 'user.invite', { clientId })
+  const input = parseInput(roleSchema, raw)
+  await clientPerson(ctx, clientId, userId)
+  const departmentId = input.role === 'department_owner' ? (input.departmentId ?? null) : null
+  await checkDepartment(ctx, clientId, departmentId ?? undefined)
+  await ctx.db.transaction(async (tx) => {
+    await tx
+      .insert(roleAssignment)
+      .values({
+        userId,
+        role: input.role,
+        tenantId: clientId,
+        departmentId,
+        createdBy: ctx.principal.userId,
+      })
+      .onConflictDoNothing()
+    await audit(tx, ctx, {
+      tenantId: clientId,
+      action: 'person.role_add',
+      entity: 'app_user',
+      entityId: userId,
+      detail: { role: input.role, departmentId },
+    })
+  })
+}
+
+/** Removes one role of a person at the client; their last role cannot be removed. */
+export const removeClientRole = async (
+  ctx: ServiceContext,
+  clientId: string,
+  assignmentId: string,
+): Promise<void> => {
+  authorize(ctx.principal, 'user.invite', { clientId })
+  await ctx.db.transaction(async (tx) => {
+    const [row] = await tx
+      .select()
+      .from(roleAssignment)
+      .where(and(eq(roleAssignment.id, assignmentId), eq(roleAssignment.tenantId, clientId)))
+    if (!row) throw new NotFoundError('Role')
+    if (isFirmRole(row.role as Role)) {
+      throw new RuleError('ComplyX staff roles are managed under Administration, Team.')
+    }
+    const others = await tx
+      .select({ id: roleAssignment.id })
+      .from(roleAssignment)
+      .where(and(eq(roleAssignment.userId, row.userId), ne(roleAssignment.id, assignmentId)))
+    if (others.length === 0) {
+      throw new RuleError('This is the person’s only role. Switch their login off instead.')
+    }
+    await tx.delete(roleAssignment).where(eq(roleAssignment.id, assignmentId))
+    await audit(tx, ctx, {
+      tenantId: clientId,
+      action: 'person.role_remove',
+      entity: 'app_user',
+      entityId: row.userId,
+      detail: { role: row.role, departmentId: row.departmentId },
+    })
+  })
+}
+
+/** Lets a person at the client sign in, or gives them a new one-time password. */
+export const issueClientLogin = async (
+  ctx: ServiceContext,
+  clientId: string,
+  userId: string,
+  raw: unknown,
+): Promise<LoginIssued> => {
+  authorize(ctx.principal, 'user.invite', { clientId })
+  const person = await clientPerson(ctx, clientId, userId)
+  const input = parseInput(
+    z.object({ username: z.preprocess(blankToUndefined, usernameField.optional()) }),
+    raw,
   )
-  if (!allowed) throw new NotFoundError('Person')
+  const username = input.username ?? person.username
+  if (!username) throw new ValidationError({ username: 'Choose a username.' })
+  return ctx.db.transaction((tx) => loginFor(tx, ctx, userId, username))
+}
+
+/** Stops a person at the client from signing in; their assignments stay. */
+export const revokeClientLogin = async (
+  ctx: ServiceContext,
+  clientId: string,
+  userId: string,
+): Promise<void> => {
+  authorize(ctx.principal, 'user.invite', { clientId })
+  await clientPerson(ctx, clientId, userId)
+  await ctx.db.transaction((tx) => revokeLogin(tx, { userId, actorUserId: ctx.principal.userId }))
+}
+
+const staffSchema = personSchema.extend({
+  role: z.enum(FIRM_ROLES, { error: 'Choose a role.' }),
+  username: usernameField,
+})
+
+/** Adds a member of the ComplyX team (firm-wide role) with a login. */
+export const createStaff = async (
+  ctx: ServiceContext,
+  raw: unknown,
+): Promise<{ userId: string; login: LoginIssued }> => {
+  authorize(ctx.principal, 'platform.admin')
+  const input = parseInput(staffSchema, raw)
+  try {
+    return await ctx.db.transaction(async (tx) => {
+      const [created] = await tx
+        .insert(appUser)
+        .values({
+          displayName: input.displayName,
+          jobTitle: input.jobTitle ?? null,
+          email: input.email ?? null,
+          kind: 'firm',
+          status: 'active',
+          createdBy: ctx.principal.userId,
+        })
+        .returning({ id: appUser.id })
+      const userId = created?.id ?? ''
+      await tx
+        .insert(roleAssignment)
+        .values({ userId, role: input.role, createdBy: ctx.principal.userId })
+      const login = await loginFor(tx, ctx, userId, input.username)
+      await audit(tx, ctx, {
+        tenantId: null,
+        action: 'staff.create',
+        entity: 'app_user',
+        entityId: userId,
+        detail: { role: input.role },
+      })
+      return { userId, login }
+    })
+  } catch (error) {
+    if (isUniqueViolation(error)) {
+      throw new ValidationError({ email: 'Someone already has this email address.' })
+    }
+    throw error
+  }
+}
+
+const staffMember = async (ctx: ServiceContext, userId: string) => {
+  const [user] = await ctx.db.select().from(appUser).where(eq(appUser.id, userId))
+  if (!user || user.kind !== 'firm') throw new NotFoundError('Team member')
   return user
 }
 
-/** Issues a new one-time password; Keycloak asks for a new password and authenticator again. */
-export const resetTemporaryPassword = async (
-  ctx: ServiceContext,
-  userId: string,
-): Promise<string> => {
-  const user = await mayManage(ctx, userId)
-  if (user.status === 'disabled') throw new RuleError('Enable the account first.')
-  const temporaryPassword = generateTemporaryPassword()
-  const keycloakId = await ctx.provisioner.provision({
-    email: user.email,
-    displayName: user.displayName,
-    temporaryPassword,
-  })
-  await ctx.db.transaction(async (tx) => {
-    await tx.update(appUser).set({ keycloakId }).where(eq(appUser.id, user.id))
-    await revokeUserSessions(tx, user.id)
-    await audit(tx, ctx, {
-      tenantId: null,
-      action: 'user.reset_password',
-      entity: 'app_user',
-      entityId: user.id,
-    })
-  })
-  return temporaryPassword
+/** Admins at the firm level: at least one must keep a working login. */
+const lastAdmin = async (ctx: ServiceContext, userId: string) => {
+  const others = await ctx.db
+    .select({ id: roleAssignment.id })
+    .from(roleAssignment)
+    .innerJoin(appUser, eq(appUser.id, roleAssignment.userId))
+    .where(
+      and(
+        eq(roleAssignment.role, 'firm_admin'),
+        isNull(roleAssignment.tenantId),
+        ne(roleAssignment.userId, userId),
+        eq(appUser.loginEnabled, true),
+        ne(appUser.status, 'disabled'),
+      ),
+    )
+  return others.length === 0
 }
 
-/** Disables or re-enables sign-in. Disabling ends the person's sessions at once. */
-export const setUserEnabled = async (
-  ctx: ServiceContext,
-  userId: string,
-  enabled: boolean,
-): Promise<void> => {
-  if (userId === ctx.principal.userId) throw new RuleError('You cannot disable your own account.')
-  const user = await mayManage(ctx, userId)
-  if (user.keycloakId) await ctx.provisioner.setEnabled(user.keycloakId, enabled)
-  await ctx.db.transaction(async (tx) => {
-    await tx
-      .update(appUser)
-      .set({ status: enabled ? (user.lastLoginAt ? 'active' : 'invited') : 'disabled' })
-      .where(eq(appUser.id, user.id))
-    if (!enabled) await revokeUserSessions(tx, user.id)
-    await audit(tx, ctx, {
-      tenantId: null,
-      action: enabled ? 'user.enable' : 'user.disable',
-      entity: 'app_user',
-      entityId: user.id,
-    })
-  })
+/** Gives a team member a new one-time password. */
+export const issueStaffLogin = async (ctx: ServiceContext, userId: string) => {
+  authorize(ctx.principal, 'platform.admin')
+  const user = await staffMember(ctx, userId)
+  if (!user.username) throw new ValidationError({ username: 'This team member has no username.' })
+  const username = user.username
+  return ctx.db.transaction((tx) => loginFor(tx, ctx, userId, username))
+}
+
+/** Stops a team member from signing in. The last administrator keeps their login. */
+export const revokeStaffLogin = async (ctx: ServiceContext, userId: string) => {
+  authorize(ctx.principal, 'platform.admin')
+  await staffMember(ctx, userId)
+  if (userId === ctx.principal.userId) throw new RuleError('You cannot switch off your own login.')
+  const roles = await ctx.db
+    .select({ role: roleAssignment.role })
+    .from(roleAssignment)
+    .where(and(eq(roleAssignment.userId, userId), isNull(roleAssignment.tenantId)))
+  if (roles.some((row) => row.role === 'firm_admin') && (await lastAdmin(ctx, userId))) {
+    throw new RuleError('DUATF needs at least one administrator who can sign in.')
+  }
+  await ctx.db.transaction((tx) => revokeLogin(tx, { userId, actorUserId: ctx.principal.userId }))
 }

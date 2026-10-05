@@ -6,6 +6,7 @@ import {
   CircleCheck,
   CircleDashed,
   CircleX,
+  Info,
   Minus,
   type LucideIcon,
 } from 'lucide-react'
@@ -20,22 +21,27 @@ export const ComplianceChip = ({ state }: { state: ComplianceState }) => (
   <Status kind="compliance" value={state} />
 )
 
+/** The self-check: shown once the auditor has ticked the answer as checked. */
 export const ReviewChip = ({ review }: { review: ReviewState }) =>
-  review === 'not_reviewed' ? null : <Status kind="review" value={review} />
+  review === 'accepted' ? <Status kind="review" value={review} /> : null
 
 type Segment = {
-  key: 'compliant' | 'potentialGap' | 'gap' | 'excluded' | 'pending'
+  key: 'compliant' | 'potentialGap' | 'gap' | 'excluded' | 'informational' | 'pending'
   label: string
   className: string | undefined
   icon: LucideIcon
 }
 
-/** The five outcomes of a question, in reading order. Answers left to right, then the rest. */
+/**
+ * The outcomes of a question, in reading order. Yes, maturity 3-4 and compliant choices are
+ * Compliant; Partial and maturity 2 are Partial; No and maturity 0-1 are Gap.
+ */
 export const SEGMENTS: readonly Segment[] = [
-  { key: 'compliant', label: 'Yes', className: styles.yes, icon: CircleCheck },
+  { key: 'compliant', label: 'Compliant', className: styles.yes, icon: CircleCheck },
   { key: 'potentialGap', label: 'Partial', className: styles.partial, icon: CircleAlert },
-  { key: 'gap', label: 'No', className: styles.no, icon: CircleX },
+  { key: 'gap', label: 'Gap', className: styles.no, icon: CircleX },
   { key: 'excluded', label: 'Not applicable', className: styles.na, icon: Minus },
+  { key: 'informational', label: 'Recorded', className: styles.na, icon: Info },
   { key: 'pending', label: 'Not answered', className: styles.pending, icon: CircleDashed },
 ]
 
@@ -96,7 +102,7 @@ export const Metrics = ({ progress }: { progress: Progress }) => (
     <Stat
       label="Compliance posture"
       value={shown(progress.compliancePct)}
-      note="Yes plus half of Partial, over answered questions in scope"
+      note="Compliant plus half of Partial, over scored answers"
     />
     <Stat
       label="Gaps"
@@ -105,10 +111,10 @@ export const Metrics = ({ progress }: { progress: Progress }) => (
       tone={progress.gap > 0 ? 'danger' : 'default'}
     />
     <Stat
-      label="Reviewed"
+      label="Checked"
       value={shown(progress.reviewedPct)}
-      note={`${progress.accepted} accepted, ${progress.returned} sent back`}
-      tone={progress.returned > 0 ? 'warning' : 'default'}
+      note={`${progress.accepted} of ${progress.answered} answers ticked as checked`}
+      tone={progress.answered > progress.accepted ? 'warning' : 'default'}
     />
   </StatGrid>
 )

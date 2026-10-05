@@ -15,6 +15,7 @@ import {
   departmentBreakdown,
   getAssessment,
   listAssessments,
+  myWork,
   ORGANISATION_TYPE_LABEL,
 } from '@duatf/feature-compliance-api'
 import { buildLadder } from '@duatf/feature-framework-library'
@@ -23,6 +24,7 @@ import { ClipboardList, Download, Pencil } from 'lucide-react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { AssessmentStatusChip } from '@/components/assessment/AssessmentBits'
+import { YourWork } from '@/components/assessment/YourWork'
 import { ApplicabilityChip, ClientStatusChip } from '@/components/ClientChips'
 import { ActionCentre } from '@/components/dashboard/ActionCentre'
 import {
@@ -61,12 +63,13 @@ export default async function Page({ params }: Props) {
   const client = await loadClient((await params).code)
   const ctx = await serviceContext()
   const { principal } = ctx
-  const [figures, breakdown, cycles, attention, summary] = await Promise.all([
+  const [figures, breakdown, cycles, attention, summary, work] = await Promise.all([
     clientFigures(ctx, client.id),
     departmentBreakdown(ctx, client.id),
     listAssessments(ctx, client.id),
     attentionFor(ctx, [client.id]),
     (await libraryApi()).summary({ asOf: today() }),
+    myWork(ctx, client.id),
   ])
   const latest = figures.latestAssessment
     ? await getAssessment(ctx, client.id, figures.latestAssessment.code)
@@ -122,6 +125,8 @@ export default async function Page({ params }: Props) {
           <span>{[client.state, client.country].filter(Boolean).join(', ')}</span>
         ) : null}
       </PageHeader>
+
+      <YourWork work={work} clientCode={client.code} />
 
       {ownDepartments.length ? (
         <Callout tone="info" title="Your department">

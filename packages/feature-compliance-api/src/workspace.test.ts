@@ -1,15 +1,12 @@
-import { createHash, randomBytes, randomUUID } from 'node:crypto'
-import type { Principal } from '@duatf/core-access'
-import { parseEnv, testDatabaseEnvSchema } from '@duatf/core-config'
+import { randomBytes } from 'node:crypto'
 import { isoDate } from '@duatf/core-utils'
 import {
   and,
-  appUser,
   assessmentItem,
   count,
-  createDatabase,
   eq,
   evidence,
+  evidenceRequest,
   finding,
   inArray,
   lt,
@@ -18,211 +15,142 @@ import {
   notInArray,
   remediationAction,
   risk,
-  roleAssignment,
   sql,
-  tenant,
   withTenants,
-  type DatabaseHandle,
+  type ActionStatus,
 } from '@duatf/platform-db'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { createAction } from './actions'
+import { answerItem, checkItem } from './assessments'
+import { requestEvidence } from './assignments'
 import { attentionFor, type AttentionItem, type AttentionKind } from './attention'
-import { answerItem, assignItems, createAssessment, listItems, reviewItem } from './assessments'
-import { createClient } from './clients'
-import type { EvidenceStorage, ServiceContext } from './context'
-import { createDepartment } from './departments'
-import { reviewEvidence, uploadEvidence } from './evidence'
+import { uploadEvidence } from './evidence'
 import { listFindings } from './findings'
 import { listBands } from './risks'
 import { searchWorkspace } from './search'
+import {
+  as,
+  closeWorld,
+  newClient,
+  newDepartment,
+  newPerson,
+  openWorld,
+  pdf,
+  type World,
+} from './testing'
 
-const env = parseEnv(testDatabaseEnvSchema)
-
-let app: DatabaseHandle
-let owner: DatabaseHandle
-const codes: string[] = []
-const emails: string[] = []
-const storage: EvidenceStorage = {
-  put: (_key, content) =>
-    Promise.resolve({
-      sha256: createHash('sha256').update(content).digest('hex'),
-      size: content.length,
-    }),
-  signedUrl: (key) => Promise.resolve(`memory://${key}`),
-  remove: () => Promise.resolve(),
-}
-const as = (who: Principal): ServiceContext => ({
-  db: app.db,
-  principal: who,
-  provisioner: { provision: () => Promise.resolve('none'), setEnabled: () => Promise.resolve() },
-  storage,
+let world: World
+beforeAll(() => {
+  world = openWorld()
 })
+afterAll(() => closeWorld(world))
 
-let lead: Principal
-let reviewer: Principal
-
-const firmUser = async (role: 'lead_auditor' | 'auditor'): Promise<Principal> => {
-  const email = `${role}-${randomBytes(3).toString('hex')}@example.test`
-  emails.push(email)
-  const [user] = await owner.db
-    .insert(appUser)
-    .values({ email, displayName: role, kind: 'firm', status: 'active' })
-    .returning({ id: appUser.id })
-  await owner.db.insert(roleAssignment).values({ userId: user?.id ?? '', role })
-  return {
-    userId: user?.id ?? '',
-    email,
-    displayName: role,
-    assignments: [{ role, clientId: null, departmentId: null }],
-  }
-}
-
-const clientPerson = (
-  role: 'client_dpo' | 'department_owner',
-  clientId: string,
-  departmentId: string | null = null,
-): Principal => ({
-  userId: randomUUID(),
-  email: `${role}@example.test`,
-  displayName: role,
-  assignments: [{ role, clientId, departmentId }],
-})
-
-const newClient = async (name: string) => {
-  const tag = randomBytes(3).toString('hex').toUpperCase()
-  const client = await createClient(as(lead), {
-    name: `${name} ${tag}`,
-    legalName: `${name} ${tag} Pvt Ltd`,
-    industry: 'Healthcare',
-    organisationType: 'private_limited',
-    primaryContactName: 'Asha',
-    primaryContactEmail: 'asha@example.test',
-    status: 'active',
-  })
-  codes.push(client.code)
-  return client
-}
-
-const pdf = (text: string) => Buffer.from(`%PDF-1.4\n% ${text}\n%%EOF\n`)
-
-beforeAll(async () => {
-  app = createDatabase(env.TEST_APP_DATABASE_URL, { max: 4 })
-  owner = createDatabase(env.TEST_DATABASE_URL, { max: 2 })
-  lead = await firmUser('lead_auditor')
-  reviewer = await firmUser('auditor')
-})
-afterAll(async () => {
-  if (codes.length) {
-    await withTenants(owner.db, 'all', (tx) => tx.delete(tenant).where(inArray(tenant.code, codes)))
-  }
-  if (emails.length) await owner.db.delete(appUser).where(inArray(appUser.email, emails))
-  await Promise.all([app.close(), owner.close()])
-})
+const WORKABLE: ActionStatus[] = ['open', 'assigned', 'in_progress', 'pending_evidence', 'rejected']
 
 /**
- * A client with People (D01) and Technology (D09) departments: answers in both, one Technology
- * answer sent back and one accepted, an overdue Technology action, a People action due later,
- * and one evidence file waiting for review.
+ * A client with HR and IT departments: answers in both, one IT answer ticked as checked, an
+ * overdue IT action owned by the IT head, an HR action due later, a file from the HR head
+ * waiting for review and evidence requested from the IT head.
  */
 const scenario = async () => {
-  const client = await newClient('Workspace')
-  const people = await createDepartment(as(lead), client.id, { code: 'HR', name: 'People' })
-  const tech = await createDepartment(as(lead), client.id, { code: 'IT', name: 'Technology' })
-  const cycle = await createAssessment(as(lead), client.id, { title: 'Baseline' })
-  await assignItems(as(lead), client.id, cycle.id, { domainCode: 'D01', departmentId: people.id })
-  await assignItems(as(lead), client.id, cycle.id, { domainCode: 'D09', departmentId: tech.id })
-  const items = await listItems(as(lead), client.id, cycle.id)
-  const inDomain = (code: string, index: number) =>
-    items.filter((item) => item.domainCode === code)[index]?.id ?? ''
-  for (const [domainCode, index, answer] of [
-    ['D01', 0, 'no'],
-    ['D01', 1, 'partial'],
-    ['D09', 0, 'no'],
-    ['D09', 1, 'yes'],
-    ['D09', 2, 'no'],
-  ] as const) {
-    await answerItem(as(lead), client.id, inDomain(domainCode, index), { answer })
+  const client = await newClient(world, 'Workspace')
+  const hr = await newDepartment(world, client.id, 'HR', ['A1.1', 'A1.3', 'A1.6'])
+  const tech = await newDepartment(world, client.id, 'IT', ['A8.1', 'A8.2', 'A8.4', 'A8.6'])
+  const plan: [typeof hr, string, string][] = [
+    [hr, 'A1.1', 'no'],
+    [hr, 'A1.3', '2'],
+    [tech, 'A8.1', 'no'],
+    [tech, 'A8.2', '4'],
+    [tech, 'A8.4', 'no'],
+  ]
+  for (const [dep, code, answer] of plan) {
+    await answerItem(world.ctx, client.id, dep.item(code).id, { answer })
   }
-  await reviewItem(as(reviewer), client.id, inDomain('D09', 0), {
-    decision: 'returned',
-    note: 'Attach the encryption settings.',
-  })
-  await reviewItem(as(reviewer), client.id, inDomain('D09', 1), { decision: 'accepted' })
-  const findings = await listFindings(as(lead), client.id)
-  const techFinding = findings.find((row) => row.domainCode === 'D09')
-  const peopleFinding = findings.find((row) => row.domainCode === 'D01')
-  await createAction(as(lead), client.id, techFinding?.id ?? '', {
-    title: 'Encrypt the backups',
+  await checkItem(world.ctx, client.id, tech.item('A8.2').id, { checked: 'true' })
+  const itHead = await newPerson(world, 'department_owner', {
+    clientId: client.id,
     departmentId: tech.id,
+  })
+  const hrHead = await newPerson(world, 'department_owner', {
+    clientId: client.id,
+    departmentId: hr.id,
+  })
+  const findings = await listFindings(world.ctx, client.id)
+  const techFinding = findings.find((row) => row.questionCode === 'A8.1')
+  const hrFinding = findings.find((row) => row.questionCode === 'A1.1')
+  await createAction(world.ctx, client.id, techFinding?.id ?? '', {
+    title: 'Encrypt the backups',
+    ownerUserId: itHead.userId,
     dueDate: '2020-03-31',
   })
-  await createAction(as(lead), client.id, peopleFinding?.id ?? '', {
+  await createAction(world.ctx, client.id, hrFinding?.id ?? '', {
     title: 'Adopt the charter',
-    departmentId: people.id,
     dueDate: '2099-03-31',
   })
-  const accepted = await uploadEvidence(
-    as(lead),
+  await uploadEvidence(
+    world.ctx,
     client.id,
-    { title: 'Backup report', departmentId: tech.id },
+    { title: 'Backup report', itemIds: tech.item('A8.2').id },
     { name: 'backup.pdf', bytes: pdf('backup') },
   )
-  await reviewEvidence(as(reviewer), client.id, accepted.id, { decision: 'accepted' })
   await uploadEvidence(
-    as(lead),
+    as(world, hrHead),
     client.id,
-    { title: 'Draft charter', departmentId: people.id },
+    { title: 'Draft charter', departmentId: hr.id },
     { name: 'charter.pdf', bytes: pdf('charter') },
   )
-  return { client, people, tech }
+  await requestEvidence(world.ctx, client.id, tech.item('A8.1').id, {
+    titles: ['Encryption settings'],
+    assigneeUserId: itHead.userId,
+  })
+  return { client, hr, tech, itHead }
 }
 
 /** The same work counted straight from the tables, as an independent oracle. */
 const directCounts = async (clientId: string, departmentId: string | null, userId: string) => {
   const today = isoDate(new Date())
-  const bands = (await listBands(owner.db)).filter((band) => band.tone === 'severe')
-  return withTenants(owner.db, 'all', async (tx) => {
+  const bands = (await listBands(world.owner.db)).filter((band) => band.tone === 'severe')
+  return withTenants(world.owner.db, 'all', async (tx) => {
     const n = async (query: Promise<{ n: number }[]>) => (await query)[0]?.n ?? 0
     const inDepartment = departmentId ? eq(assessmentItem.departmentId, departmentId) : undefined
-    const items = (condition: ReturnType<typeof eq>) =>
+    const items = (condition: ReturnType<typeof and>) =>
       n(
         tx
           .select({ n: count() })
           .from(assessmentItem)
           .where(and(eq(assessmentItem.tenantId, clientId), condition, inDepartment)),
       )
-    return {
-      overdue_actions: await n(
+    const actions = (condition: ReturnType<typeof and>) =>
+      n(
         tx
           .select({ n: count() })
           .from(remediationAction)
-          .where(
-            and(
-              eq(remediationAction.tenantId, clientId),
-              lt(remediationAction.dueDate, today),
-              notInArray(remediationAction.status, ['closed', 'accepted_risk', 'remediated']),
-              departmentId ? eq(remediationAction.departmentId, departmentId) : undefined,
-            ),
-          ),
+          .where(and(eq(remediationAction.tenantId, clientId), condition)),
+      )
+    return {
+      overdue_actions: await actions(
+        and(
+          lt(remediationAction.dueDate, today),
+          notInArray(remediationAction.status, ['closed', 'accepted_risk', 'remediated']),
+          departmentId ? eq(remediationAction.departmentId, departmentId) : undefined,
+        ),
       ),
-      returned_answers: await items(eq(assessmentItem.reviewState, 'returned')),
-      answers_to_review: await n(
-        tx
-          .select({ n: count() })
-          .from(assessmentItem)
-          .where(
-            and(
-              eq(assessmentItem.tenantId, clientId),
-              ne(assessmentItem.answer, 'not_assessed'),
-              eq(assessmentItem.reviewState, 'not_reviewed'),
-            ),
-          ),
+      answers_to_check: await items(
+        and(ne(assessmentItem.answer, 'not_assessed'), ne(assessmentItem.reviewState, 'accepted')),
       ),
       evidence_to_review: await n(
         tx
           .select({ n: count() })
           .from(evidence)
           .where(and(eq(evidence.tenantId, clientId), eq(evidence.status, 'pending_review'))),
+      ),
+      evidence_requested: await n(
+        tx
+          .select({ n: count() })
+          .from(evidenceRequest)
+          .where(
+            and(eq(evidenceRequest.tenantId, clientId), eq(evidenceRequest.status, 'requested')),
+          ),
       ),
       findings_without_actions: await n(
         tx
@@ -258,15 +186,20 @@ const directCounts = async (clientId: string, departmentId: string | null, userI
             ),
           ),
       ),
-      unanswered: await items(eq(assessmentItem.answer, 'not_assessed')),
-      my_actions: await n(
+      unanswered: await items(and(eq(assessmentItem.answer, 'not_assessed'))),
+      actions_under_way: await actions(and(inArray(remediationAction.status, WORKABLE))),
+      my_actions: await actions(
+        and(eq(remediationAction.ownerUserId, userId), inArray(remediationAction.status, WORKABLE)),
+      ),
+      my_requests: await n(
         tx
           .select({ n: count() })
-          .from(remediationAction)
+          .from(evidenceRequest)
           .where(
             and(
-              eq(remediationAction.tenantId, clientId),
-              eq(remediationAction.ownerUserId, userId),
+              eq(evidenceRequest.tenantId, clientId),
+              eq(evidenceRequest.assigneeUserId, userId),
+              eq(evidenceRequest.status, 'requested'),
             ),
           ),
       ),
@@ -289,72 +222,71 @@ const pick = (counts: Record<string, number>, kinds: AttentionKind[]) =>
 
 describe('workspace: attention and search', () => {
   it('TC-C16.3-01 what needs attention equals direct counts, and only what each role can act on', async () => {
-    const { client, tech } = await scenario()
+    const { client, tech, itHead } = await scenario()
 
-    // The lead auditor answers, reviews, verifies and plans: every kind except risk acceptance.
-    const leadDirect = await directCounts(client.id, null, lead.userId)
-    expect(byKind(await attentionFor(as(lead), [client.id]), client.id)).toEqual(
+    // The senior auditor answers, checks, reviews, plans and tracks every kind of work.
+    const leadDirect = await directCounts(client.id, null, world.ctx.principal.userId)
+    expect(byKind(await attentionFor(world.ctx, [client.id]), client.id)).toEqual(
       pick(leadDirect, [
         'overdue_actions',
-        'returned_answers',
-        'answers_to_review',
+        'answers_to_check',
         'evidence_to_review',
-        'findings_without_actions',
-        'unanswered',
-      ]),
-    )
-    expect(leadDirect.overdue_actions).toBe(1)
-    expect(leadDirect.returned_answers).toBe(1)
-    expect(leadDirect.evidence_to_review).toBe(1)
-
-    // A Technology owner sees only Technology answer work and actions; no reviews, no planning.
-    const techOwner = clientPerson('department_owner', client.id, tech.id)
-    const techDirect = await directCounts(client.id, tech.id, techOwner.userId)
-    expect(byKind(await attentionFor(as(techOwner)), client.id)).toEqual(
-      pick(techDirect, ['overdue_actions', 'returned_answers', 'unanswered']),
-    )
-
-    // The DPO answers, plans and decides on serious risks, but does not review.
-    const dpo = clientPerson('client_dpo', client.id)
-    const dpoDirect = await directCounts(client.id, null, dpo.userId)
-    expect(byKind(await attentionFor(as(dpo)), client.id)).toEqual(
-      pick(dpoDirect, [
-        'overdue_actions',
-        'returned_answers',
+        'evidence_requested',
         'serious_risks',
         'findings_without_actions',
         'unanswered',
+        'actions_under_way',
       ]),
+    )
+    expect([
+      leadDirect.overdue_actions,
+      leadDirect.answers_to_check,
+      leadDirect.evidence_to_review,
+      leadDirect.evidence_requested,
+    ]).toEqual([1, 4, 1, 1])
+
+    // The IT head sees the overdue IT action, their own action and the evidence asked of them;
+    // no answering or reviewing.
+    const itDirect = await directCounts(client.id, tech.id, itHead.userId)
+    expect(byKind(await attentionFor(as(world, itHead)), client.id)).toEqual(
+      pick(itDirect, ['overdue_actions', 'my_actions', 'my_requests']),
+    )
+    expect([itDirect.my_actions, itDirect.my_requests]).toEqual([1, 1])
+
+    // The DPO follows actions and decides on serious risks.
+    const dpo = await newPerson(world, 'client_dpo', { clientId: client.id })
+    const dpoDirect = await directCounts(client.id, null, dpo.userId)
+    expect(byKind(await attentionFor(as(world, dpo)), client.id)).toEqual(
+      pick(dpoDirect, ['overdue_actions', 'serious_risks']),
     )
   })
 
   it('TC-C16.5-01 search finds records by code or title, only in clients the user can open', async () => {
     const word = `Findme${randomBytes(3).toString('hex')}`
-    const mine = await newClient(`${word} Clinic`)
-    const other = await newClient(`${word} Hospital`)
-    const dpo = clientPerson('client_dpo', mine.id)
+    const mine = await newClient(world, `${word} Clinic`)
+    const other = await newClient(world, `${word} Hospital`)
     for (const client of [mine, other]) {
-      const cycle = await createAssessment(as(lead), client.id, { title: 'Search baseline' })
-      const [first] = await listItems(as(lead), client.id, cycle.id)
-      await answerItem(as(lead), client.id, first?.id ?? '', { answer: 'no' })
+      const dep = await newDepartment(world, client.id, 'OPS', ['A1.1'])
+      await answerItem(world.ctx, client.id, dep.item('A1.1').id, { answer: 'no' })
     }
-    const [mineFinding] = await listFindings(as(lead), mine.id)
+    const [mineFinding] = await listFindings(world.ctx, mine.id)
+    const dpo = as(world, await newPerson(world, 'client_dpo', { clientId: mine.id }))
 
-    const forDpo = await searchWorkspace(as(dpo), word)
+    const forDpo = await searchWorkspace(dpo, word)
     expect(new Set(forDpo.map((hit) => hit.clientCode))).toEqual(new Set([mine.code]))
     expect(forDpo.some((hit) => hit.kind === 'client' && hit.code === mine.code)).toBe(true)
     // The other client's records do not appear, even by their exact code. (Its code can also
     // occur in the DPO's own client's name, which may then match, so look at whose hits they are.)
-    const byOtherCode = await searchWorkspace(as(dpo), other.code)
+    const byOtherCode = await searchWorkspace(dpo, other.code)
     expect(byOtherCode.filter((hit) => hit.clientCode !== mine.code)).toEqual([])
 
-    const forLead = await searchWorkspace(as(lead), word)
+    const forLead = await searchWorkspace(world.ctx, word)
     expect(new Set(forLead.map((hit) => hit.clientCode))).toEqual(new Set([mine.code, other.code]))
-    const byCode = await searchWorkspace(as(dpo), mineFinding?.code ?? 'none')
+    const byCode = await searchWorkspace(dpo, mineFinding?.code ?? 'none')
     expect(byCode.map((hit) => [hit.kind, hit.code, hit.href])).toEqual([
       ['finding', mineFinding?.code, `/clients/${mine.code}/findings/${mineFinding?.code}`],
     ])
     // Too short a query returns nothing rather than everything.
-    expect(await searchWorkspace(as(lead), 'S')).toEqual([])
+    expect(await searchWorkspace(world.ctx, 'S')).toEqual([])
   })
 })

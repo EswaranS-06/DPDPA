@@ -1,5 +1,3 @@
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
 import { findRepoRoot, parseEnv, testDatabaseEnvSchema } from '@duatf/core-config'
 import {
   createDatabase,
@@ -8,11 +6,16 @@ import {
   type DatabaseHandle,
 } from '@duatf/platform-db'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { parseQuestionBank } from './questionBank'
-import { buildRelease, RELEASE_1_1_0, ReleaseExistsError } from './release'
+import {
+  buildRelease,
+  QUESTION_BANK_TABLES,
+  questionBankPaths,
+  readQuestionBank,
+  RELEASE_1_1_0,
+  ReleaseExistsError,
+} from './release'
 
 const env = parseEnv(testDatabaseEnvSchema)
-const bankPath = join(findRepoRoot(), 'seed', 'question-bank', 'questions.yaml')
 
 let handle: DatabaseHandle
 const ids: Record<string, string> = {}
@@ -43,7 +46,10 @@ describe('framework release 1.1.0', () => {
     const old = ids['1.0.0'] ?? ''
     const next = ids['1.1.0'] ?? ''
     const differences: Record<string, { counts: [number, number]; changed: string[] }> = {}
-    for (const table of FRAMEWORK_CHILD_TABLES.filter((name) => name !== 'question')) {
+    // Questions and questionnaires are rebuilt from the ComplyX bank, not copied.
+    for (const table of FRAMEWORK_CHILD_TABLES.filter(
+      (name) => !QUESTION_BANK_TABLES.includes(name),
+    )) {
       const counts = await handle.db.execute<{ old: number; next: number }>(sql`
         select (select count(*)::int from ${sql.identifier(table)} where release_id = ${old}) as old,
                (select count(*)::int from ${sql.identifier(table)} where release_id = ${next}) as next`)
@@ -68,22 +74,44 @@ describe('framework release 1.1.0', () => {
     }
   })
 
-  it('TC-C4.2-02 has one complete question per control', async () => {
+  it('TC-C19.2-01 holds the three ComplyX questionnaires and 142 complete, mapped questions', async () => {
     const next = ids['1.1.0'] ?? ''
-    const [counts] = await handle.db.execute<{ controls: number; questions: number }>(sql`
-      select (select count(*)::int from control where release_id = ${next}) as controls,
-             (select count(*)::int from question where release_id = ${next}) as questions`)
-    expect(counts?.questions).toBe(counts?.controls)
-    expect(counts?.questions).toBe(parseQuestionBank(readFileSync(bankPath, 'utf8')).length)
+    const questionnaires = await handle.db.execute<{
+      code: string
+      respondent: string
+      n: number
+    }>(sql`
+      select qn.code, qn.respondent,
+             (select count(*)::int from question q
+              where q.release_id = qn.release_id and q.questionnaire_code = qn.code) as n
+      from questionnaire qn where qn.release_id = ${next} order by qn.seq`)
+    expect(questionnaires.map((row) => [row.code, row.respondent, row.n])).toEqual([
+      ['TPL-001', 'organisation', 70],
+      ['TPL-002', 'department', 14],
+      ['TPL-003', 'vendor', 58],
+    ])
+    const { bank } = readQuestionBank(questionBankPaths(findRepoRoot()))
+    const [total] = await handle.db.execute<{ n: number }>(
+      sql`select count(*)::int as n from question where release_id = ${next}`,
+    )
+    expect(total?.n).toBe(bank.files.flatMap((file) => file.questions).length)
 
+    // Every question carries its law (references, obligations), controls, a recommendation and
+    // evidence, all from the knowledge base; scored questions have options that score.
     const incomplete = await handle.db.execute<{ code: string }>(sql`
       select q.code from question q
       where q.release_id = ${next}
-        and (length(q.text) < 20 or length(q.recommendation) < 20 or length(q.guidance) = 0
-          or cardinality(q.references) = 0 or cardinality(q.obligation_codes) = 0
+        and (length(q.text) < 10 or length(q.title) < 5 or length(q.recommendation) < 20
+          or length(q.guidance) = 0 or cardinality(q.references) = 0
+          or cardinality(q.obligation_codes) = 0 or cardinality(q.control_codes) = 0
           or cardinality(q.evidence_required) + cardinality(q.evidence_recommended) = 0
-          or q.risk_weight not between 1 and 5
-          or not exists (select 1 from control c where c.release_id = q.release_id and c.code = q.control_code))`)
+          or q.risk_weight not between 2 and 5
+          or (q.answer_type <> 'text' and jsonb_array_length(q.options) < 2)
+          or exists (select 1 from unnest(q.control_codes) c(code) where not exists (
+            select 1 from control k where k.release_id = q.release_id and k.code = c.code))
+          or exists (select 1 from unnest(q.obligation_codes) o(code) where not exists (
+            select 1 from obligation b where b.release_id = q.release_id and b.code = o.code))
+          or not exists (select 1 from domain d where d.release_id = q.release_id and d.code = q.domain_code))`)
     expect(incomplete.map((row) => row.code)).toEqual([])
 
     const overlapping = await handle.db.execute<{ code: string }>(sql`
@@ -94,13 +122,27 @@ describe('framework release 1.1.0', () => {
       where q.release_id = ${next}
       group by q.code having count(*) <> count(distinct items.item)`)
     expect(overlapping.map((row) => row.code)).toEqual([])
+
+    // The penalty of a question comes from its obligations: the critical DPO question carries one.
+    const [dpo] = await handle.db.execute<{ tiers: string[] }>(sql`
+      select array_agg(distinct b.penalty_tier) filter (where b.penalty_tier is not null) as tiers
+      from question q join obligation b
+        on b.release_id = q.release_id and b.code = any(q.obligation_codes)
+      where q.release_id = ${next} and q.code = 'A1.1'`)
+    expect(dpo?.tiers?.length ?? 0).toBeGreaterThan(0)
+
+    // Gates are stored with the question they depend on.
+    const [gated] = await handle.db.execute<{ gates: { question: string; values: string[] }[] }>(
+      sql`select gates from question where release_id = ${next} and code = 'A12.1'`,
+    )
+    expect(gated?.gates.map((gate) => [gate.question, gate.values])).toEqual([['A1.4', ['No']]])
   })
 
   it('refuses to build the same release twice', async () => {
     await expect(
       buildRelease({
         databaseUrl: env.TEST_DATABASE_URL,
-        questionBankPath: bankPath,
+        questionBank: questionBankPaths(findRepoRoot()),
         ...RELEASE_1_1_0,
       }),
     ).rejects.toBeInstanceOf(ReleaseExistsError)

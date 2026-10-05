@@ -89,6 +89,7 @@ export const ANSWER_LABEL: Record<Answer, string> = {
   no: 'No',
   not_applicable: 'Not applicable',
   not_assessed: 'Not assessed',
+  recorded: 'Recorded',
 }
 
 export const COMPLIANCE_LABEL: Record<ComplianceState, string> = {
@@ -97,12 +98,14 @@ export const COMPLIANCE_LABEL: Record<ComplianceState, string> = {
   gap: 'Gap',
   excluded: 'Not applicable',
   pending: 'Not assessed',
+  informational: 'Recorded, not scored',
 }
 
+/** The self-check: the auditor ticks each answer once its evidence has been looked at. */
 export const REVIEW_LABEL: Record<ReviewState, string> = {
-  not_reviewed: 'Not reviewed',
-  accepted: 'Accepted',
-  returned: 'Sent back',
+  not_reviewed: 'Not checked',
+  accepted: 'Checked',
+  returned: 'To look at again',
 }
 
 export const ACTION_STATUS_LABEL: Record<ActionStatus, string> = {

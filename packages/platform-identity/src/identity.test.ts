@@ -5,7 +5,9 @@ import {
   appUser,
   createDatabase,
   eq,
+  inArray,
   legalEntity,
+  roleAssignment,
   sql,
   tenant,
   userSession,
@@ -13,28 +15,45 @@ import {
   type DatabaseHandle,
 } from '@duatf/platform-db'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { generateTemporaryPassword } from './keycloakAdmin'
-import { createOidc, decodeTransaction, encodeTransaction, LoginError, safeReturnTo } from './oidc'
-import { tenantScope } from './principal'
+import { generateOneTimePassword, hashPassword, passwordProblem, verifyPassword } from './password'
+import { loadPrincipal, tenantScope } from './principal'
+import { safeReturnTo } from './returnTo'
 import { createSession, findSessionUser, hashToken, revokeSession } from './sessions'
-import { resolveSignIn } from './signIn'
+import {
+  changePassword,
+  issueLogin,
+  LOCK_MINUTES,
+  LoginError,
+  MAX_FAILED_LOGINS,
+  revokeLogin,
+  setupAccount,
+  signInWithPassword,
+  UsernameTakenError,
+  type PasswordChangeError,
+} from './signIn'
 
 const env = parseEnv(testDatabaseEnvSchema)
 const tag = () => randomBytes(4).toString('hex')
 
-describe('sessions and sign-in', () => {
+describe('sign-in, sessions and passwords', () => {
   let owner: DatabaseHandle
   let app: DatabaseHandle
-  const emails: string[] = []
+  const userIds: string[] = []
 
-  const makeUser = async (status: 'invited' | 'active' | 'disabled' = 'active') => {
-    const email = `user-${tag()}@example.test`
-    emails.push(email)
+  /** A person, with a login when a username is given. Returns the one-time password too. */
+  const makeUser = async (options: { username?: string; status?: 'active' | 'disabled' } = {}) => {
     const [row] = await owner.db
       .insert(appUser)
-      .values({ email, displayName: 'Test User', kind: 'firm', status })
+      .values({ displayName: 'Test User', kind: 'firm', status: options.status ?? 'active' })
       .returning({ id: appUser.id })
-    return { id: row?.id ?? '', email }
+    const id = row?.id ?? ''
+    userIds.push(id)
+    const password = options.username
+      ? await owner.db.transaction((tx) =>
+          issueLogin(tx, { userId: id, username: options.username ?? '', actorUserId: null }),
+        )
+      : ''
+    return { id, username: options.username ?? '', password }
   }
 
   beforeAll(() => {
@@ -42,12 +61,12 @@ describe('sessions and sign-in', () => {
     app = createDatabase(env.TEST_APP_DATABASE_URL, { max: 4 })
   })
   afterAll(async () => {
-    for (const email of emails) await owner.db.delete(appUser).where(eq(appUser.email, email))
+    if (userIds.length) await owner.db.delete(appUser).where(inArray(appUser.id, userIds))
     await Promise.all([owner.close(), app.close()])
   })
 
   it('TC-C3.2-01 stores only token hashes and refuses expired or revoked sessions', async () => {
-    const user = await makeUser()
+    const user = await makeUser({ username: `sess-${tag()}` })
     const { token } = await createSession(app.db, { userId: user.id, ttlHours: 1 })
     const stored = await owner.db.select().from(userSession).where(eq(userSession.userId, user.id))
     expect(stored).toHaveLength(1)
@@ -62,87 +81,180 @@ describe('sessions and sign-in', () => {
     await revokeSession(app.db, token)
     expect(await findSessionUser(app.db, token)).toBeNull()
 
-    const disabled = await makeUser('disabled')
+    // Neither a disabled person nor a person without a login keeps a session.
+    const disabled = await makeUser({ username: `off-${tag()}`, status: 'disabled' })
     const second = await createSession(app.db, { userId: disabled.id, ttlHours: 1 })
     expect(await findSessionUser(app.db, second.token)).toBeNull()
+    const noLogin = await makeUser()
+    const third = await createSession(app.db, { userId: noLogin.id, ttlHours: 1 })
+    expect(await findSessionUser(app.db, third.token)).toBeNull()
   })
 
-  it('links an invited user on first sign-in and refuses unknown or disabled users', async () => {
-    const invited = await makeUser('invited')
-    const subject = `kc-${tag()}`
-    const signedIn = await resolveSignIn(app.db, {
-      subject,
-      email: invited.email,
-      name: 'Test User',
-      idToken: 'x',
+  it('TC-C3.2-02 signs in only with the right password of an enabled login, and locks after repeated failures', async () => {
+    const username = `it-head-${tag()}`
+    const user = await makeUser({ username })
+    expect(user.password).toMatch(/^[A-Za-z0-9]{20}$/)
+
+    // Usernames are not case-sensitive; the first sign-in must change the password.
+    const signedIn = await signInWithPassword(app.db, {
+      username: `  ${username.toUpperCase()} `,
+      password: user.password,
     })
-    expect(signedIn.userId).toBe(invited.id)
-    const [row] = await owner.db.select().from(appUser).where(eq(appUser.id, invited.id))
-    expect(row?.keycloakId).toBe(subject)
-    expect(row?.status).toBe('active')
+    expect(signedIn).toMatchObject({ userId: user.id, username, mustChangePassword: true })
 
-    await expect(
-      resolveSignIn(app.db, {
-        subject: `kc-${tag()}`,
-        email: `nobody-${tag()}@example.test`,
-        name: 'Nobody',
-        idToken: 'x',
-      }),
-    ).rejects.toMatchObject({ code: 'not_registered' })
+    // A wrong password and an unknown name give the same answer.
+    const wrong = await signInWithPassword(app.db, {
+      username,
+      password: 'not the password',
+    }).catch((error: unknown) => error)
+    const unknown = await signInWithPassword(app.db, {
+      username: `nobody-${tag()}`,
+      password: user.password,
+    }).catch((error: unknown) => error)
+    expect(wrong).toBeInstanceOf(LoginError)
+    expect([(wrong as LoginError).code, (wrong as LoginError).message]).toEqual([
+      (unknown as LoginError).code,
+      (unknown as LoginError).message,
+    ])
 
-    const disabled = await makeUser('disabled')
+    // Five failures in a row lock the account, even for the right password, for 15 minutes.
+    for (let attempt = 1; attempt < MAX_FAILED_LOGINS; attempt += 1) {
+      await expect(
+        signInWithPassword(app.db, { username, password: `wrong ${attempt}` }),
+      ).rejects.toMatchObject({ code: 'invalid' })
+    }
     await expect(
-      resolveSignIn(app.db, {
-        subject: `kc-${tag()}`,
-        email: disabled.email,
-        name: 'Off',
-        idToken: 'x',
-      }),
+      signInWithPassword(app.db, { username, password: user.password }),
+    ).rejects.toMatchObject({ code: 'locked' })
+    const afterLock = new Date(Date.now() + (LOCK_MINUTES + 1) * 60_000)
+    expect(
+      (await signInWithPassword(app.db, { username, password: user.password, now: afterLock }))
+        .userId,
+    ).toBe(user.id)
+
+    // A disabled person is told so only once the password is right.
+    await owner.db.update(appUser).set({ status: 'disabled' }).where(eq(appUser.id, user.id))
+    await expect(
+      signInWithPassword(app.db, { username, password: user.password }),
     ).rejects.toMatchObject({ code: 'disabled' })
-  })
-})
+    await owner.db.update(appUser).set({ status: 'active' }).where(eq(appUser.id, user.id))
 
-describe('login callback', () => {
-  const oidc = createOidc({
-    // Unreachable on purpose: the state check must happen before any call to Keycloak.
-    issuer: 'http://127.0.0.1:9/realms/none',
-    clientId: 'duatf-web',
-    clientSecret: 'not-a-real-secret-value',
-    appUrl: 'http://127.0.0.1:53000',
-  })
-  const transaction = { state: 'expected', nonce: 'n', codeVerifier: 'v', returnTo: '/' }
+    // Revoking the login ends sessions and sign-in; the person stays.
+    const { token } = await createSession(app.db, { userId: user.id, ttlHours: 1 })
+    await owner.db.transaction((tx) => revokeLogin(tx, { userId: user.id, actorUserId: null }))
+    expect(await findSessionUser(app.db, token)).toBeNull()
+    await expect(
+      signInWithPassword(app.db, { username, password: user.password }),
+    ).rejects.toMatchObject({ code: 'invalid' })
+    const [kept] = await owner.db.select().from(appUser).where(eq(appUser.id, user.id))
+    expect([kept?.loginEnabled, kept?.passwordHash, kept?.username]).toEqual([
+      false,
+      null,
+      username,
+    ])
 
-  it('TC-C3.2-02 rejects a callback whose state does not match', async () => {
-    const forged = new URLSearchParams({ code: 'abc', state: 'forged' })
-    await expect(oidc.completeLogin(forged, transaction)).rejects.toBeInstanceOf(LoginError)
-    await expect(oidc.completeLogin(forged, transaction)).rejects.toMatchObject({
-      code: 'state_mismatch',
+    // A username belongs to one person.
+    const other = await makeUser()
+    await expect(
+      owner.db.transaction((tx) =>
+        issueLogin(tx, { userId: other.id, username, actorUserId: null }),
+      ),
+    ).rejects.toBeInstanceOf(UsernameTakenError)
+  })
+
+  it('changes the password only with the current one, and signs out the other sessions', async () => {
+    const username = `change-${tag()}`
+    const user = await makeUser({ username })
+    const kept = await createSession(app.db, { userId: user.id, ttlHours: 1 })
+    const elsewhere = await createSession(app.db, { userId: user.id, ttlHours: 1 })
+    const change = (input: { current: string; next: string; confirm?: string }) =>
+      changePassword(app.db, {
+        userId: user.id,
+        sessionId: hashToken(kept.token),
+        current: input.current,
+        next: input.next,
+        confirm: input.confirm ?? input.next,
+      }).catch((error: unknown) => error)
+
+    const fields = async (input: { current: string; next: string; confirm?: string }) =>
+      Object.keys(((await change(input)) as PasswordChangeError).fieldErrors)
+    expect(await fields({ current: 'not it at all', next: 'Harbour lights 2026' })).toEqual([
+      'current',
+    ])
+    expect(await fields({ current: user.password, next: 'short' })).toEqual(['next'])
+    expect(await fields({ current: user.password, next: `${username} secret 99` })).toEqual([
+      'next',
+    ])
+    expect(
+      await fields({
+        current: user.password,
+        next: 'Harbour lights 2026',
+        confirm: 'Harbour lights 2027',
+      }),
+    ).toEqual(['confirm'])
+
+    expect(await change({ current: user.password, next: 'Harbour lights 2026' })).toBeUndefined()
+    expect((await findSessionUser(app.db, kept.token))?.mustChangePassword).toBe(false)
+    expect(await findSessionUser(app.db, elsewhere.token)).toBeNull()
+    expect(
+      (await signInWithPassword(app.db, { username, password: 'Harbour lights 2026' }))
+        .mustChangePassword,
+    ).toBe(false)
+  })
+
+  it('sets up the first administrator from the server, and resets their login when run again', async () => {
+    const username = `admin-${tag()}`
+    const first = await setupAccount(owner.db, { username, displayName: 'Senior Auditor' })
+    userIds.push(first.userId)
+    expect(first.created).toBe(true)
+    const principal = await loadPrincipal(app.db, {
+      userId: first.userId,
+      username,
+      displayName: 'Senior Auditor',
     })
-    const missing = new URLSearchParams({ code: 'abc', state: 'expected' })
-    await expect(oidc.completeLogin(missing, null)).rejects.toMatchObject({
-      code: 'state_mismatch',
-    })
+    expect(principal.assignments).toEqual([
+      { role: 'firm_admin', clientId: null, departmentId: null },
+    ])
+    const again = await setupAccount(owner.db, { username, displayName: 'Senior Auditor' })
+    expect([again.userId, again.created]).toEqual([first.userId, false])
+    expect(again.oneTimePassword).not.toBe(first.oneTimePassword)
+    await expect(
+      signInWithPassword(app.db, { username, password: first.oneTimePassword }),
+    ).rejects.toBeInstanceOf(LoginError)
+    expect(
+      (await signInWithPassword(app.db, { username, password: again.oneTimePassword })).userId,
+    ).toBe(first.userId)
+    const roles = await owner.db
+      .select({ role: roleAssignment.role })
+      .from(roleAssignment)
+      .where(eq(roleAssignment.userId, first.userId))
+    expect(roles).toEqual([{ role: 'firm_admin' }])
   })
 
-  it('keeps return paths on this site and survives cookie round trips', () => {
+  it('hashes passwords with scrypt and a fresh salt, and judges new passwords', async () => {
+    const hash = await hashPassword('Harbour lights 2026')
+    expect(hash).toMatch(/^scrypt\$32768\$8\$1\$[\w-]+\$[\w-]+$/)
+    expect(await hashPassword('Harbour lights 2026')).not.toBe(hash)
+    expect(await verifyPassword('Harbour lights 2026', hash)).toBe(true)
+    expect(await verifyPassword('harbour lights 2026', hash)).toBe(false)
+    expect(await verifyPassword('anything', 'md5$abc')).toBe(false)
+
+    expect(passwordProblem('Harbour lights 2026', 'it-head')).toBeNull()
+    expect(passwordProblem('short', 'it-head')).toMatch(/at least 12/)
+    expect(passwordProblem('my it-head password', 'it-head')).toMatch(/username/)
+    expect(passwordProblem('aaaaaaaaaaaaaaaa', 'it-head')).toMatch(/repetitive/)
+
+    const seen = new Set(Array.from({ length: 50 }, () => generateOneTimePassword()))
+    expect(seen.size).toBe(50)
+    for (const password of seen) expect(password).toMatch(/^[A-HJ-NP-Za-km-np-z2-9]{20}$/)
+  })
+
+  it('keeps return paths on this site', () => {
     expect(safeReturnTo('/clients/1')).toBe('/clients/1')
     expect(safeReturnTo('//evil.example')).toBe('/')
     expect(safeReturnTo('https://evil.example')).toBe('/')
     expect(safeReturnTo('/\\evil.example')).toBe('/')
-    expect(decodeTransaction(encodeTransaction({ ...transaction, returnTo: '//x' }))).toEqual({
-      ...transaction,
-      returnTo: '/',
-    })
-    expect(decodeTransaction('not-json')).toBeNull()
-  })
-
-  it('generates one-time passwords with every character class', () => {
-    const password = generateTemporaryPassword()
-    expect(password).toHaveLength(16)
-    expect(password).toMatch(/[A-Z]/)
-    expect(password).toMatch(/[a-z]/)
-    expect(password).toMatch(/[0-9]/)
-    expect(password).toMatch(/[^A-Za-z0-9]/)
+    expect(safeReturnTo(undefined)).toBe('/')
   })
 })
 
@@ -175,7 +287,7 @@ describe('client data isolation', () => {
     const [clientA, clientB] = ids as [string, string]
     const dpoOfA: Principal = {
       userId: 'u',
-      email: 'dpo@example.test',
+      email: 'dpo',
       displayName: 'DPO',
       assignments: [{ role: 'client_dpo', clientId: clientA, departmentId: null }],
     }

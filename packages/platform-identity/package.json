@@ -12,8 +12,7 @@
   "dependencies": {
     "@duatf/core-access": "workspace:*",
     "@duatf/core-config": "workspace:*",
-    "@duatf/platform-db": "workspace:*",
-    "openid-client": "catalog:"
+    "@duatf/platform-db": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "catalog:",

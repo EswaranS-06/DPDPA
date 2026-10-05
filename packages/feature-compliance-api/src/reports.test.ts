@@ -1,79 +1,43 @@
-import { randomBytes, randomUUID } from 'node:crypto'
-import { AccessDeniedError, type Principal, type Role } from '@duatf/core-access'
-import { parseEnv, testDatabaseEnvSchema } from '@duatf/core-config'
+import { AccessDeniedError } from '@duatf/core-access'
 import { isoDate } from '@duatf/core-utils'
-import {
-  count,
-  createDatabase,
-  eq,
-  frameworkRelease,
-  inArray,
-  risk,
-  tenant,
-  withTenants,
-  type DatabaseHandle,
-} from '@duatf/platform-db'
+import { assessment, count, eq, frameworkRelease, risk, withTenants } from '@duatf/platform-db'
 import ExcelJS from 'exceljs'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { answerItem, createAssessment, listItems } from './assessments'
-import { createClient } from './clients'
-import type { ServiceContext } from './context'
+import { answerItem } from './assessments'
 import { EXECUTIVE_SECTIONS, executiveReport } from './reports'
+import {
+  as,
+  closeWorld,
+  newClient,
+  newDepartment,
+  newPerson,
+  openWorld,
+  type World,
+} from './testing'
 import { buildComplianceWorkbook, RISK_REGISTER_COLUMNS, WORKBOOK_SHEETS } from './workbooks'
 
-const env = parseEnv(testDatabaseEnvSchema)
-
-let app: DatabaseHandle
-let owner: DatabaseHandle
-const codes: string[] = []
-const provisioner = {
-  provision: () => Promise.resolve('none'),
-  setEnabled: () => Promise.resolve(),
-}
-const person = (role: Role, clientId: string | null = null): Principal => ({
-  userId: randomUUID(),
-  email: `${role}@example.test`,
-  displayName: role,
-  assignments: [{ role, clientId, departmentId: null }],
-})
-const as = (who: Principal): ServiceContext => ({ db: app.db, principal: who, provisioner })
-const lead = person('lead_auditor')
-
-const setup = async () => {
-  const tag = randomBytes(3).toString('hex').toUpperCase()
-  const client = await createClient(as(lead), {
-    name: `W${tag} Reports`,
-    legalName: `W${tag} Reports Pvt Ltd`,
-    industry: 'Education',
-    organisationType: 'trust_society_ngo',
-    primaryContactName: 'Ira',
-    primaryContactEmail: 'ira@example.test',
-    applicability: 'applicable',
-  })
-  codes.push(client.code)
-  const cycle = await createAssessment(as(lead), client.id, { title: 'Readiness 2026' })
-  const items = await listItems(as(lead), client.id, cycle.id)
-  for (const [index, answer] of ['no', 'partial', 'no', 'yes'].entries()) {
-    await answerItem(as(lead), client.id, items[index]?.id ?? '', { answer })
-  }
-  return { client, cycle }
-}
-
+let world: World
 beforeAll(() => {
-  app = createDatabase(env.TEST_APP_DATABASE_URL, { max: 4 })
-  owner = createDatabase(env.TEST_DATABASE_URL, { max: 2 })
+  world = openWorld()
 })
-afterAll(async () => {
-  if (codes.length) {
-    await withTenants(owner.db, 'all', (tx) => tx.delete(tenant).where(inArray(tenant.code, codes)))
+afterAll(() => closeWorld(world))
+
+/** A client with one department: two gaps, a potential gap and a compliant answer. */
+const setup = async () => {
+  const client = await newClient(world, 'Reports', { applicability: 'applicable' })
+  const plan = { 'A1.1': 'no', 'A1.3': '2', 'A2.1': '0', 'A3.1': 'yes' }
+  const ops = await newDepartment(world, client.id, 'OPS', Object.keys(plan))
+  for (const [code, answer] of Object.entries(plan)) {
+    await answerItem(world.ctx, client.id, ops.item(code).id, { answer })
   }
-  await Promise.all([app.close(), owner.close()])
-})
+  if (!ops.cycle) throw new Error('No open cycle.')
+  return { client, cycle: ops.cycle }
+}
 
 describe('Excel exports', () => {
   it('TC-C11.1-01 writes one risk-register row per risk with every column', async () => {
     const { client } = await setup()
-    const workbook = await buildComplianceWorkbook(as(lead), client.id)
+    const workbook = await buildComplianceWorkbook(world.ctx, client.id)
     expect(workbook.fileName).toBe(`${client.code}-compliance-${isoDate(new Date())}.xlsx`)
 
     const book = new ExcelJS.Workbook()
@@ -94,7 +58,7 @@ describe('Excel exports', () => {
     const header = (sheet?.getRow(1).values as unknown[]).slice(1)
     expect(header).toEqual([...RISK_REGISTER_COLUMNS])
 
-    const [direct] = await withTenants(owner.db, 'all', (tx) =>
+    const [direct] = await withTenants(world.owner.db, 'all', (tx) =>
       tx.select({ n: count() }).from(risk).where(eq(risk.tenantId, client.id)),
     )
     const codesInSheet: string[] = []
@@ -107,20 +71,18 @@ describe('Excel exports', () => {
       if (index > 1) expect(row.cellCount, `row ${index}`).toBeGreaterThanOrEqual(10)
     })
 
-    await expect(
-      buildComplianceWorkbook(as(person('department_owner', client.id)), client.id),
-    ).rejects.toBeInstanceOf(AccessDeniedError)
+    const head = await newPerson(world, 'department_owner', { clientId: client.id })
+    await expect(buildComplianceWorkbook(as(world, head), client.id)).rejects.toBeInstanceOf(
+      AccessDeniedError,
+    )
   })
 })
 
 describe('printable reports', () => {
   it('TC-C11.2-01 gives the executive report its required sections, release and date', async () => {
     const { client, cycle } = await setup()
-    const report = await executiveReport(
-      as(person('client_viewer', client.id)),
-      client.id,
-      cycle.code,
-    )
+    const viewer = await newPerson(world, 'client_viewer', { clientId: client.id })
+    const report = await executiveReport(as(world, viewer), client.id, cycle.code)
     expect(report.sections).toEqual([
       'Summary',
       'Scope and method',
@@ -131,11 +93,14 @@ describe('printable reports', () => {
       'About this report',
     ])
     expect(report.sections).toEqual([...EXECUTIVE_SECTIONS])
-    const [release] = await owner.db
-      .select({ version: frameworkRelease.version })
-      .from(frameworkRelease)
-      .where(eq(frameworkRelease.status, 'published'))
-    expect(report.assessment.releaseVersion).toBe(release?.version)
+    const [pinned] = await withTenants(world.owner.db, 'all', (tx) =>
+      tx
+        .select({ version: frameworkRelease.version })
+        .from(assessment)
+        .innerJoin(frameworkRelease, eq(frameworkRelease.id, assessment.releaseId))
+        .where(eq(assessment.id, cycle.id)),
+    )
+    expect(report.assessment.releaseVersion).toBe(pinned?.version)
     expect(report.generatedOn).toBe(isoDate(new Date()))
     expect(report.preparedFor).toMatchObject({
       code: client.code,

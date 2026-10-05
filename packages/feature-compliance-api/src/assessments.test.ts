@@ -1,245 +1,306 @@
-import { randomBytes, randomUUID } from 'node:crypto'
-import { readFileSync } from 'node:fs'
-import { AccessDeniedError, type Principal, type Role } from '@duatf/core-access'
-import { parseEnv, testDatabaseEnvSchema } from '@duatf/core-config'
 import {
+  and,
   assessmentItem,
-  createDatabase,
   desc,
   eq,
   frameworkRelease,
   inArray,
   question,
   sql,
-  tenant,
   withTenants,
-  type Answer,
-  type DatabaseHandle,
+  type AnswerOption,
 } from '@duatf/platform-db'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import {
   answerItem,
-  assignItems,
   changeAssessmentStatus,
+  checkAnswered,
+  checkItem,
   createAssessment,
+  departmentQuestionPicker,
   getAssessment,
   listItems,
-  reviewItem,
+  setDepartmentQuestions,
 } from './assessments'
-import { createClient } from './clients'
-import type { ServiceContext } from './context'
-import { createDepartment } from './departments'
+import { createReassessment } from './actions'
 import { RuleError, type ValidationError } from './errors'
-import { COMPLIANCE_OF, summariseProgress, type Progress } from './progress'
+import { COMPLIANCE_OF } from './progress'
+import { bankCodes, closeWorld, newClient, newDepartment, openWorld, type World } from './testing'
 
-const env = parseEnv(testDatabaseEnvSchema)
-const golden = JSON.parse(
-  readFileSync(new URL('./fixtures/progress.golden.json', import.meta.url), 'utf8'),
-) as {
-  answers: Record<'yes' | 'partial' | 'no' | 'not_applicable', number>
-  reviews: { accepted: number; returned: number }
-  expected: Progress
-}
-
-let app: DatabaseHandle
-let owner: DatabaseHandle
-const codes: string[] = []
-const provisioner = {
-  provision: () => Promise.resolve('none'),
-  setEnabled: () => Promise.resolve(),
-}
-
-const principal = (
-  role: Role,
-  clientId: string | null = null,
-  departmentId: string | null = null,
-): Principal => ({
-  userId: randomUUID(),
-  email: `${role}@example.test`,
-  displayName: role,
-  assignments: [{ role, clientId, departmentId }],
-})
-const as = (who: Principal): ServiceContext => ({ db: app.db, principal: who, provisioner })
-const lead = principal('lead_auditor')
-const auditorA = principal('auditor')
-const auditorB = principal('auditor')
-
-const newClient = async () => {
-  const tag = randomBytes(3).toString('hex').toUpperCase()
-  const created = await createClient(as(lead), {
-    name: `A${tag} Assessments`,
-    legalName: `A${tag} Assessments Pvt Ltd`,
-    industry: 'Insurance',
-    organisationType: 'private_limited',
-    primaryContactName: 'Ravi Menon',
-    primaryContactEmail: 'ravi@example.test',
-  })
-  codes.push(created.code)
-  return created
-}
-
+let world: World
 beforeAll(() => {
-  app = createDatabase(env.TEST_APP_DATABASE_URL, { max: 4 })
-  owner = createDatabase(env.TEST_DATABASE_URL, { max: 2 })
+  world = openWorld()
 })
-afterAll(async () => {
-  if (codes.length) {
-    await withTenants(owner.db, 'all', (tx) => tx.delete(tenant).where(inArray(tenant.code, codes)))
-  }
-  await Promise.all([app.close(), owner.close()])
-})
+afterAll(() => closeWorld(world))
 
-describe('assessment cycles', () => {
-  it('TC-C6.1-01 pins the published release and creates one item per question', async () => {
-    const client = await newClient()
-    const created = await createAssessment(as(lead), client.id, { title: 'DPDP readiness 2026' })
-    expect(created.code).toBe(`ASM-${client.code}-001`)
+const published = async () => {
+  const [release] = await world.owner.db
+    .select({ id: frameworkRelease.id, version: frameworkRelease.version })
+    .from(frameworkRelease)
+    .where(eq(frameworkRelease.status, 'published'))
+    .orderBy(desc(frameworkRelease.publishedAt))
+    .limit(1)
+  return release
+}
 
-    const [release] = await owner.db
-      .select({ id: frameworkRelease.id, version: frameworkRelease.version })
-      .from(frameworkRelease)
-      .where(eq(frameworkRelease.status, 'published'))
-      .orderBy(desc(frameworkRelease.publishedAt))
-      .limit(1)
-    const questions = await owner.db
-      .select({ code: question.code })
-      .from(question)
-      .where(eq(question.releaseId, release?.id ?? ''))
-    const detail = await getAssessment(as(lead), client.id, created.code)
-    const items = await listItems(as(lead), client.id, created.id)
+const optionsOf = async (codes: string[]) => {
+  const release = await published()
+  const rows = await world.owner.db
+    .select({ code: question.code, answerType: question.answerType, options: question.options })
+    .from(question)
+    .where(and(eq(question.releaseId, release?.id ?? ''), inArray(question.code, codes)))
+  return new Map(rows.map((row) => [row.code, row]))
+}
 
-    expect(detail.releaseVersion).toBe(release?.version)
-    expect(items.length).toBe(questions.length)
-    expect(new Set(items.map((item) => item.questionCode))).toEqual(
-      new Set(questions.map((row) => row.code)),
-    )
-    expect(detail.progress.pending).toBe(questions.length)
-  })
-})
+describe('questions chosen for a department', () => {
+  it('TC-C19.3-01 a new department gets exactly the chosen questions, whole questionnaires and sections included, in the first cycle', async () => {
+    const client = await newClient(world)
+    const internal = await bankCodes(world, { questionnaire: 'TPL-002' })
+    const governance = await bankCodes(world, { questionnaire: 'TPL-001', section: 'Governance' })
+    const chosen = [...internal, ...governance, 'A8.2']
+    const hr = await newDepartment(world, client.id, 'HR', chosen)
 
-describe('department assignment', () => {
-  it("TC-C6.2-01 lets a department owner answer only their department's items", async () => {
-    const client = await newClient()
-    const hr = await createDepartment(as(lead), client.id, { code: 'HR', name: 'Human Resources' })
-    const it_ = await createDepartment(as(lead), client.id, { code: 'IT', name: 'Technology' })
-    const { id } = await createAssessment(as(lead), client.id, { title: 'Cycle' })
-    await assignItems(as(lead), client.id, id, { domainCode: 'D01', departmentId: hr.id })
-    await assignItems(as(lead), client.id, id, { domainCode: 'D09', departmentId: it_.id })
-    const items = await listItems(as(lead), client.id, id)
-    const hrItem = items.find((item) => item.domainCode === 'D01')
-    const itItem = items.find((item) => item.domainCode === 'D09')
-    const unassigned = items.find((item) => item.departmentId === null)
-    const hrOwner = as(principal('department_owner', client.id, hr.id))
-
-    await expect(
-      answerItem(hrOwner, client.id, hrItem?.id ?? '', { answer: 'yes' }),
-    ).resolves.toEqual({
-      complianceState: 'compliant',
-    })
-    await expect(
-      answerItem(hrOwner, client.id, itItem?.id ?? '', { answer: 'yes' }),
-    ).rejects.toBeInstanceOf(AccessDeniedError)
-    await expect(
-      answerItem(hrOwner, client.id, unassigned?.id ?? '', { answer: 'yes' }),
-    ).rejects.toBeInstanceOf(AccessDeniedError)
-    const otherClientOwner = as(principal('department_owner', randomUUID(), hr.id))
-    await expect(
-      answerItem(otherClientOwner, client.id, hrItem?.id ?? '', { answer: 'no' }),
-    ).rejects.toBeInstanceOf(AccessDeniedError)
-  })
-})
-
-describe('answers', () => {
-  it('TC-C6.3-01 needs a reason for Not applicable and maps every answer to its compliance state', async () => {
-    const client = await newClient()
-    const { id } = await createAssessment(as(lead), client.id, { title: 'Cycle' })
-    const items = await listItems(as(lead), client.id, id)
-    const noReason = await answerItem(as(auditorA), client.id, items[0]?.id ?? '', {
-      answer: 'not_applicable',
-      naReason: 'too short',
-    }).catch((error: unknown) => error)
-    expect(Object.keys((noReason as ValidationError).fieldErrors)).toEqual(['naReason'])
-
-    const answers: Answer[] = ['yes', 'partial', 'no', 'not_applicable', 'not_assessed']
-    for (const [index, answer] of answers.entries()) {
-      await answerItem(as(auditorA), client.id, items[index]?.id ?? '', {
-        answer,
-        naReason: 'The client runs no loyalty programme or marketing.',
-      })
-    }
-    const stored = await withTenants(owner.db, 'all', (tx) =>
-      tx
-        .select({
-          id: assessmentItem.id,
-          answer: assessmentItem.answer,
-          state: assessmentItem.complianceState,
-          reason: assessmentItem.naReason,
-        })
-        .from(assessmentItem)
-        .where(
-          inArray(
-            assessmentItem.id,
-            items.slice(0, 5).map((item) => item.id),
-          ),
-        ),
-    )
-    for (const row of stored) expect(row.state, row.answer).toBe(COMPLIANCE_OF[row.answer])
-    expect(stored.filter((row) => row.reason !== null).map((row) => row.answer)).toEqual([
-      'not_applicable',
+    expect(hr.change).toEqual({ added: chosen.length, removed: 0, kept: [] })
+    expect(hr.cycle?.code).toBe(`ASM-${client.code}-001`)
+    expect(hr.items.map((item) => item.questionCode).sort()).toEqual([...chosen].sort())
+    const detail = await getAssessment(world.ctx, client.id, hr.cycle?.code ?? '')
+    expect(detail.releaseVersion).toBe((await published())?.version)
+    expect(detail.questionnaires.map((row) => [row.code, row.progress.total])).toEqual([
+      ['TPL-001', governance.length + 1],
+      ['TPL-002', internal.length],
     ])
 
-    // The database refuses Not applicable without a reason even when the service is bypassed.
+    // The picker marks them chosen for this department only.
+    const picker = await departmentQuestionPicker(world.ctx, client.id, hr.id)
+    const picked = picker.questionnaires
+      .flatMap((group) => group.sections.flatMap((section) => section.questions))
+      .filter((row) => row.selected)
+      .map((row) => row.code)
+    expect(picked.sort()).toEqual([...chosen].sort())
+  })
+
+  it('TC-C19.3-02 the same question for two departments is answered separately', async () => {
+    const client = await newClient(world)
+    const hr = await newDepartment(world, client.id, 'HR', ['B0.12', 'B0.7'])
+    const fin = await newDepartment(world, client.id, 'FIN', ['B0.12'])
+    expect(fin.cycle?.id).toBe(hr.cycle?.id)
+    await answerItem(world.ctx, client.id, hr.item('B0.12').id, { answer: 'yes' })
+    await answerItem(world.ctx, client.id, fin.item('B0.12').id, { answer: 'no' })
+    const rows = await listItems(world.ctx, client.id, hr.cycle?.id ?? '')
+    expect(
+      rows
+        .filter((row) => row.questionCode === 'B0.12')
+        .map((row) => [row.departmentCode, row.complianceState])
+        .sort(),
+    ).toEqual([
+      ['FIN', 'gap'],
+      ['HR', 'compliant'],
+    ])
+  })
+
+  it('TC-C19.3-03 taking questions away removes unanswered ones and keeps answered ones', async () => {
+    const client = await newClient(world)
+    const hr = await newDepartment(world, client.id, 'HR', ['A1.1', 'A1.2', 'A1.3'])
+    await answerItem(world.ctx, client.id, hr.item('A1.1').id, { answer: 'no' })
+    const change = await setDepartmentQuestions(world.ctx, client.id, hr.id, {
+      questions: ['A1.3', 'A2.1'],
+    })
+    expect(change.added).toBe(1)
+    expect(change.removed).toBe(1)
+    expect(change.kept).toEqual(['A1.1 (has a finding)'])
+    const rows = await listItems(world.ctx, client.id, hr.cycle?.id ?? '', { department: hr.id })
+    expect(rows.map((row) => row.questionCode).sort()).toEqual(['A1.1', 'A1.3', 'A2.1'])
     await expect(
-      withTenants(owner.db, 'all', (tx) =>
+      setDepartmentQuestions(world.ctx, client.id, hr.id, { questions: ['ZZ9.9'] }),
+    ).rejects.toMatchObject({ fieldErrors: { questions: 'Unknown questions: ZZ9.9.' } })
+  })
+})
+
+describe('answers by type', () => {
+  it('TC-C19.4-01 every option of every chosen question gives the outcome the knowledge base sets for it', async () => {
+    const client = await newClient(world)
+    // One question of every kind: yes/no, yes/no scored in reverse, yes/no recorded only,
+    // maturity, a scored choice, a recorded choice, several choices and free text.
+    const codes = ['A1.1', 'B0.7', 'B0.8', 'A1.3', 'C1.5', 'A1.4', 'B0.1', 'B0.3']
+    const shapes = await optionsOf(codes)
+    const dep = await newDepartment(world, client.id, 'OPS', codes)
+    const mismatches: string[] = []
+    for (const code of codes) {
+      const shape = shapes.get(code)
+      const itemId = dep.item(code).id
+      for (const option of shape?.options ?? ([] as AnswerOption[])) {
+        const input =
+          shape?.answerType === 'multi_choice'
+            ? { choices: [option.value] }
+            : { answer: option.value }
+        const { complianceState } = await answerItem(world.ctx, client.id, itemId, input)
+        const expected = {
+          compliant: 'compliant',
+          potential_gap: 'potential_gap',
+          gap: 'gap',
+          informational: 'informational',
+        }[option.outcome]
+        if (complianceState !== expected) {
+          mismatches.push(`${code}=${option.value}: ${complianceState}, expected ${expected}`)
+        }
+      }
+    }
+    expect(mismatches).toEqual([])
+
+    // The outcomes ComplyX set: Yes on B0.7 is a gap; maturity 2 is partial; 3 and 4 comply.
+    const literal = async (code: string, input: Record<string, unknown>) =>
+      (await answerItem(world.ctx, client.id, dep.item(code).id, input)).complianceState
+    expect(await literal('B0.7', { answer: 'yes' })).toBe('gap')
+    expect(await literal('B0.7', { answer: 'no' })).toBe('compliant')
+    expect(await literal('B0.8', { answer: 'no' })).toBe('informational')
+    expect(await literal('A1.3', { answer: '2' })).toBe('potential_gap')
+    expect(await literal('A1.3', { answer: '3' })).toBe('compliant')
+    expect(await literal('A1.3', { answer: '1' })).toBe('gap')
+    expect(await literal('C1.5', { answer: '≤24 hours' })).toBe('compliant')
+    expect(await literal('C1.5', { answer: '≤72 hours' })).toBe('gap')
+    expect(await literal('B0.3', { text: 'Darwinbox; payroll sheet' })).toBe('informational')
+    expect(await literal('B0.1', { choices: ['HR', 'Healthcare'] })).toBe('informational')
+
+    // Answers that do not fit the question are refused; Not applicable needs a reason.
+    const refused = async (code: string, input: Record<string, unknown>) =>
+      Object.keys(
+        (
+          (await answerItem(world.ctx, client.id, dep.item(code).id, input).catch(
+            (error: unknown) => error,
+          )) as ValidationError
+        ).fieldErrors,
+      )
+    expect(await refused('A1.3', { answer: 'yes' })).toEqual(['answer'])
+    expect(await refused('B0.1', { choices: ['Mining'] })).toEqual(['answer'])
+    expect(await refused('B0.3', {})).toEqual(['answer'])
+    expect(await refused('A1.1', { answer: 'not_applicable', naReason: 'short' })).toEqual([
+      'naReason',
+    ])
+
+    // The stored answer and state always agree with the gap rule, even when written directly.
+    const stored = await withTenants(world.owner.db, 'all', (tx) =>
+      tx
+        .select({ answer: assessmentItem.answer, state: assessmentItem.complianceState })
+        .from(assessmentItem)
+        .where(eq(assessmentItem.departmentId, dep.id)),
+    )
+    for (const row of stored) expect(row.state, row.answer).toBe(COMPLIANCE_OF[row.answer])
+    await expect(
+      withTenants(world.owner.db, 'all', (tx) =>
         tx.execute(
-          sql`update assessment_item set answer = 'not_applicable', na_reason = null where id = ${items[5]?.id ?? ''}`,
+          sql`update assessment_item set answer = 'not_applicable', na_reason = null where id = ${dep.item('A1.1').id}`,
         ),
       ),
     ).rejects.toThrow()
   })
+
+  it('TC-C19.4-02 the posture counts maturity and choices like Yes, Partial and No and leaves recorded answers out', async () => {
+    const client = await newClient(world)
+    const codes = await bankCodes(world, { questionnaire: 'TPL-001' })
+    const shapes = await optionsOf(codes)
+    const dep = await newDepartment(world, client.id, 'GOV', codes)
+    // Oracle: answer each question with its options in turn, and count the outcomes chosen.
+    const tally = { compliant: 0, potential_gap: 0, gap: 0, informational: 0, na: 0, open: 0 }
+    for (const [index, code] of codes.entries()) {
+      const options = shapes.get(code)?.options ?? []
+      const turn = index % (options.length + 2)
+      const itemId = dep.item(code).id
+      if (turn === options.length) {
+        await answerItem(world.ctx, client.id, itemId, {
+          answer: 'not_applicable',
+          naReason: 'Outside the scope agreed for this cycle.',
+        })
+        tally.na += 1
+      } else if (turn === options.length + 1) {
+        tally.open += 1
+      } else {
+        const option = options[turn]
+        if (!option) throw new Error(`No option ${turn} for ${code}`)
+        await answerItem(world.ctx, client.id, itemId, { answer: option.value })
+        tally[option.outcome] += 1
+      }
+    }
+    const detail = await getAssessment(world.ctx, client.id, dep.cycle?.code ?? '')
+    const scored = tally.compliant + tally.potential_gap + tally.gap
+    expect(detail.progress).toMatchObject({
+      total: codes.length,
+      compliant: tally.compliant,
+      potentialGap: tally.potential_gap,
+      gap: tally.gap,
+      excluded: tally.na,
+      informational: tally.informational,
+      pending: tally.open,
+      // Compliant plus half of Partial, over the scored answers, to one decimal.
+      compliancePct:
+        Math.round(((tally.compliant * 2 + tally.potential_gap) * 1000) / (scored * 2)) / 10,
+    })
+  })
 })
 
-describe('review and progress', () => {
-  it('TC-C6.4-01 reports progress and compliance equal to the golden fixture', async () => {
-    const plan: Answer[] = (['yes', 'partial', 'no', 'not_applicable'] as const).flatMap((answer) =>
-      Array.from({ length: golden.answers[answer] }, () => answer),
-    )
-    const counted = summariseProgress([
-      ...(['yes', 'partial', 'no', 'not_applicable'] as const).map((answer) => ({
-        complianceState: COMPLIANCE_OF[answer],
-        reviewState: 'not_reviewed' as const,
-        n: golden.answers[answer],
-      })),
-    ])
-    expect(counted.answered).toBe(golden.expected.answered)
-
-    const client = await newClient()
-    const { id, code } = await createAssessment(as(lead), client.id, { title: 'Golden cycle' })
-    const items = await listItems(as(lead), client.id, id)
-    for (const [index, answer] of plan.entries()) {
-      await answerItem(as(auditorA), client.id, items[index]?.id ?? '', {
-        answer,
-        naReason: 'Not relevant to this client in the assessment period.',
-      })
-    }
+describe('self-check and cycles', () => {
+  it('TC-C19.5-01 a cycle completes only when every question is answered and every answer is ticked as checked', async () => {
+    const client = await newClient(world)
+    const hr = await newDepartment(world, client.id, 'HR', ['A1.1', 'B0.3'])
+    const cycleId = hr.cycle?.id ?? ''
+    await answerItem(world.ctx, client.id, hr.item('A1.1').id, { answer: 'yes' })
     await expect(
-      reviewItem(as(auditorA), client.id, items[0]?.id ?? '', { decision: 'accepted' }),
+      checkItem(world.ctx, client.id, hr.item('B0.3').id, { checked: 'true' }),
     ).rejects.toBeInstanceOf(RuleError)
-    for (let index = 0; index < golden.reviews.accepted; index += 1) {
-      await reviewItem(as(auditorB), client.id, items[index]?.id ?? '', { decision: 'accepted' })
-    }
-    for (let offset = 0; offset < golden.reviews.returned; offset += 1) {
-      const index = golden.reviews.accepted + offset
-      await reviewItem(as(auditorB), client.id, items[index]?.id ?? '', {
-        decision: 'returned',
-        note: 'Attach the signed policy.',
+    await expect(
+      changeAssessmentStatus(world.ctx, client.id, cycleId, 'completed'),
+    ).rejects.toThrow('1 questions are not answered yet.')
+
+    await answerItem(world.ctx, client.id, hr.item('B0.3').id, { text: 'Darwinbox HRMS' })
+    await checkItem(world.ctx, client.id, hr.item('A1.1').id, { checked: 'true' })
+    await expect(
+      changeAssessmentStatus(world.ctx, client.id, cycleId, 'completed'),
+    ).rejects.toThrow('1 answers are not checked yet.')
+    // Changing an answer takes its tick away.
+    await answerItem(world.ctx, client.id, hr.item('A1.1').id, { answer: 'partial' })
+    expect(await checkAnswered(world.ctx, client.id, cycleId)).toBe(2)
+    await changeAssessmentStatus(world.ctx, client.id, cycleId, 'completed')
+    await expect(
+      answerItem(world.ctx, client.id, hr.item('A1.1').id, { answer: 'yes' }),
+    ).rejects.toBeInstanceOf(RuleError)
+  })
+
+  it('TC-C19.5-02 after a completed cycle questions change only in the next cycle, which takes over each department’s questions', async () => {
+    const client = await newClient(world)
+    const hr = await newDepartment(world, client.id, 'HR', ['A1.1', 'B0.12'])
+    const cycleId = hr.cycle?.id ?? ''
+    await answerItem(world.ctx, client.id, hr.item('A1.1').id, { answer: 'yes' })
+    await answerItem(world.ctx, client.id, hr.item('B0.12').id, { answer: 'no' })
+    await checkAnswered(world.ctx, client.id, cycleId)
+    await changeAssessmentStatus(world.ctx, client.id, cycleId, 'completed')
+
+    await expect(
+      setDepartmentQuestions(world.ctx, client.id, hr.id, { questions: ['A1.1'] }),
+    ).rejects.toThrow(/is completed. Start the next cycle/)
+    await expect(
+      createAssessment(world.ctx, client.id, { title: 'Second' }),
+    ).resolves.toMatchObject({ copied: 0 })
+    await expect(createAssessment(world.ctx, client.id, { title: 'Third' })).rejects.toBeInstanceOf(
+      RuleError,
+    )
+  })
+
+  it('TC-C19.5-03 the next cycle copies each active department’s questions, with no answers', async () => {
+    const client = await newClient(world)
+    const hr = await newDepartment(world, client.id, 'HR', ['A1.1', 'B0.12'])
+    const tech = await newDepartment(world, client.id, 'IT', ['A8.2'])
+    const cycleId = hr.cycle?.id ?? ''
+    for (const item of [hr.item('A1.1'), hr.item('B0.12'), tech.item('A8.2')]) {
+      await answerItem(world.ctx, client.id, item.id, {
+        answer: item.answerType === 'maturity' ? '4' : 'yes',
       })
     }
-
-    const detail = await getAssessment(as(lead), client.id, code)
-    expect(detail.progress).toEqual(golden.expected)
-    await expect(changeAssessmentStatus(as(lead), client.id, id, 'in_review')).rejects.toThrow(
-      `${golden.expected.pending} questions are not answered yet.`,
-    )
+    await checkAnswered(world.ctx, client.id, cycleId)
+    await changeAssessmentStatus(world.ctx, client.id, cycleId, 'completed')
+    const next = await createReassessment(world.ctx, client.id, cycleId, { title: 'Cycle 2' })
+    expect(next.copied).toBe(3)
+    const rows = await listItems(world.ctx, client.id, next.id)
+    expect(
+      rows.map((row) => `${row.departmentCode}/${row.questionCode}/${row.answer}`).sort(),
+    ).toEqual(['HR/A1.1/not_assessed', 'HR/B0.12/not_assessed', 'IT/A8.2/not_assessed'])
   })
 })

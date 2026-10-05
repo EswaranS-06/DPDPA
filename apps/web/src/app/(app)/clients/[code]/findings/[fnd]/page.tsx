@@ -68,7 +68,7 @@ export default async function Page({ params }: Props) {
   const canPlan = can(ctx.principal, 'action.manage', { clientId: client.id })
   const planOptions = canPlan ? await actionPlanOptions(ctx, client.id) : null
   const scope = { clientId: client.id }
-  const questionHref = `/clients/${client.code}/assessments/${item.assessmentCode}/items/${item.questionCode}`
+  const questionHref = `/clients/${client.code}/assessments/${item.assessmentCode}/items/${item.departmentCode ?? '-'}/${item.questionCode}`
   const target = item.risk
     ? { clientId: client.id, clientCode: client.code, riskId: item.risk.id }
     : null
@@ -85,7 +85,7 @@ export default async function Page({ params }: Props) {
               <Link href={questionHref} className="code">
                 {item.questionCode}
               </Link>{' '}
-              in {item.assessmentTitle}
+              for {item.departmentName ?? 'no department'} in {item.assessmentTitle}
             </span>
           </span>
         }
@@ -117,12 +117,22 @@ export default async function Page({ params }: Props) {
           <div>
             <MarginRow margin="Answer">
               <span className={styles.personCell}>
-                {answer ? <Status kind="answer" value={answer} /> : <span>Not recorded</span>}
+                {answer ? (
+                  <>
+                    <Status kind="answer" value={answer} /> {item.response}
+                  </>
+                ) : (
+                  <span>Not recorded</span>
+                )}
                 {item.comment ? <span>{item.comment}</span> : null}
               </span>
             </MarginRow>
             <MarginRow margin="Recommended action">
-              <p className={styles.flush}>{item.recommendation}</p>
+              {item.recommendation.split('\n').map((line) => (
+                <p key={line} className={styles.flush}>
+                  {line}
+                </p>
+              ))}
             </MarginRow>
             <MarginRow margin="Law">
               <span className={styles.roles}>
@@ -194,13 +204,13 @@ export default async function Page({ params }: Props) {
           id="remediation-title"
           title="Remediation actions"
           count={actions.length}
-          description="The owner works each action through to review; an auditor other than the owner verifies and closes it once evidence of the fix is accepted."
+          description="Name the person at the client who carries out each action, track it to review, then verify and close it once evidence of the fix is accepted."
         />
         {actions.length === 0 ? (
           <EmptyState icon={Wrench} title="No action planned yet" size="quiet">
             {canPlan
               ? 'Plan the first action below. It starts from the recommended action; give it an owner and a due date.'
-              : 'The audit team or the client DPO plans actions for this finding.'}
+              : 'Plan actions for this finding.'}
           </EmptyState>
         ) : (
           <ActionTable rows={actions} clientCode={client.code} />
@@ -216,7 +226,11 @@ export default async function Page({ params }: Props) {
               owners={planOptions.owners}
               departments={planOptions.departments}
               submitLabel="Plan action"
-              initial={{ title: item.title, description: item.recommendation }}
+              initial={{
+                title: item.title,
+                description: item.recommendation,
+                departmentId: item.departmentId ?? '',
+              }}
             />
           </Disclosure>
         ) : null}

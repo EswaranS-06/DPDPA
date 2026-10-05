@@ -1,7 +1,18 @@
 import { authorize } from '@duatf/core-access'
 import { sequenceScope } from '@duatf/core-utils'
-import { and, asc, department, eq, tenant } from '@duatf/platform-db'
+import {
+  and,
+  asc,
+  assessment,
+  assessmentItem,
+  count,
+  department,
+  eq,
+  ne,
+  tenant,
+} from '@duatf/platform-db'
 import { z } from 'zod'
+import { applyDepartmentQuestions, parseQuestionList, type QuestionChange } from './assessments'
 import { audit, inClient, type ServiceContext } from './context'
 import {
   isUniqueViolation,
@@ -31,13 +42,22 @@ export type DepartmentInput = z.input<typeof departmentFields>
 export const departmentCode = (clientCode: string, code: string): string =>
   sequenceScope('DEP', clientCode, code)
 
+/** True when the form sent a question list (an empty list clears the questions). */
+const sentQuestions = (raw: unknown) =>
+  typeof raw === 'object' && raw !== null && 'questions' in raw
+
+/**
+ * Creates a department and gives it the chosen questions: they become its items in the open
+ * assessment cycle (the client's first cycle is opened when there is none).
+ */
 export const createDepartment = async (
   ctx: ServiceContext,
   clientId: string,
   raw: unknown,
-): Promise<{ id: string }> => {
+): Promise<{ id: string; questions: QuestionChange }> => {
   authorize(ctx.principal, 'department.manage', { clientId })
   const input = parseInput(departmentFields, raw)
+  const codes = sentQuestions(raw) ? parseQuestionList(raw) : []
   try {
     return await inClient(ctx, clientId, async (tx) => {
       const [created] = await tx
@@ -58,7 +78,9 @@ export const createDepartment = async (
         entityId: input.code,
         detail: { name: input.name },
       })
-      return { id: created?.id ?? '' }
+      const id = created?.id ?? ''
+      const questions = await applyDepartmentQuestions(tx, ctx, clientId, id, codes)
+      return { id, questions }
     })
   } catch (error) {
     if (isUniqueViolation(error)) {
@@ -68,18 +90,20 @@ export const createDepartment = async (
   }
 }
 
+/** Updates a department; when the form sends a question list, its questions too. */
 export const updateDepartment = async (
   ctx: ServiceContext,
   clientId: string,
   departmentId: string,
   raw: unknown,
-): Promise<void> => {
+): Promise<QuestionChange | null> => {
   authorize(ctx.principal, 'department.manage', { clientId })
   const input = parseInput(
     departmentFields.omit({ code: true }).extend({ active: z.boolean() }),
     raw,
   )
-  await inClient(ctx, clientId, async (tx) => {
+  const codes = sentQuestions(raw) ? parseQuestionList(raw) : null
+  return inClient(ctx, clientId, async (tx) => {
     const updated = await tx
       .update(department)
       .set({
@@ -99,6 +123,9 @@ export const updateDepartment = async (
       entityId: updated[0]?.code ?? departmentId,
       detail: { active: input.active },
     })
+    return codes === null
+      ? null
+      : applyDepartmentQuestions(tx, ctx, clientId, departmentId, input.active ? codes : [])
   })
 }
 
@@ -126,7 +153,7 @@ export const setDepartmentActive = async (
   })
 }
 
-/** Departments of a client with their full codes, active ones first. */
+/** Departments of a client with their full codes and question counts in the open cycle. */
 export const listDepartments = async (ctx: ServiceContext, clientId: string) => {
   authorize(ctx.principal, 'client.view', { clientId })
   return inClient(ctx, clientId, async (tx) => {
@@ -140,8 +167,33 @@ export const listDepartments = async (ctx: ServiceContext, clientId: string) => 
       .from(department)
       .where(eq(department.tenantId, clientId))
       .orderBy(asc(department.code))
+    const counts = await tx
+      .select({
+        departmentId: assessmentItem.departmentId,
+        answer: assessmentItem.answer,
+        n: count(),
+      })
+      .from(assessmentItem)
+      .innerJoin(assessment, eq(assessment.id, assessmentItem.assessmentId))
+      .where(and(eq(assessment.tenantId, clientId), ne(assessment.status, 'completed')))
+      .groupBy(assessmentItem.departmentId, assessmentItem.answer)
+    const tally = (departmentId: string, answered: boolean) =>
+      counts
+        .filter(
+          (row) =>
+            row.departmentId === departmentId && (row.answer !== 'not_assessed') === answered,
+        )
+        .reduce((sum, row) => sum + row.n, 0)
     return rows
-      .map((row) => ({ ...row, fullCode: departmentCode(client.code, row.code) }))
+      .map((row) => {
+        const answered = tally(row.id, true)
+        return {
+          ...row,
+          fullCode: departmentCode(client.code, row.code),
+          questionCount: answered + tally(row.id, false),
+          answeredCount: answered,
+        }
+      })
       .sort((a, b) => Number(b.active) - Number(a.active))
   })
 }

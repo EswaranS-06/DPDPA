@@ -1,17 +1,11 @@
 'use client'
 
-import {
-  FormActions,
-  SelectField,
-  SubmitButton,
-  TextAreaField,
-  TextField,
-  type SelectOption,
-} from '@duatf/core-ui'
-import { CircleAlert, CircleCheck, CircleX, Minus } from 'lucide-react'
+import { FormActions, SubmitButton, TextAreaField, TextField } from '@duatf/core-ui'
+import type { AnswerOption, AnswerType, ItemResponse } from '@duatf/platform-db'
+import { BadgeCheck, CircleAlert, CircleCheck, CircleX, Info, Minus, Undo2 } from 'lucide-react'
 import { useActionState, useState } from 'react'
 import { IDLE, type FormState } from '@/lib/formState'
-import { Feedback } from './PeopleForms'
+import { Feedback } from './Feedback'
 import styles from './forms.module.css'
 import answerStyles from './AssessmentForms.module.css'
 
@@ -67,80 +61,193 @@ export const NewAssessmentForm = ({
   )
 }
 
-const ANSWERS = [
-  { value: 'yes', label: 'Yes', note: 'In place, with evidence', icon: CircleCheck, tone: 'yes' },
-  {
-    value: 'partial',
-    label: 'Partial',
-    note: 'Partly in place',
-    icon: CircleAlert,
-    tone: 'partial',
-  },
-  { value: 'no', label: 'No', note: 'Not in place', icon: CircleX, tone: 'no' },
-  {
-    value: 'not_applicable',
-    label: 'Not applicable',
-    note: 'Give the reason',
-    icon: Minus,
-    tone: 'na',
-  },
-] as const
+const TONE = {
+  compliant: { icon: CircleCheck, tone: 'yes' },
+  potential_gap: { icon: CircleAlert, tone: 'partial' },
+  gap: { icon: CircleX, tone: 'no' },
+  informational: { icon: Info, tone: 'na' },
+} as const
+
+const NOT_APPLICABLE = 'not_applicable'
+
+type Current = {
+  answer: string
+  response: ItemResponse | null
+  naReason: string | null
+  comment: string | null
+}
 
 type AnswerFormProps = {
   action: Action
-  current: { answer: string; naReason: string | null; comment: string | null }
+  shape: { answerType: AnswerType; options: AnswerOption[] }
+  current: Current
   disabled?: string
+  /**
+   * From the question's gates: ruled out (only Not applicable can be chosen) or applies (Not
+   * applicable cannot be chosen). The server enforces the same.
+   */
+  gate?: 'ruled_out' | 'applies'
 }
 
-export const AnswerForm = ({ action, current, disabled }: AnswerFormProps) => {
+const chosenValues = (response: ItemResponse | null) =>
+  response && 'values' in response ? response.values : []
+
+/** One option card: a radio (single answers) or a checkbox (several choices). */
+const OptionCard = ({
+  option,
+  name,
+  type,
+  checked,
+  onChange,
+  disabled = false,
+}: {
+  option: AnswerOption
+  name: string
+  type: 'radio' | 'checkbox'
+  checked: boolean
+  onChange: (checked: boolean) => void
+  disabled?: boolean
+}) => {
+  const { icon: Icon, tone } = TONE[option.outcome]
+  return (
+    <label
+      className={checked ? `${answerStyles.option} ${answerStyles.chosen}` : answerStyles.option}
+    >
+      <input
+        type={type}
+        name={name}
+        value={option.value}
+        checked={checked}
+        disabled={disabled}
+        onChange={(event) => onChange(event.target.checked)}
+      />
+      <span className={answerStyles.optionLabel}>
+        <Icon className={answerStyles[tone]} size={16} strokeWidth={2.25} aria-hidden="true" />
+        {option.label}
+      </span>
+      {option.hint ? <span className={answerStyles.optionNote}>{option.hint}</span> : null}
+    </label>
+  )
+}
+
+/**
+ * Answers a question the way its template asks: Yes, Partial or No; a maturity level from 0
+ * to 4; one or several of the listed choices; or free text. Not applicable needs a reason.
+ */
+export const AnswerForm = ({ action, shape, current, disabled, gate }: AnswerFormProps) => {
   const [state, formAction] = useActionState(action, IDLE)
-  const initial = state.values?.answer ?? (current.answer === 'not_assessed' ? '' : current.answer)
-  const [answer, setAnswer] = useState(initial)
+  const answered = current.answer !== 'not_assessed'
+  const [single, setSingle] = useState(
+    current.answer === NOT_APPLICABLE ? NOT_APPLICABLE : (chosenValues(current.response)[0] ?? ''),
+  )
+  const [several, setSeveral] = useState<string[]>(chosenValues(current.response))
+  const [notApplicable, setNotApplicable] = useState(current.answer === NOT_APPLICABLE)
   const error = (name: string) => state.fieldErrors?.[name]
+  const singleChoice = shape.answerType !== 'multi_choice' && shape.answerType !== 'text'
+  const na = singleChoice ? single === NOT_APPLICABLE : notApplicable
+  const columns =
+    shape.answerType === 'yes_no'
+      ? answerStyles.answers
+      : `${answerStyles.answers} ${answerStyles.list}`
+
   return (
     <form action={formAction} className={styles.form} noValidate>
       <Feedback state={state} />
       <fieldset
-        className={answerStyles.answers}
+        className={columns}
         disabled={Boolean(disabled)}
         aria-describedby={error('answer') ? 'answer-error' : undefined}
       >
-        <legend className={answerStyles.legend}>Answer</legend>
-        {ANSWERS.map((option) => (
-          <label
-            key={option.value}
-            className={
-              answer === option.value
-                ? `${answerStyles.option} ${answerStyles.chosen}`
-                : answerStyles.option
-            }
-          >
-            <input
-              type="radio"
-              name="answer"
-              value={option.value}
-              checked={answer === option.value}
-              onChange={() => setAnswer(option.value)}
-            />
-            <span className={answerStyles.optionLabel}>
-              <option.icon
-                className={answerStyles[option.tone]}
-                size={16}
-                strokeWidth={2.25}
-                aria-hidden="true"
+        <legend className={answerStyles.legend}>
+          {shape.answerType === 'maturity'
+            ? 'Maturity level'
+            : shape.answerType === 'multi_choice'
+              ? 'Tick every one that applies'
+              : 'Answer'}
+        </legend>
+        {singleChoice ? (
+          <>
+            {shape.options.map((option) => (
+              <OptionCard
+                key={option.value}
+                option={option}
+                name="answer"
+                type="radio"
+                checked={single === option.value}
+                disabled={gate === 'ruled_out'}
+                onChange={() => setSingle(option.value)}
               />
-              {option.label}
-            </span>
-            <span className={answerStyles.optionNote}>{option.note}</span>
-          </label>
-        ))}
+            ))}
+            <label
+              className={na ? `${answerStyles.option} ${answerStyles.chosen}` : answerStyles.option}
+            >
+              <input
+                type="radio"
+                name="answer"
+                value={NOT_APPLICABLE}
+                checked={na}
+                disabled={gate === 'applies'}
+                onChange={() => setSingle(NOT_APPLICABLE)}
+              />
+              <span className={answerStyles.optionLabel}>
+                <Minus
+                  className={answerStyles.na}
+                  size={16}
+                  strokeWidth={2.25}
+                  aria-hidden="true"
+                />
+                Not applicable
+              </span>
+              <span className={answerStyles.optionNote}>Give the reason.</span>
+            </label>
+          </>
+        ) : null}
+        {shape.answerType === 'multi_choice'
+          ? shape.options.map((option) => (
+              <OptionCard
+                key={option.value}
+                option={option}
+                name="choices"
+                type="checkbox"
+                checked={!na && several.includes(option.value)}
+                disabled={gate === 'ruled_out'}
+                onChange={(on) =>
+                  setSeveral((list) =>
+                    on ? [...list, option.value] : list.filter((value) => value !== option.value),
+                  )
+                }
+              />
+            ))
+          : null}
       </fieldset>
-      {error('answer') ? (
+      {shape.answerType === 'text' ? (
+        <TextAreaField
+          label="Answer"
+          name="text"
+          rows={4}
+          defaultValue={current.response && 'text' in current.response ? current.response.text : ''}
+          error={error('answer')}
+        />
+      ) : null}
+      {!singleChoice ? (
+        <label className={answerStyles.inlineCheck}>
+          <input
+            type="checkbox"
+            name="answer"
+            value={NOT_APPLICABLE}
+            checked={notApplicable}
+            disabled={Boolean(disabled) || gate === 'applies'}
+            onChange={(event) => setNotApplicable(event.target.checked)}
+          />
+          Not applicable to this department
+        </label>
+      ) : null}
+      {error('answer') && shape.answerType !== 'text' ? (
         <p id="answer-error" className={answerStyles.error}>
           {error('answer')}
         </p>
       ) : null}
-      {answer === 'not_applicable' ? (
+      {na ? (
         <TextAreaField
           label="Why it does not apply"
           name="naReason"
@@ -148,11 +255,10 @@ export const AnswerForm = ({ action, current, disabled }: AnswerFormProps) => {
           rows={3}
           defaultValue={state.values?.naReason ?? current.naReason}
           error={error('naReason')}
-          hint="Recorded with the answer and shown to the reviewer."
         />
       ) : null}
       <TextAreaField
-        label="Notes for the reviewer"
+        label="Notes"
         name="comment"
         rows={3}
         defaultValue={state.values?.comment ?? current.comment}
@@ -163,86 +269,50 @@ export const AnswerForm = ({ action, current, disabled }: AnswerFormProps) => {
         <p className={styles.small}>{disabled}</p>
       ) : (
         <FormActions>
-          <SubmitButton pendingText="Saving…">Save answer</SubmitButton>
+          <SubmitButton pendingText="Saving…">
+            {answered ? 'Update answer' : 'Save answer'}
+          </SubmitButton>
         </FormActions>
       )}
     </form>
   )
 }
 
-export const ReviewForm = ({ action }: { action: Action }) => {
+/** Ticks one answer as checked, or takes the tick away. */
+export const CheckForm = ({ action, checked }: { action: Action; checked: boolean }) => {
   const [state, formAction] = useActionState(action, IDLE)
-  const error = (name: string) => state.fieldErrors?.[name]
   return (
-    <form action={formAction} className={styles.form} noValidate>
+    <form action={formAction} className={styles.form}>
       <Feedback state={state} />
-      <TextAreaField
-        label="Review note"
-        name="note"
-        rows={2}
-        defaultValue={state.values?.note}
-        error={error('note')}
-        hint="Required when sending an answer back."
-      />
+      <input type="hidden" name="checked" value={checked ? 'false' : 'true'} />
       <FormActions>
-        <SubmitButton name="decision" value="accepted" pendingText="Saving…">
-          Accept
-        </SubmitButton>
-        <SubmitButton name="decision" value="returned" variant="secondary" pendingText="Saving…">
-          Send back
+        <SubmitButton variant={checked ? 'secondary' : 'primary'} pendingText="Saving…">
+          {checked ? (
+            <>
+              <Undo2 size={16} aria-hidden="true" /> Remove the tick
+            </>
+          ) : (
+            <>
+              <BadgeCheck size={16} aria-hidden="true" /> Tick as checked
+            </>
+          )}
         </SubmitButton>
       </FormActions>
     </form>
   )
 }
 
-type AssignFormProps = {
-  action: Action
-  departments: SelectOption[]
-  domains?: SelectOption[]
-  itemId?: string
-  currentDepartmentId?: string | null
-}
-
-/** Assigns a whole domain (or one question when itemId is given) to a department. */
-export const AssignForm = ({
-  action,
-  departments,
-  domains,
-  itemId,
-  currentDepartmentId,
-}: AssignFormProps) => {
+/** Ticks every answered, unchecked question of a department (or a whole cycle). */
+export const CheckAllForm = ({ action, count }: { action: Action; count: number }) => {
   const [state, formAction] = useActionState(action, IDLE)
-  const error = (name: string) => state.fieldErrors?.[name]
   return (
-    <form action={formAction} className={styles.form} noValidate>
+    <form action={formAction} className={styles.form}>
       <Feedback state={state} />
-      <div className={styles.inline}>
-        {itemId ? <input type="hidden" name="itemIds" value={itemId} /> : null}
-        {domains ? (
-          <SelectField
-            label="Domain"
-            name="domainCode"
-            required
-            placeholder="Choose…"
-            options={domains}
-            error={error('domainCode')}
-          />
-        ) : null}
-        <SelectField
-          label="Department"
-          name="departmentId"
-          placeholder="Not assigned"
-          options={departments}
-          defaultValue={currentDepartmentId ?? ''}
-          error={error('departmentId')}
-        />
-      </div>
-      <div>
-        <SubmitButton variant="secondary" pendingText="Assigning…">
-          {itemId ? 'Assign question' : 'Assign domain'}
+      <FormActions>
+        <SubmitButton variant="secondary" pendingText="Ticking…">
+          <BadgeCheck size={16} aria-hidden="true" /> Tick all {count} as checked
         </SubmitButton>
-      </div>
+      </FormActions>
     </form>
   )
 }

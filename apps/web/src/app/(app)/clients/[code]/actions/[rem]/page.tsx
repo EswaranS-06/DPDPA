@@ -118,11 +118,11 @@ export default async function Page({ params }: Props) {
               <p>Nothing more to do. Its history stays on the right.</p>
             </Callout>
           ) : (
-            <Callout tone="locked" title="Waiting on someone else">
+            <Callout tone="locked" title="No next step yet">
               <p>
                 {item.status === 'under_review' || item.status === 'remediated'
-                  ? 'An auditor other than the owner verifies and closes this action.'
-                  : 'The owner of this action moves it to the next step.'}
+                  ? 'Verify and close the action once the evidence of the fix is accepted.'
+                  : 'Move the action on when the client reports progress.'}
               </p>
             </Callout>
           )}

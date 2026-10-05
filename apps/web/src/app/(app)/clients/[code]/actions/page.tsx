@@ -1,6 +1,6 @@
 import { buttonClass, EmptyState, PageHeader, SelectField } from '@duatf/core-ui'
 import { ACTION_STATUS_LABEL, listActions, type ActionFilters } from '@duatf/feature-compliance-api'
-import { ACTION_STATUSES } from '@duatf/platform-db'
+import { ACTION_STATUSES, type ActionStatus } from '@duatf/platform-db'
 import { Wrench } from 'lucide-react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -18,8 +18,18 @@ type Props = { params: Promise<{ code: string }>; searchParams: SearchParams }
 const SHOW = [
   { value: 'all', label: 'All actions' },
   { value: 'mine', label: 'Assigned to me' },
+  { value: 'underway', label: 'Under way' },
   { value: 'overdue', label: 'Overdue' },
   { value: 'verify', label: 'Ready to verify or close' },
+]
+
+/** Actions that still need work from their owner. */
+const UNDER_WAY: ActionStatus[] = [
+  'open',
+  'assigned',
+  'in_progress',
+  'pending_evidence',
+  'rejected',
 ]
 
 export default async function Page({ params, searchParams }: Props) {
@@ -29,7 +39,12 @@ export default async function Page({ params, searchParams }: Props) {
   const show = firstValue(query.show)
   const filters: ActionFilters = {
     status: ACTION_STATUSES.find((status) => status === firstValue(query.status)),
-    statuses: show === 'verify' ? ['under_review', 'remediated'] : undefined,
+    statuses:
+      show === 'verify'
+        ? ['under_review', 'remediated']
+        : show === 'underway' || show === 'mine'
+          ? UNDER_WAY
+          : undefined,
     ownerUserId: show === 'mine' ? ctx.principal.userId : undefined,
     overdue: show === 'overdue',
   }
@@ -41,7 +56,7 @@ export default async function Page({ params, searchParams }: Props) {
     <>
       <PageHeader
         title="Remediation"
-        lede="Actions are planned from findings. The owner works each one through to review; an auditor other than the owner verifies and closes it once evidence of the fix is accepted."
+        lede="Actions are planned from findings. Name the person at the client who carries each one out, track it to review, then verify and close it once evidence of the fix is accepted."
       />
       <section className={styles.section} aria-label="Remediation actions">
         <form method="get" action={base} className={styles.filters} role="search">

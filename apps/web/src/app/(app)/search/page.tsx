@@ -50,7 +50,7 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
       {query.length >= 2 && hits.length === 0 ? (
         <EmptyState icon={SearchX} title={`Nothing you can open matches "${query}"`}>
           Check the spelling, or search by code: clients (AMMA), findings (FND-AMMA-003), questions
-          (Q-NOT-03) or provisions (s.8(6), R7).
+          (A9.3) or provisions (s.8(6), R7).
         </EmptyState>
       ) : null}
       {GROUPS.map((group) => {

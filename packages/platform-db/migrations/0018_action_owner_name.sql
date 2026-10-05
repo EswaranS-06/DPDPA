@@ -1,0 +1,1 @@
+ALTER TABLE "remediation_action" ADD COLUMN "owner_name" text;

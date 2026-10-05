@@ -27,6 +27,7 @@ import {
   listObligations,
   listPlaybooks,
   listProcesses,
+  listQuestionnaires,
   listQuestions,
   listSection,
   listSectors,
@@ -121,9 +122,19 @@ export const frameworkLibraryRouter = router({
 
   questions: authedProcedure
     .input(
-      z.object({ domain: z.string().max(8).optional(), text: shortText.optional() }).optional(),
+      z
+        .object({
+          domain: z.string().max(8).optional(),
+          text: shortText.optional(),
+          questionnaire: z.string().max(12).optional(),
+        })
+        .optional(),
     )
     .query(async ({ ctx, input }) => listQuestions(ctx.db, await releaseOf(ctx), input ?? {})),
+
+  questionnaires: authedProcedure.query(async ({ ctx }) =>
+    listQuestionnaires(ctx.db, await releaseOf(ctx)),
+  ),
 
   question: authedProcedure
     .input(byCode)

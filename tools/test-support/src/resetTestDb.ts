@@ -8,7 +8,7 @@ import {
   testDatabaseEnvSchema,
 } from '@duatf/core-config'
 import { ensureAppRole, recreateSchema, runMigrations } from '@duatf/platform-db'
-import { buildRelease, importSeedVault, RELEASE_1_1_0 } from '@duatf/seed-import'
+import { buildRelease, importSeedVault, questionBankPaths, RELEASE_1_1_0 } from '@duatf/seed-import'
 
 loadRootEnvFile()
 const env = parseEnv(testDatabaseEnvSchema)
@@ -23,7 +23,7 @@ const report = await importSeedVault({
 })
 const release = await buildRelease({
   databaseUrl: env.TEST_DATABASE_URL,
-  questionBankPath: join(findRepoRoot(), 'seed', 'question-bank', 'questions.yaml'),
+  questionBank: questionBankPaths(findRepoRoot()),
   ...RELEASE_1_1_0,
 })
 console.log(`Test database ready (framework releases ${report.version} and ${release.version}).`)

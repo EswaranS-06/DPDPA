@@ -2,37 +2,24 @@ import { randomBytes, randomUUID } from 'node:crypto'
 import type { Principal, Role } from '@duatf/core-access'
 import { parseEnv, testDatabaseEnvSchema } from '@duatf/core-config'
 import {
-  appUser,
   createDatabase,
-  eq,
   inArray,
-  roleAssignment,
   tenant,
   withTenants,
   type DatabaseHandle,
 } from '@duatf/platform-db'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { createClient, getClient, listClients, suggestClientCode } from './clients'
-import type { ServiceContext, UserProvisioner } from './context'
+import type { ServiceContext } from './context'
 import { createDepartment, listDepartments } from './departments'
 import { NotFoundError, ValidationError } from './errors'
-import { inviteClientUser } from './people'
 
 const env = parseEnv(testDatabaseEnvSchema)
 const tag = () => randomBytes(3).toString('hex').toUpperCase()
 
 let app: DatabaseHandle
 let owner: DatabaseHandle
-const provisioned: string[] = []
-const provisioner: UserProvisioner = {
-  provision: (input) => {
-    provisioned.push(input.email)
-    return Promise.resolve(`kc-${randomUUID()}`)
-  },
-  setEnabled: () => Promise.resolve(),
-}
 const createdCodes: string[] = []
-const invitedEmails: string[] = []
 
 const principal = (role: Role, clientId: string | null = null): Principal => ({
   userId: randomUUID(),
@@ -40,7 +27,7 @@ const principal = (role: Role, clientId: string | null = null): Principal => ({
   displayName: role,
   assignments: [{ role, clientId, departmentId: null }],
 })
-const contextFor = (who: Principal): ServiceContext => ({ db: app.db, principal: who, provisioner })
+const contextFor = (who: Principal): ServiceContext => ({ db: app.db, principal: who })
 const firmAdmin = principal('firm_admin')
 
 const validClient = (name: string) => ({
@@ -71,9 +58,6 @@ afterAll(async () => {
     await withTenants(owner.db, 'all', (tx) =>
       tx.delete(tenant).where(inArray(tenant.code, createdCodes)),
     )
-  }
-  if (invitedEmails.length) {
-    await owner.db.delete(appUser).where(inArray(appUser.email, invitedEmails))
   }
   await Promise.all([app.close(), owner.close()])
 })
@@ -146,38 +130,6 @@ describe('departments', () => {
 
     const departments = await listDepartments(ctx, clientA.id)
     expect(departments.map((row) => row.fullCode)).toEqual([`DEP-${clientA.code}-HR`])
-  })
-})
-
-describe('client users', () => {
-  it('TC-C5.3-01 invites a person once, with one role scoped to the client', async () => {
-    const ctx = contextFor(firmAdmin)
-    const client = await onboard(`F${tag()} Finance`)
-    const email = `dpo-${tag().toLowerCase()}@example.test`
-    invitedEmails.push(email)
-    const invite = { email, displayName: 'Meera Iyer', role: 'client_dpo' }
-    const first = await inviteClientUser(ctx, client.id, invite)
-    const second = await inviteClientUser(ctx, client.id, { ...invite, email: email.toUpperCase() })
-    expect(first.created).toBe(true)
-    expect(first.temporaryPassword).toMatch(/^.{16}$/)
-    expect(second).toEqual({ userId: first.userId, created: false, temporaryPassword: null })
-    expect(provisioned.filter((item) => item === email)).toHaveLength(1)
-
-    const users = await owner.db.select().from(appUser).where(eq(appUser.email, email))
-    const roles = await owner.db
-      .select({ role: roleAssignment.role, tenantId: roleAssignment.tenantId })
-      .from(roleAssignment)
-      .where(eq(roleAssignment.userId, first.userId))
-    expect(users).toHaveLength(1)
-    expect(users[0]?.kind).toBe('client')
-    expect(roles).toEqual([{ role: 'client_dpo', tenantId: client.id }])
-
-    const withoutDepartment = await inviteClientUser(ctx, client.id, {
-      email: `owner-${tag().toLowerCase()}@example.test`,
-      displayName: 'No Department',
-      role: 'department_owner',
-    }).catch((error: unknown) => error)
-    expect((withoutDepartment as ValidationError).fieldErrors).toHaveProperty('departmentId')
   })
 })
 

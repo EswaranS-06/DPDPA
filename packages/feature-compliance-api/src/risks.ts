@@ -165,7 +165,7 @@ const riskUpdateSchema = z.object({
   description: optionalText(2000),
 })
 
-/** Rates and treats a risk. Accepting a risk is the client DPO's decision (acceptRisk). */
+/** Rates and treats a risk. Accepting a risk is the client's decision, recorded by acceptRisk. */
 export const updateRisk = async (
   ctx: ServiceContext,
   clientId: string,
@@ -175,7 +175,9 @@ export const updateRisk = async (
   authorize(ctx.principal, 'risk.manage', { clientId })
   const input = parseInput(riskUpdateSchema, raw)
   if (input.treatment === 'accept') {
-    throw new ValidationError({ treatment: 'Risk acceptance is recorded by the client DPO.' })
+    throw new ValidationError({
+      treatment: 'Record the client’s acceptance under "Accept this risk instead of fixing it".',
+    })
   }
   await inClient(ctx, clientId, async (tx) => {
     const [current] = await tx
@@ -213,7 +215,7 @@ export const updateRisk = async (
   })
 }
 
-/** The client DPO accepts a risk, with the reason recorded. */
+/** Records that the client accepted a risk, with who decided and why in the note. */
 export const acceptRisk = async (
   ctx: ServiceContext,
   clientId: string,

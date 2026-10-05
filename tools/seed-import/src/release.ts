@@ -1,27 +1,43 @@
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import {
   and,
   control,
   createDatabase,
+  domain,
   eq,
   FRAMEWORK_CHILD_TABLES,
   frameworkRelease,
   obligation,
-  obligationControl,
   pbcItem,
   question,
+  questionnaire,
   sql,
+  type RiskLevel,
   type Transaction,
 } from '@duatf/platform-db'
 import {
+  answerOptions,
   formatReference,
+  guidanceFor,
+  mappingGaps,
   mergeApplicability,
-  parseQuestionBank,
-  questionCode,
-  riskWeight,
+  parseKbMapping,
+  recommendationFor,
+  RISK_WEIGHT,
   suggestEvidence,
+  type KbMapping,
 } from './questionBank'
+import { parseTemplateBank, type TemplateFile } from './templates'
+
+/** Where the question bank lives: the imported templates and ComplyX's KB mapping. */
+export type QuestionBankSource = { templatesPath: string; mappingPath: string }
+
+export const questionBankPaths = (root: string): QuestionBankSource => ({
+  templatesPath: join(root, 'seed', 'question-bank', 'templates.yaml'),
+  mappingPath: join(root, 'seed', 'question-bank', 'kb-mapping.yaml'),
+})
 
 /** A documented change applied to the cloned rows of a new release. */
 export type Amendment = {
@@ -60,12 +76,17 @@ const releaseId = async (tx: Transaction, version: string) => {
   return row
 }
 
+/** Tables a built release fills from the question bank instead of copying. */
+export const QUESTION_BANK_TABLES: readonly string[] = ['questionnaire', 'question']
+
 /**
- * Copies every row of the source release into the new one, column for column. Questions are
- * not copied: each release rebuilds them from the question bank.
+ * Copies every row of the source release into the new one, column for column. Questions and
+ * questionnaires are not copied: each built release rebuilds them from the question bank.
  */
 const cloneRows = async (tx: Transaction, fromId: string, toId: string) => {
-  for (const table of FRAMEWORK_CHILD_TABLES.filter((name) => name !== 'question')) {
+  for (const table of FRAMEWORK_CHILD_TABLES.filter(
+    (name) => !QUESTION_BANK_TABLES.includes(name),
+  )) {
     const columns = await tx.execute<{ column_name: string }>(sql`
       select column_name from information_schema.columns
       where table_schema = 'public' and table_name = ${table}
@@ -93,59 +114,125 @@ const applyAmendments = async (tx: Transaction, toId: string, amendments: readon
   }
 }
 
-const buildQuestions = async (tx: Transaction, toId: string, source: string) => {
-  const authored = parseQuestionBank(source)
-  const controls = await tx.select().from(control).where(eq(control.releaseId, toId))
-  const links = await tx
-    .select()
-    .from(obligationControl)
-    .where(eq(obligationControl.releaseId, toId))
-  const obligations = await tx.select().from(obligation).where(eq(obligation.releaseId, toId))
-  const pbc = await tx.select().from(pbcItem).where(eq(pbcItem.releaseId, toId))
+type QuestionBank = { files: TemplateFile[]; mapping: KbMapping }
 
-  const byControl = new Map(authored.map((item) => [item.control, item]))
-  const missing = controls.filter((row) => !byControl.has(row.code)).map((row) => row.code)
-  const unknown = authored.filter((item) => !controls.some((row) => row.code === item.control))
-  if (missing.length || unknown.length) {
+/** Reads and checks the question bank: every template question must be mapped. */
+export const readQuestionBank = (source: QuestionBankSource) => {
+  const templates = readFileSync(source.templatesPath, 'utf8')
+  const mapping = readFileSync(source.mappingPath, 'utf8')
+  const bank: QuestionBank = {
+    files: parseTemplateBank(templates),
+    mapping: parseKbMapping(mapping),
+  }
+  const gaps = mappingGaps(bank.files, bank.mapping)
+  if (
+    gaps.unmapped.length ||
+    gaps.orphaned.length ||
+    gaps.noQuestionnaire.length ||
+    gaps.badGates.length
+  ) {
     throw new Error(
-      `Question bank does not match the controls. Missing: ${missing.join(', ') || 'none'}. ` +
-        `Unknown: ${unknown.map((item) => item.control).join(', ') || 'none'}.`,
+      `The KB mapping does not match the templates. Unmapped: ${gaps.unmapped.join(', ') || 'none'}. ` +
+        `Mapped but not in a template: ${gaps.orphaned.join(', ') || 'none'}. ` +
+        `Questionnaires without a title: ${gaps.noQuestionnaire.join(', ') || 'none'}. ` +
+        `Gates: ${gaps.badGates.join('; ') || 'fine'}.`,
     )
   }
+  return { bank, digest: createHash('sha256').update(templates).update(mapping).digest('hex') }
+}
 
-  const ordered = [...controls].sort((a, b) =>
-    a.domainCode === b.domainCode
-      ? a.code.localeCompare(b.code)
-      : a.domainCode.localeCompare(b.domainCode),
+const buildQuestions = async (tx: Transaction, toId: string, bank: QuestionBank) => {
+  const controls = await tx.select().from(control).where(eq(control.releaseId, toId))
+  const obligations = await tx.select().from(obligation).where(eq(obligation.releaseId, toId))
+  const domains = await tx
+    .select({ code: domain.code })
+    .from(domain)
+    .where(eq(domain.releaseId, toId))
+  const pbc = await tx.select().from(pbcItem).where(eq(pbcItem.releaseId, toId))
+
+  const problems: string[] = []
+  for (const [code, entry] of Object.entries(bank.mapping.questions)) {
+    if (!domains.some((row) => row.code === entry.domain)) {
+      problems.push(`${code}: domain ${entry.domain}`)
+    }
+    for (const item of entry.obligations) {
+      if (!obligations.some((row) => row.code === item)) problems.push(`${code}: ${item}`)
+    }
+    for (const item of entry.controls) {
+      if (!controls.some((row) => row.code === item)) problems.push(`${code}: ${item}`)
+    }
+  }
+  if (problems.length) {
+    throw new Error(`The KB mapping names codes this release lacks: ${problems.join('; ')}.`)
+  }
+
+  await tx.insert(questionnaire).values(
+    bank.files.map((file, index) => {
+      const info = bank.mapping.questionnaires[file.questionnaire]
+      return {
+        releaseId: toId,
+        code: file.questionnaire,
+        seq: index + 1,
+        title: info?.title ?? file.questionnaire,
+        respondent: info?.respondent ?? 'organisation',
+        description: info?.description ?? '',
+        sourceFile: file.file,
+      }
+    }),
   )
-  const rows = ordered.map((row, index) => {
-    const authoredQuestion = byControl.get(row.code)
-    const obligationCodes = links
-      .filter((link) => link.controlCode === row.code)
-      .map((link) => link.obligationCode)
-      .sort()
-    const linked = obligations.filter((item) => obligationCodes.includes(item.code))
-    const evidence = suggestEvidence({
-      controlEvidence: row.evidence,
-      obligationEvidence: linked.flatMap((item) => item.evidenceExpected),
-      domainPbcItems: pbc
-        .filter((item) => item.domainCodes.includes(row.domainCode))
-        .sort((a, b) => a.seq - b.seq)
-        .map((item) => item.evidence),
+
+  const templates = bank.files.flatMap((file) =>
+    file.questions.map((template) => ({ questionnaireCode: file.questionnaire, template })),
+  )
+  const rows = templates.map(({ questionnaireCode, template }, index) => {
+    const entry = bank.mapping.questions[template.code]
+    if (!entry) throw new Error(`Question ${template.code} has no KB mapping.`)
+    const mapped = entry.controls.flatMap((code) => {
+      const row = controls.find((item) => item.code === code)
+      return row ? [row] : []
     })
+    const linked = obligations
+      .filter((row) => entry.obligations.includes(row.code))
+      .sort((a, b) => a.code.localeCompare(b.code))
+    const answers = answerOptions(template, entry)
+    const evidence = suggestEvidence({
+      controlEvidence: mapped.flatMap((row) => row.evidence),
+      obligationEvidence: linked.flatMap((row) => row.evidenceExpected),
+      domainPbcItems: pbc
+        .filter((row) => row.domainCodes.includes(entry.domain))
+        .sort((a, b) => a.seq - b.seq)
+        .map((row) => row.evidence),
+    })
+    const riskLevel = template.risk.toLowerCase() as RiskLevel
     return {
       releaseId: toId,
-      code: questionCode(row.code),
+      code: template.code,
       seq: index + 1,
-      controlCode: row.code,
-      domainCode: row.domainCode,
-      text: authoredQuestion?.question ?? '',
-      guidance: row.testProcedure,
-      recommendation: authoredQuestion?.recommendation ?? '',
-      obligationCodes,
+      questionnaireCode,
+      section: template.section,
+      title: entry.title,
+      controlCode: entry.controls[0] ?? '',
+      controlCodes: entry.controls,
+      domainCode: entry.domain,
+      text: template.text,
+      answerType: answers.answerType,
+      options: answers.options,
+      scored: answers.scored,
+      riskLevel,
+      sourceRef: template.ref,
+      sourceId: template.id || null,
+      attachmentRequired: template.attachment,
+      mappingNote: entry.note ?? null,
+      gates: entry.gates ?? [],
+      guidance: guidanceFor(mapped),
+      recommendation: recommendationFor(mapped),
+      obligationCodes: linked.map((row) => row.code),
       references: [...new Set(linked.map(formatReference).filter(Boolean))].sort(),
-      applicability: mergeApplicability(linked.map((item) => item.trigger)),
-      riskWeight: riskWeight(linked.map((item) => item.penaltyTier)),
+      // A question that only records facts applies wherever it is asked.
+      applicability: answers.scored
+        ? mergeApplicability(linked.map((row) => row.trigger))
+        : { always: true, roles: [], flags: [], bases: [] },
+      riskWeight: RISK_WEIGHT[riskLevel],
       evidenceRequired: evidence.required,
       evidenceRecommended: evidence.recommended,
       evidenceSupporting: evidence.supporting,
@@ -160,17 +247,17 @@ export type ReleaseReport = { version: string; questions: number; amendments: nu
 
 /**
  * Builds a new published framework release from the current one: every row is copied, the
- * documented amendments are applied, the question bank is added, and the old release is
+ * documented amendments are applied, the ComplyX question bank is added, and the old release is
  * marked superseded. All in one transaction.
  */
 export const buildRelease = async (options: {
   databaseUrl: string
-  questionBankPath: string
+  questionBank: QuestionBankSource
   from: string
   to: string
   amendments: readonly Amendment[]
 }): Promise<ReleaseReport> => {
-  const source = readFileSync(options.questionBankPath, 'utf8')
+  const { bank, digest } = readQuestionBank(options.questionBank)
   const handle = createDatabase(options.databaseUrl, { max: 1 })
   try {
     return await handle.db.transaction(async (tx) => {
@@ -184,8 +271,8 @@ export const buildRelease = async (options: {
         .values({
           version: options.to,
           status: 'draft',
-          source: `release:${options.from} + seed/question-bank/questions.yaml`,
-          sourceDigest: createHash('sha256').update(source).digest('hex'),
+          source: `release:${options.from} + seed/question-bank (ComplyX templates, KB mapping)`,
+          sourceDigest: digest,
           notes: options.amendments.map((item) => `${item.code}: ${item.reason}`).join('\n'),
           createdBy: 'kb-release',
         })
@@ -193,7 +280,7 @@ export const buildRelease = async (options: {
       const toId = created?.id ?? ''
       await cloneRows(tx, from.id, toId)
       await applyAmendments(tx, toId, options.amendments)
-      const questions = await buildQuestions(tx, toId, source)
+      const questions = await buildQuestions(tx, toId, bank)
       await tx
         .update(frameworkRelease)
         .set({ status: 'superseded' })

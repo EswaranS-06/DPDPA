@@ -9,10 +9,9 @@ const TOOLS = [
   '@duatf/traceability',
   '@duatf/test-support',
   '@duatf/lint-rules',
-  '@duatf/keycloak-setup',
-  '@duatf/demo-data',
+  '@duatf/account-setup',
+  '@duatf/setup',
   '@duatf/kb-content',
-  '@duatf/playbook',
 ]
 const DEEP_IMPORT = {
   group: ['@duatf/*/src', '@duatf/*/src/**'],

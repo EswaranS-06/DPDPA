@@ -5,7 +5,6 @@ export type NavIcon =
   | 'overview'
   | 'clients'
   | 'kb'
-  | 'staff'
   | 'bands'
   | 'clientHome'
   | 'assessments'
@@ -16,6 +15,8 @@ export type NavIcon =
   | 'reports'
   | 'departments'
   | 'people'
+  | 'controls'
+  | 'team'
 
 export type NavLink = { href: string; label: string; icon: NavIcon; exact?: boolean }
 export type NavGroup = { label: string | null; links: NavLink[] }
@@ -36,6 +37,7 @@ export const clientSections = (code: string): NavGroup[] => {
       label: 'Compliance',
       links: [
         { href: base, label: 'Overview', icon: 'clientHome', exact: true },
+        { href: `${base}/departments`, label: 'Departments', icon: 'departments' },
         { href: `${base}/assessments`, label: 'Assessments', icon: 'assessments' },
         { href: `${base}/evidence`, label: 'Evidence', icon: 'evidence' },
       ],
@@ -55,8 +57,8 @@ export const clientSections = (code: string): NavGroup[] => {
     {
       label: 'Organisation',
       links: [
-        { href: `${base}/departments`, label: 'Departments', icon: 'departments' },
         { href: `${base}/people`, label: 'People', icon: 'people' },
+        { href: `${base}/controls`, label: 'Control owners', icon: 'controls' },
       ],
     },
   ]
@@ -85,10 +87,13 @@ const SEGMENT_LABEL: Record<string, string> = {
   reports: 'Reports',
   departments: 'Departments',
   people: 'People',
-  edit: 'Edit profile',
+  controls: 'Control owners',
+  team: 'Team',
+  edit: 'Edit',
+  account: 'Account',
+  password: 'Change password',
   'knowledge-base': 'Knowledge base',
   admin: 'Administration',
-  staff: 'Staff',
   'risk-bands': 'Risk bands',
   search: 'Search',
   new: 'Onboard client',
@@ -116,6 +121,12 @@ export const crumbsFor = (pathname: string, navigation: Navigation): Crumb[] => 
     href += `/${encodeURIComponent(part)}`
     const previous = parts[index - 1]
     if (part === 'items' || part === 'executive' || (part === 'admin' && index === 0)) return
+    // An answer page: /assessments/ASM-X-001/items/HR/A1.1 reads "HR, A1.1".
+    if (parts[index - 2] === 'items') {
+      crumbs.push({ label: `${previous ?? ''}, ${part}`, href })
+      return
+    }
+    if (previous === 'items') return
     if (previous === 'executive') {
       crumbs.push({ label: `Executive report, ${part}`, href })
       return

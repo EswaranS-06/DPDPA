@@ -17,11 +17,8 @@ import {
   inArray,
   lt,
   notInArray,
-  or,
-  question,
   remediationAction,
   risk,
-  roleAssignment,
   sql,
   tenant,
   type AnyColumn,
@@ -421,8 +418,8 @@ export type DepartmentBreakdown = Awaited<ReturnType<typeof departmentBreakdown>
 export type DepartmentFigureRow = DepartmentBreakdown['rows'][number]
 
 /**
- * One department's dashboard: its share of the latest assessment, what still needs an answer
- * or rework, its open findings and risks, its remediation actions and its evidence.
+ * One department's dashboard: its share of the latest assessment, its open findings and
+ * risks, its remediation actions and its evidence.
  */
 export const departmentDashboard = async (ctx: ServiceContext, clientId: string, code: string) => {
   authorize(ctx.principal, 'client.view', { clientId })
@@ -439,60 +436,12 @@ export const departmentDashboard = async (ctx: ServiceContext, clientId: string,
       await figuresFor(tx, { clientIds: [clientId], keys: [found.id], by: 'department' }, bands)
     ).get(found.id)
     if (!figures) throw new Error('No figures for this department.')
-    const latest = figures.latestAssessment
-    const [release] = latest
-      ? await tx
-          .select({ releaseId: assessment.releaseId })
-          .from(assessment)
-          .where(eq(assessment.id, latest.id))
-      : []
-    const attention =
-      latest && release
-        ? await tx
-            .select({
-              questionCode: assessmentItem.questionCode,
-              domainCode: assessmentItem.domainCode,
-              answer: assessmentItem.answer,
-              reviewState: assessmentItem.reviewState,
-              reviewNote: assessmentItem.reviewNote,
-              text: question.text,
-            })
-            .from(assessmentItem)
-            .innerJoin(
-              question,
-              and(
-                eq(question.releaseId, release.releaseId),
-                eq(question.code, assessmentItem.questionCode),
-              ),
-            )
-            .where(
-              and(
-                eq(assessmentItem.assessmentId, latest.id),
-                eq(assessmentItem.departmentId, found.id),
-                or(
-                  eq(assessmentItem.answer, 'not_assessed'),
-                  eq(assessmentItem.reviewState, 'returned'),
-                ),
-              ),
-            )
-            .orderBy(asc(assessmentItem.seq))
-        : []
-    const owners = await tx
-      .select({ id: appUser.id, name: appUser.displayName, email: appUser.email })
-      .from(roleAssignment)
-      .innerJoin(appUser, eq(appUser.id, roleAssignment.userId))
-      .where(
-        and(eq(roleAssignment.departmentId, found.id), eq(roleAssignment.role, 'department_owner')),
-      )
-      .orderBy(asc(appUser.displayName))
     return {
       department: { ...found, fullCode: departmentCode(row.clientCode, found.code) },
       client: { id: clientId, code: row.clientCode, name: row.clientName },
       figures,
       heatmap: await riskGrid(tx, [clientId], found.id),
       domainTitles: await publishedDomains(tx),
-      attention,
-      owners,
     }
   })
   const [findings, actions, files] = await Promise.all([

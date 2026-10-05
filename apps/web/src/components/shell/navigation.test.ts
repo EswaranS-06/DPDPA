@@ -27,7 +27,7 @@ describe('navigation', () => {
       '/',
       '/clients',
       '/knowledge-base',
-      '/admin/staff',
+      '/admin/team',
       '/admin/risk-bands',
     ])
     expect(hrefs(person('auditor'))).toEqual(['/', '/clients', '/knowledge-base'])
@@ -41,17 +41,29 @@ describe('navigation', () => {
     expect(
       clientSections('AMMA').map((group) => [group.label, group.links.map((link) => link.label)]),
     ).toEqual([
-      ['Compliance', ['Overview', 'Assessments', 'Evidence']],
+      ['Compliance', ['Overview', 'Departments', 'Assessments', 'Evidence']],
       ['Risk and remediation', ['Findings', 'Risk register', 'Remediation']],
       ['Reporting', ['Reports']],
-      ['Organisation', ['Departments', 'People']],
+      ['Organisation', ['People', 'Control owners']],
     ])
     const navigation = navigationFor(person('lead_auditor'), clients)
-    expect(
-      crumbsFor('/clients/AMMA/assessments/ASM-AMMA-001/items/Q-NOT-03', navigation).map(
-        (crumb) => crumb.label,
-      ),
-    ).toEqual(['Clients', 'AMMA', 'Assessments', 'ASM-AMMA-001', 'Q-NOT-03'])
+    const labels = (path: string) => crumbsFor(path, navigation).map((crumb) => crumb.label)
+    // A question is answered per department, so its crumb names both.
+    expect(labels('/clients/AMMA/assessments/ASM-AMMA-001/items/HR/A1.1')).toEqual([
+      'Clients',
+      'AMMA',
+      'Assessments',
+      'ASM-AMMA-001',
+      'HR, A1.1',
+    ])
+    expect(labels('/clients/AMMA/departments/HR/edit')).toEqual([
+      'Clients',
+      'AMMA',
+      'Departments',
+      'HR',
+      'Edit',
+    ])
+    expect(labels('/account/password')).toEqual(['Account', 'Change password'])
     expect(
       crumbsFor('/clients/AMMA/reports/executive/ASM-AMMA-001', navigation).map((crumb) => [
         crumb.label,

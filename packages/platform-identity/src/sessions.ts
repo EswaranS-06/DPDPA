@@ -11,7 +11,6 @@ export type NewSession = {
   ttlHours: number
   ipAddress?: string | null
   userAgent?: string | null
-  idToken?: string | null
   now?: Date
 }
 
@@ -29,7 +28,6 @@ export const createSession = async (
     expiresAt,
     ipAddress: input.ipAddress ?? null,
     userAgent: input.userAgent?.slice(0, 400) ?? null,
-    idToken: input.idToken ?? null,
   })
   return { token, expiresAt }
 }
@@ -37,13 +35,19 @@ export const createSession = async (
 export type SessionUser = {
   sessionId: string
   userId: string
-  email: string
+  /** The sign-in name. */
+  username: string
   displayName: string
   kind: 'firm' | 'client'
+  /** True until the one-time password has been replaced. */
+  mustChangePassword: boolean
   expiresAt: Date
 }
 
-/** The signed-in user for a session token, or null when the session is unknown, expired, revoked or the user is disabled. */
+/**
+ * The signed-in user for a session token, or null when the session is unknown, expired or
+ * revoked, or the person is disabled or no longer allowed to sign in.
+ */
 export const findSessionUser = async (
   db: Executor,
   token: string,
@@ -54,9 +58,10 @@ export const findSessionUser = async (
       sessionId: userSession.id,
       expiresAt: userSession.expiresAt,
       userId: appUser.id,
-      email: appUser.email,
+      username: appUser.username,
       displayName: appUser.displayName,
       kind: appUser.kind,
+      mustChangePassword: appUser.mustChangePassword,
     })
     .from(userSession)
     .innerJoin(appUser, eq(appUser.id, userSession.userId))
@@ -66,20 +71,19 @@ export const findSessionUser = async (
         isNull(userSession.revokedAt),
         gt(userSession.expiresAt, now),
         eq(appUser.status, 'active'),
+        eq(appUser.loginEnabled, true),
       ),
     )
     .limit(1)
-  return row ?? null
+  return row?.username ? { ...row, username: row.username } : null
 }
 
-/** Revokes a session; returns the ID token kept for the Keycloak logout, if any. */
-export const revokeSession = async (db: Executor, token: string): Promise<string | null> => {
-  const [row] = await db
+/** Revokes a session. */
+export const revokeSession = async (db: Executor, token: string): Promise<void> => {
+  await db
     .update(userSession)
     .set({ revokedAt: new Date() })
     .where(and(eq(userSession.id, hashToken(token)), isNull(userSession.revokedAt)))
-    .returning({ idToken: userSession.idToken })
-  return row?.idToken ?? null
 }
 
 /** Revokes every open session of a user (used when access is removed). */

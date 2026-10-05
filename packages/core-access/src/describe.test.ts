@@ -16,18 +16,21 @@ describe('permission explanations', () => {
     expect(describeDenial(owner, 'report.export', { clientId: client })).toEqual({
       action: 'download workbooks and reports',
       yourRoles: ['Department owner'],
-      allowedRoles: ['Firm administrator', 'Lead auditor', 'Auditor', 'Client DPO', 'Viewer'],
+      allowedRoles: ['Administrator', 'Senior auditor', 'Auditor', 'Client DPO', 'Viewer'],
       otherDepartment: false,
-      ask: 'your organisation’s DPO or the ComplyX team',
+      ask: 'the ComplyX audit team',
     })
-    // Answering for another department: the role fits, the department does not.
-    const elsewhere = describeDenial(owner, 'assessment.answer', {
+    // Uploading for another department: the role fits, the department does not.
+    const elsewhere = describeDenial(owner, 'evidence.upload', {
       clientId: client,
       departmentId: 'finance',
     })
-    expect([elsewhere.action, elsewhere.otherDepartment]).toEqual([
-      'answer assessment questions',
-      true,
+    expect([elsewhere.action, elsewhere.otherDepartment]).toEqual(['upload evidence', true])
+    // Answering is for the audit team only, whatever the department.
+    const answering = describeDenial(owner, 'assessment.answer', { clientId: client })
+    expect([answering.allowedRoles, answering.otherDepartment]).toEqual([
+      ['Senior auditor', 'Auditor'],
+      false,
     ])
     // Roles held at other clients are not listed.
     const twoClients: Principal = {

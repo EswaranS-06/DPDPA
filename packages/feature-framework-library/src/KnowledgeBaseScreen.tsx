@@ -44,6 +44,7 @@ export type KnowledgeBaseParams = {
   type?: string
   sector?: string
   text?: string
+  questionnaire?: string
 }
 
 type Props = {

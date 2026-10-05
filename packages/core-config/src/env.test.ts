@@ -16,7 +16,7 @@ describe('environment validation', () => {
   it('applies defaults for host and port', () => {
     const env = parseEnv(apiEnvSchema, valid)
     expect(env.HOST).toBe('0.0.0.0')
-    expect(env.API_PORT).toBe(54000)
+    expect(env.API_PORT).toBe(54500)
   })
 
   it('TC-C1.1-01 names every missing or invalid variable', () => {

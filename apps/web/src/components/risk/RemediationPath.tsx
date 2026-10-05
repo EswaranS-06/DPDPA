@@ -17,7 +17,7 @@ export const remediationSteps = ({
   const has = (...states: ActionStatus[]) => actions.some((state) => states.includes(state))
   const closed = status === 'closed'
   return [
-    { label: 'Gap found', done: true, note: 'From a No or Partial answer' },
+    { label: 'Gap found', done: true, note: 'From an answer showing a gap' },
     { label: 'Risk rated', done: rated || closed, note: 'Likelihood by impact' },
     {
       label: 'Action planned',

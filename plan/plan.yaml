@@ -207,24 +207,25 @@ phases:
     reviews: [security]
     subphases:
       - id: C3.1
-        title: 'Keycloak realm, clients, password policy, MFA'
+        title: 'Keycloak realm, clients, password policy, MFA (multi-view edition)'
         state: active
         tests:
           - id: TC-C3.1-01
             title: 'Realm setup is idempotent and the issuer is the LAN URL of realm duatf'
             expected: 'same realm and clients after two runs; issuer http://192.168.0.110:58080/realms/duatf'
             source: literal
+            deferredTo: multi-view
       - id: C3.2
-        title: 'OIDC login and logout, server-side sessions'
+        title: "Sign-in with username and password on DUATF's own page, server-side sessions"
         state: active
         tests:
           - id: TC-C3.2-01
-            title: 'Sessions are stored only as hashes; expired or revoked sessions are refused'
-            expected: 'no raw token stored; expired and revoked refused'
+            title: 'Sessions are stored only as hashes; expired or revoked sessions, and people without a login, are refused'
+            expected: 'no raw token stored; expired, revoked, disabled and no-login refused'
             source: literal
           - id: TC-C3.2-02
-            title: 'The login callback rejects a mismatched state'
-            expected: 'callback refused'
+            title: 'Sign-in needs the right password of an enabled login and locks after five failures for 15 minutes'
+            expected: 'same answer for a wrong password and an unknown name; locked; open again after 15 minutes; revoked login refused'
             source: literal
       - id: C3.3
         title: 'Roles, permission matrix, client and department scoping'
@@ -255,7 +256,7 @@ phases:
         state: active
         tests:
           - id: TC-C3.5-01
-            title: 'Login through Keycloak from a LAN machine lands on the role home page'
+            title: 'Signing in on the DUATF sign-in page from a LAN machine and changing the one-time password lands on the role home page'
             expected: 'signed in'
             source: manual
             kind: manual
@@ -285,6 +286,7 @@ phases:
             title: 'One question per control, each with references, evidence and a recommendation'
             expected: 'questions = controls, all complete'
             source: oracle
+            deferredTo: multi-view
           - id: TC-C4.2-03
             title: 'LNK-SPDI-01 live on 12 May 2027, not on 13 May 2027'
             expected: 'true, false'
@@ -320,13 +322,14 @@ phases:
             expected: 'duplicate refused'
             source: literal
       - id: C5.3
-        title: 'Client users and invitations'
+        title: 'Client users and invitations (multi-view edition; people are C19.7 here)'
         state: active
         tests:
           - id: TC-C5.3-01
             title: 'Inviting creates one app user with a role scoped to the client; a repeat invite does not duplicate'
             expected: '1 user, 1 role'
             source: literal
+            deferredTo: multi-view
       - id: C5.4
         title: 'Firm staff assignment'
         state: active
@@ -337,7 +340,7 @@ phases:
             source: literal
 
   - id: C6
-    title: 'Assessment execution'
+    title: 'Assessment execution (multi-view edition; the self-audit edition is C19)'
     release: R1
     reviews: [lead_auditor]
     subphases:
@@ -349,6 +352,7 @@ phases:
             title: 'A new assessment pins the release and creates one item per question'
             expected: 'items = questions'
             source: oracle
+            deferredTo: multi-view
       - id: C6.2
         title: 'Items and department assignment'
         state: active
@@ -357,6 +361,7 @@ phases:
             title: "A department owner can answer only their department's items"
             expected: 'refused elsewhere'
             source: literal
+            deferredTo: multi-view
       - id: C6.3
         title: 'Answers'
         state: active
@@ -365,6 +370,7 @@ phases:
             title: 'Not applicable needs a reason; answers map to compliance states'
             expected: 'mapping holds'
             source: literal
+            deferredTo: multi-view
       - id: C6.4
         title: 'Review and progress'
         state: active
@@ -373,6 +379,7 @@ phases:
             title: 'Progress and compliance percentages equal the fixture'
             expected: 'fixture values'
             source: golden
+            deferredTo: multi-view
 
   - id: C7
     title: 'Evidence'
@@ -460,7 +467,7 @@ phases:
         state: active
         tests:
           - id: TC-C9.2-01
-            title: 'Closing without evidence or by the owner is refused'
+            title: 'Verifying or closing without accepted evidence is refused; owners are people of the client'
             expected: 'refused'
             source: literal
       - id: C9.3
@@ -468,7 +475,7 @@ phases:
         state: active
         tests:
           - id: TC-C9.3-01
-            title: 'A re-assessment copies scope and links to the previous cycle'
+            title: 'The next cycle links to the previous one and is refused before the current one completes'
             expected: 'copied and linked'
             source: literal
       - id: C9.4
@@ -518,13 +525,14 @@ phases:
             expected: 'sum = client; equal'
             source: oracle
       - id: C10.4
-        title: 'Demo clients (Nadall hospital, AMMA school)'
+        title: 'Demo clients (Nadall hospital, AMMA school; multi-view edition)'
         state: active
         tests:
           - id: TC-C10.4-01
             title: 'The demo loads through the services, dated, and a reload replaces it'
             expected: 'story figures; replaced'
             source: literal
+            deferredTo: multi-view
 
   - id: C11
     title: 'Reports'
@@ -697,7 +705,7 @@ phases:
             kind: manual
 
   - id: C18
-    title: 'Playbook: guided tours of every task'
+    title: 'Playbook: guided tours of every task (multi-view edition)'
     release: R2
     reviews: [firm_admin]
     subphases:
@@ -709,10 +717,12 @@ phases:
             title: 'Each task names who can do it exactly as the permission matrix allows, with well-formed steps'
             expected: 'equal to core-access for every capability; hands-on step last; no empty group'
             source: oracle
+            deferredTo: multi-view
           - id: TC-C18.1-02
             title: 'Search finds tasks by title, keyword and word start'
             expected: 'onboard, upload, evid, risk, excel, dark mode; every title finds its task first'
             source: literal
+            deferredTo: multi-view
       - id: C18.2
         title: 'Guide window: visible Chrome, tab reuse, guide card'
         state: active
@@ -721,6 +731,7 @@ phases:
             title: 'The guide reuses the tab it opened and opens a new one only when none is left'
             expected: 'DUATF tab reused; sign-in tab reused; empty tab used; new tab only when all closed'
             source: literal
+            deferredTo: multi-view
       - id: C18.3
         title: 'Every tour checked against DUATF'
         state: active
@@ -730,6 +741,7 @@ phases:
             expected: '43 of 43'
             source: manual
             kind: manual
+            deferredTo: multi-view
       - id: C18.4
         title: 'Headed run on the ComplyX computer'
         state: active
@@ -739,9 +751,118 @@ phases:
             expected: 'window opens; sign-in wait; tab reused'
             source: manual
             kind: manual
+            deferredTo: multi-view
           - id: TC-C18.4-02
             title: 'ComplyX signs in and follows a task to its end in the guide window'
             expected: 'done'
+            source: manual
+            kind: manual
+            deferredTo: multi-view
+
+  - id: C19
+    title: 'Self-audit edition: ComplyX question bank, departments, self-check, people and reconciliation'
+    release: R2
+    reviews: [lead_auditor, security]
+    subphases:
+      - id: C19.1
+        title: 'ComplyX templates imported and mapped to the knowledge base'
+        state: active
+        tests:
+          - id: TC-C19.1-01
+            title: 'templates.yaml is exactly what the three ComplyX workbooks hold'
+            expected: 'TPL-001 70, TPL-002 14, TPL-003 58; 142 questions'
+            source: oracle
+          - id: TC-C19.1-02
+            title: 'Every question is mapped to the knowledge base, with valid answer options and gates'
+            expected: 'no unmapped, orphaned or broken gates; 71 yes/no, 53 maturity, 10 choice, 1 multi-choice, 7 text'
+            source: literal
+      - id: C19.2
+        title: 'Release with the question bank'
+        state: active
+        tests:
+          - id: TC-C19.2-01
+            title: 'The release holds the three questionnaires and 142 complete questions with law, penalty, controls and gates'
+            expected: 'no incomplete question; gates stored'
+            source: oracle
+      - id: C19.3
+        title: 'Departments choose their questions'
+        state: active
+        tests:
+          - id: TC-C19.3-01
+            title: 'A new department gets exactly the chosen questions, whole questionnaires and sections included, in the first cycle'
+            expected: 'items = chosen questions'
+            source: oracle
+          - id: TC-C19.3-02
+            title: 'The same question for two departments is answered separately'
+            expected: 'two items; separate findings'
+            source: literal
+          - id: TC-C19.3-03
+            title: 'Taking questions away removes unanswered ones and keeps answered ones'
+            expected: 'unanswered removed; answered kept'
+            source: literal
+      - id: C19.4
+        title: 'Yes/No, maturity and choice answers'
+        state: active
+        tests:
+          - id: TC-C19.4-01
+            title: 'Every option of every chosen question gives the outcome the knowledge base sets for it'
+            expected: 'outcome = option outcome'
+            source: oracle
+          - id: TC-C19.4-02
+            title: 'The posture counts maturity and choices like Yes, Partial and No and leaves recorded answers out'
+            expected: 'equal to the worked figure'
+            source: literal
+      - id: C19.5
+        title: 'Self-check and cycles'
+        state: active
+        tests:
+          - id: TC-C19.5-01
+            title: 'A cycle completes only when every question is answered and every answer is ticked as checked'
+            expected: 'refused until all are checked'
+            source: literal
+          - id: TC-C19.5-02
+            title: "After a completed cycle, questions change only in the next cycle, which takes over each department's questions"
+            expected: 'changes go to the next cycle'
+            source: literal
+          - id: TC-C19.5-03
+            title: "The next cycle copies each active department's questions, with no answers"
+            expected: 'same questions; not answered'
+            source: literal
+      - id: C19.6
+        title: 'Self-reconciliation of Not applicable'
+        state: active
+        tests:
+          - id: TC-C19.6-01
+            title: 'A gate answer marks the questions it rules out Not applicable, across departments, and undoes it when it changes'
+            expected: 'automatic N/A with the reason; contradictory answers refused; undone on change'
+            source: literal
+      - id: C19.7
+        title: 'People at a client, with or without a login'
+        state: active
+        tests:
+          - id: TC-C19.7-01
+            title: 'A person is added without a login, can be given work, and signs in only once a login is issued'
+            expected: 'assignable; refused before; signed in with a one-time password; refused after revoke'
+            source: literal
+      - id: C19.8
+        title: 'Assignments, evidence requests and control owners'
+        state: active
+        tests:
+          - id: TC-C19.8-01
+            title: 'The person given a question sees it and uploads for it, and evidence requests go from requested to accepted'
+            expected: 'requested, received, requested again on rejection, accepted'
+            source: literal
+          - id: TC-C19.8-02
+            title: "Controls get owners, and actions and controls show under the owner's work"
+            expected: "listed under the owner's work; gone when the owner is cleared"
+            source: literal
+      - id: C19.9
+        title: 'Setup scripts for Linux and Windows'
+        state: active
+        tests:
+          - id: TC-C19.9-01
+            title: 'setup.sh and setup.ps1 install, update, repair and report status'
+            expected: 'doctor passes; the app answers on the web port'
             source: manual
             kind: manual
 

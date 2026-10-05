@@ -1,4 +1,14 @@
-import { bigserial, jsonb, pgTable, text, timestamp, unique, uuid } from 'drizzle-orm/pg-core'
+import {
+  bigserial,
+  boolean,
+  integer,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  unique,
+  uuid,
+} from 'drizzle-orm/pg-core'
 import { department } from './compliance'
 import { tenant } from './platform'
 
@@ -6,11 +16,24 @@ export type UserKind = 'firm' | 'client'
 export const USER_STATUSES = ['invited', 'active', 'disabled'] as const
 export type UserStatus = (typeof USER_STATUSES)[number]
 
-/** People who can sign in. Credentials and MFA live in Keycloak; roles live here. */
+/**
+ * A person: ComplyX staff, or someone at a client (such as "IT Head") whom questions, evidence
+ * requests, actions and controls are assigned to. People sign in only when their login is
+ * enabled: a username and a password hashed by scrypt, locked after repeated failures.
+ */
 export const appUser = pgTable('app_user', {
   id: uuid('id').primaryKey().defaultRandom(),
-  keycloakId: text('keycloak_id').unique(),
-  email: text('email').notNull().unique(),
+  /** The sign-in name; null for people without a login. */
+  username: text('username').unique(),
+  /** A contact address, optional. */
+  email: text('email').unique(),
+  jobTitle: text('job_title'),
+  loginEnabled: boolean('login_enabled').notNull().default(false),
+  passwordHash: text('password_hash'),
+  mustChangePassword: boolean('must_change_password').notNull().default(true),
+  passwordChangedAt: timestamp('password_changed_at', { withTimezone: true }),
+  failedLogins: integer('failed_logins').notNull().default(0),
+  lockedUntil: timestamp('locked_until', { withTimezone: true }),
   displayName: text('display_name').notNull(),
   kind: text('kind').$type<UserKind>().notNull(),
   status: text('status').$type<UserStatus>().notNull().default('invited'),
@@ -51,7 +74,6 @@ export const userSession = pgTable('user_session', {
   revokedAt: timestamp('revoked_at', { withTimezone: true }),
   ipAddress: text('ip_address'),
   userAgent: text('user_agent'),
-  idToken: text('id_token'),
 })
 
 /** Append-only, hash-chained record of every change. */

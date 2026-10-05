@@ -12,6 +12,7 @@
   "dependencies": {
     "@duatf/core-config": "workspace:*",
     "@duatf/platform-db": "workspace:*",
+    "exceljs": "catalog:",
     "yaml": "catalog:",
     "zod": "catalog:"
   },

@@ -1,41 +1,19 @@
 'use client'
 
 import {
-  FormAlert,
+  FormActions,
   SelectField,
   SubmitButton,
   TextField,
-  TextAreaField,
   type SelectOption,
 } from '@duatf/core-ui'
-import { useActionState, useState, type MouseEvent } from 'react'
+import { useActionState, useState } from 'react'
 import { IDLE, type FormState } from '@/lib/formState'
+import { Feedback } from './Feedback'
 import styles from './forms.module.css'
+import answerStyles from './AssessmentForms.module.css'
 
 type Action = (state: FormState, formData: FormData) => Promise<FormState>
-
-/** Success or error line, plus a one-time secret when the action returned one. */
-export const Feedback = ({ state }: { state: FormState }) => {
-  if (state.status === 'idle') return null
-  if (state.status === 'error') return <FormAlert>{state.message}</FormAlert>
-  return (
-    <FormAlert tone="success">
-      <div className={styles.secret}>
-        <span>{state.message}</span>
-        {state.secret ? (
-          <>
-            <span>
-              {state.secret.label}: <code className={styles.secretValue}>{state.secret.value}</code>
-            </span>
-            <span className={styles.small}>
-              This is shown once and is not stored by DUATF. Copy it now.
-            </span>
-          </>
-        ) : null}
-      </div>
-    </FormAlert>
-  )
-}
 
 const useForm = (action: Action) => {
   const [state, formAction] = useActionState(action, IDLE)
@@ -44,92 +22,68 @@ const useForm = (action: Action) => {
   return { state, formAction, value, error }
 }
 
-export const DepartmentForm = ({ action }: { action: Action }) => {
-  const { state, formAction, value, error } = useForm(action)
-  return (
-    <form action={formAction} className={styles.form} noValidate>
-      <Feedback state={state} />
-      <div className={styles.inline}>
-        <TextField
-          label="Code"
-          name="code"
-          required
-          maxLength={10}
-          defaultValue={value('code')}
-          error={error('code')}
-          hint="e.g. HR, FIN, IT"
-        />
-        <TextField
-          label="Department name"
-          name="name"
-          required
-          defaultValue={value('name')}
-          error={error('name')}
-        />
-        <TextField
-          label="Head of department"
-          name="headName"
-          defaultValue={value('headName')}
-          error={error('headName')}
-        />
-        <TextField
-          label="Head's email"
-          name="headEmail"
-          type="email"
-          defaultValue={value('headEmail')}
-          error={error('headEmail')}
-        />
-      </div>
-      <TextAreaField
-        label="What the department does with personal data"
-        name="description"
-        rows={2}
-        defaultValue={value('description')}
-        error={error('description')}
-      />
-      <div>
-        <SubmitButton pendingText="Adding…">Add department</SubmitButton>
-      </div>
-    </form>
-  )
-}
+/** Name, job title and contact of a person, shared by the people and team forms. */
+const PersonFields = ({
+  value,
+  error,
+}: {
+  value: (name: string) => string
+  error: (name: string) => string | undefined
+}) => (
+  <div className={styles.inline}>
+    <TextField
+      label="Name"
+      name="displayName"
+      required
+      defaultValue={value('displayName')}
+      error={error('displayName')}
+      hint="A person (Ravi Kumar) or a role (IT Head)"
+    />
+    <TextField
+      label="Job title"
+      name="jobTitle"
+      defaultValue={value('jobTitle')}
+      error={error('jobTitle')}
+    />
+    <TextField
+      label="Email"
+      name="email"
+      type="email"
+      defaultValue={value('email')}
+      error={error('email')}
+    />
+  </div>
+)
 
-type InviteUserFormProps = {
+/**
+ * Adds a person at a client with a role. Sign-in is optional: without it the person can still
+ * be given questions, evidence requests, actions and controls.
+ */
+export const AddPersonForm = ({
+  action,
+  roles,
+  departments,
+}: {
   action: Action
   roles: SelectOption[]
   departments: SelectOption[]
-}
-
-export const InviteUserForm = ({ action, roles, departments }: InviteUserFormProps) => {
+}) => {
   const { state, formAction, value, error } = useForm(action)
-  const [role, setRole] = useState(value('role') || 'client_viewer')
+  const [role, setRole] = useState(value('role') || 'department_owner')
+  const [login, setLogin] = useState(value('allowLogin') === 'on')
   return (
     <form action={formAction} className={styles.form} noValidate>
       <Feedback state={state} />
+      <PersonFields value={value} error={error} />
       <div className={styles.inline}>
-        <TextField
-          label="Name"
-          name="displayName"
-          required
-          defaultValue={value('displayName')}
-          error={error('displayName')}
-        />
-        <TextField
-          label="Work email"
-          name="email"
-          type="email"
-          required
-          defaultValue={value('email')}
-          error={error('email')}
-        />
         <SelectField
           label="Role"
           name="role"
           required
           options={roles}
           defaultValue={role}
-          error={error('role')}
           onChange={setRole}
+          error={error('role')}
         />
         {role === 'department_owner' ? (
           <SelectField
@@ -143,173 +97,190 @@ export const InviteUserForm = ({ action, roles, departments }: InviteUserFormPro
           />
         ) : null}
       </div>
-      <div>
-        <SubmitButton pendingText="Inviting…">Invite</SubmitButton>
-      </div>
+      <label className={answerStyles.inlineCheck}>
+        <input
+          type="checkbox"
+          name="allowLogin"
+          checked={login}
+          onChange={(event) => setLogin(event.target.checked)}
+        />
+        Let this person sign in to review their work and upload evidence
+      </label>
+      {login ? (
+        <TextField
+          label="Username"
+          name="username"
+          required
+          defaultValue={value('username')}
+          error={error('username')}
+          hint="Letters, digits, dots or dashes, e.g. it-head. A one-time password is shown once."
+        />
+      ) : null}
+      <FormActions>
+        <SubmitButton pendingText="Adding…">Add person</SubmitButton>
+      </FormActions>
     </form>
   )
 }
 
-export const AssignStaffForm = ({ action, staff }: { action: Action; staff: SelectOption[] }) => {
+/** Adds a member of the ComplyX team with a login. */
+export const AddStaffForm = ({ action, roles }: { action: Action; roles: SelectOption[] }) => {
   const { state, formAction, value, error } = useForm(action)
   return (
     <form action={formAction} className={styles.form} noValidate>
       <Feedback state={state} />
+      <PersonFields value={value} error={error} />
       <div className={styles.inline}>
-        <SelectField
-          label="ComplyX staff member"
-          name="userId"
-          required
-          placeholder="Choose…"
-          options={staff}
-          defaultValue={value('userId')}
-          error={error('userId')}
-        />
-        <SelectField
-          label="Role on this client"
-          name="role"
-          required
-          options={[
-            { value: 'auditor', label: 'Auditor' },
-            { value: 'lead_auditor', label: 'Lead auditor' },
-          ]}
-          defaultValue={value('role') || 'auditor'}
-          error={error('role')}
-        />
-      </div>
-      <div>
-        <SubmitButton pendingText="Adding…">Add to team</SubmitButton>
-      </div>
-    </form>
-  )
-}
-
-type InviteStaffFormProps = { action: Action; clients: SelectOption[] }
-
-export const InviteStaffForm = ({ action, clients }: InviteStaffFormProps) => {
-  const { state, formAction, value, error } = useForm(action)
-  return (
-    <form action={formAction} className={styles.form} noValidate>
-      <Feedback state={state} />
-      <div className={styles.inline}>
-        <TextField
-          label="Name"
-          name="displayName"
-          required
-          defaultValue={value('displayName')}
-          error={error('displayName')}
-        />
-        <TextField
-          label="Work email"
-          name="email"
-          type="email"
-          required
-          defaultValue={value('email')}
-          error={error('email')}
-        />
         <SelectField
           label="Role"
           name="role"
           required
-          options={[
-            { value: 'auditor', label: 'Auditor' },
-            { value: 'lead_auditor', label: 'Lead auditor' },
-            { value: 'firm_admin', label: 'Firm administrator' },
-          ]}
+          options={roles}
           defaultValue={value('role') || 'auditor'}
           error={error('role')}
         />
-        <SelectField
-          label="Client"
-          name="clientId"
-          placeholder="All clients"
-          options={clients}
-          defaultValue={value('clientId')}
-          error={error('clientId')}
-          hint="Leave as All clients for firm-wide access."
+        <TextField
+          label="Username"
+          name="username"
+          required
+          defaultValue={value('username')}
+          error={error('username')}
         />
       </div>
-      <div>
-        <SubmitButton pendingText="Inviting…">Invite staff member</SubmitButton>
-      </div>
+      <FormActions>
+        <SubmitButton pendingText="Adding…">Add to the team</SubmitButton>
+      </FormActions>
     </form>
   )
 }
 
-const confirmFirst = (message: string) => (event: MouseEvent<HTMLButtonElement>) => {
-  if (!window.confirm(message)) event.preventDefault()
-}
-
-type AccountControlsProps = {
-  action: Action
-  userId: string
-  name: string
-  status: 'invited' | 'active' | 'disabled'
-  assignments: { assignmentId: string; label: string }[]
-  canManageAccount: boolean
-}
-
-/** Per-person buttons: remove a role, issue a new one-time password, disable or enable. */
-export const AccountControls = ({
+/** Login controls of one person: a username to switch it on, a new password, or switch off. */
+export const LoginControls = ({
   action,
   userId,
-  name,
-  status,
-  assignments,
-  canManageAccount,
-}: AccountControlsProps) => {
+  username,
+  loginEnabled,
+}: {
+  action: Action
+  userId: string
+  username: string | null
+  loginEnabled: boolean
+}) => {
   const [state, formAction] = useActionState(action, IDLE)
   return (
-    <div className={styles.secret}>
-      <div className={styles.rowActions}>
-        {assignments.map((assignment) => (
-          <form key={assignment.assignmentId} action={formAction}>
-            <input type="hidden" name="intent" value="remove" />
-            <input type="hidden" name="assignmentId" value={assignment.assignmentId} />
-            <button
-              type="submit"
-              className={`${styles.linkish} ${styles.danger}`}
-              onClick={confirmFirst(`Remove the role "${assignment.label}" from ${name}?`)}
-            >
-              Remove {assignment.label}
-            </button>
-          </form>
-        ))}
-        {canManageAccount ? (
-          <form action={formAction} className={styles.rowActions}>
-            <input type="hidden" name="userId" value={userId} />
-            {status !== 'disabled' ? (
-              <button
-                type="submit"
-                name="intent"
-                value="reset"
-                className={styles.linkish}
-                onClick={confirmFirst(
-                  `Issue a new one-time password for ${name}? Their current password stops working.`,
-                )}
-              >
-                New one-time password
-              </button>
-            ) : null}
-            {status === 'disabled' ? (
-              <button type="submit" name="intent" value="enable" className={styles.linkish}>
-                Enable
-              </button>
-            ) : (
-              <button
-                type="submit"
-                name="intent"
-                value="disable"
-                className={`${styles.linkish} ${styles.danger}`}
-                onClick={confirmFirst(`Disable ${name}? They are signed out at once.`)}
-              >
-                Disable
-              </button>
-            )}
-          </form>
+    <form action={formAction} className={styles.secret}>
+      <Feedback state={state} />
+      <input type="hidden" name="userId" value={userId} />
+      {loginEnabled ? (
+        <span className={styles.rowActions}>
+          <button type="submit" name="intent" value="reset" className={styles.linkish}>
+            New one-time password
+          </button>
+          <button
+            type="submit"
+            name="intent"
+            value="revoke"
+            className={`${styles.linkish} ${styles.danger}`}
+          >
+            Switch login off
+          </button>
+        </span>
+      ) : (
+        <span className={styles.rowActions}>
+          <label className="visually-hidden" htmlFor={`username-${userId}`}>
+            Username
+          </label>
+          <input
+            id={`username-${userId}`}
+            name="username"
+            defaultValue={username ?? ''}
+            placeholder="username, e.g. it-head"
+            className={styles.compactInput}
+          />
+          <button type="submit" name="intent" value="issue" className={styles.linkish}>
+            Allow sign-in
+          </button>
+        </span>
+      )}
+      {state.status === 'error' && state.fieldErrors?.username ? (
+        <span className={styles.fieldError}>{state.fieldErrors.username}</span>
+      ) : null}
+    </form>
+  )
+}
+
+/** A small one-button form (remove a role, and similar). */
+export const SmallActionForm = ({
+  action,
+  fields,
+  label,
+  danger = false,
+}: {
+  action: Action
+  fields: Record<string, string>
+  label: string
+  danger?: boolean
+}) => {
+  const [state, formAction] = useActionState(action, IDLE)
+  return (
+    <form action={formAction} className={styles.secret}>
+      {Object.entries(fields).map(([name, value]) => (
+        <input key={name} type="hidden" name={name} value={value} />
+      ))}
+      <button
+        type="submit"
+        className={danger ? `${styles.linkish} ${styles.danger}` : styles.linkish}
+      >
+        {label}
+      </button>
+      {state.status === 'error' ? <Feedback state={state} /> : null}
+    </form>
+  )
+}
+
+/** Gives a person at the client another role. */
+export const AddRoleForm = ({
+  action,
+  userId,
+  roles,
+  departments,
+}: {
+  action: Action
+  userId: string
+  roles: SelectOption[]
+  departments: SelectOption[]
+}) => {
+  const { state, formAction, error } = useForm(action)
+  const [role, setRole] = useState('department_owner')
+  return (
+    <form action={formAction} className={styles.form} noValidate>
+      <Feedback state={state} />
+      <input type="hidden" name="intent" value="add-role" />
+      <input type="hidden" name="userId" value={userId} />
+      <div className={styles.inline}>
+        <SelectField
+          label="Role"
+          name="role"
+          options={roles}
+          defaultValue={role}
+          onChange={setRole}
+          error={error('role')}
+        />
+        {role === 'department_owner' ? (
+          <SelectField
+            label="Department"
+            name="departmentId"
+            placeholder="Choose…"
+            options={departments}
+            error={error('departmentId')}
+          />
         ) : null}
       </div>
-      <Feedback state={state} />
-    </div>
+      <FormActions>
+        <SubmitButton variant="secondary" pendingText="Adding…">
+          Add role
+        </SubmitButton>
+      </FormActions>
+    </form>
   )
 }

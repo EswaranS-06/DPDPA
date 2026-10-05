@@ -1,18 +1,179 @@
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { findRepoRoot } from '@duatf/core-config'
 import { describe, expect, it } from 'vitest'
 import {
+  answerOptions,
   formatReference,
+  mappingGaps,
   mergeApplicability,
-  parseQuestionBank,
-  questionCode,
-  riskWeight,
+  parseKbMapping,
   suggestEvidence,
+  type QuestionMapping,
 } from './questionBank'
+import { questionBankPaths } from './release'
+import {
+  optionsFromNote,
+  parseTemplateBank,
+  readTemplateFolder,
+  templateBankYaml,
+  type TemplateQuestion,
+} from './templates'
+
+const root = findRepoRoot()
+const paths = questionBankPaths(root)
+const templatesText = readFileSync(paths.templatesPath, 'utf8')
+const files = parseTemplateBank(templatesText)
+const mapping = parseKbMapping(readFileSync(paths.mappingPath, 'utf8'))
+const questions = files.flatMap((file) => file.questions)
 
 const key = (text: string) =>
   text
     .toLowerCase()
     .replace(/\s+/g, ' ')
     .replace(/[.\s]+$/, '')
+
+describe('ComplyX templates', () => {
+  it('TC-C19.1-01 templates.yaml is exactly what the three workbooks hold', async () => {
+    const fromWorkbooks = await readTemplateFolder(join(root, 'seed', 'question-bank', 'source'))
+    expect(templateBankYaml(fromWorkbooks)).toBe(templatesText)
+    expect(files.map((file) => [file.questionnaire, file.questions.length])).toEqual([
+      ['TPL-001', 70],
+      ['TPL-002', 14],
+      ['TPL-003', 58],
+    ])
+    expect(questions).toHaveLength(142)
+  })
+
+  it('TC-C19.1-02 maps every question to the knowledge base, with valid answers and gates', () => {
+    expect(mappingGaps(files, mapping)).toEqual({
+      unmapped: [],
+      orphaned: [],
+      noQuestionnaire: [],
+      badGates: [],
+    })
+    const types: Record<string, number> = {}
+    for (const question of questions) {
+      const entry = mapping.questions[question.code] as QuestionMapping
+      const answers = answerOptions(question, entry)
+      types[answers.answerType] = (types[answers.answerType] ?? 0) + 1
+      expect(answers.options.length > 1, question.code).toBe(answers.answerType !== 'text')
+    }
+    expect(types).toEqual({ yes_no: 71, maturity: 53, choice: 10, text: 7, multi_choice: 1 })
+
+    // The gates the self-reconciliation relies on.
+    const gated = (code: string) =>
+      (mapping.questions[code]?.gates ?? []).map(
+        (gate) => `${gate.question}=${gate.values.join('|')}`,
+      )
+    expect(gated('A12.1')).toEqual(['A1.4=No'])
+    expect(gated('A4.1')).toEqual(['A2.5=Neither|Disability data'])
+    expect(gated('A4.4')).toEqual(["A2.5=Neither|Children's data"])
+    expect(gated('A10.2')).toEqual(['A10.1=No transfers'])
+  })
+})
+
+describe('answer options', () => {
+  const template = (overrides: Partial<TemplateQuestion>): TemplateQuestion => ({
+    code: 'Z1.1',
+    id: 'z',
+    section: 'Test',
+    text: 'Is this a test question?',
+    type: 'BINARY_PLUS',
+    options: ['Yes', 'Partial', 'No', 'N-A'],
+    risk: 'HIGH',
+    ref: null,
+    attachment: false,
+    ...overrides,
+  })
+  const entry: QuestionMapping = {
+    title: 'A test question',
+    domain: 'D01',
+    obligations: ['OBL-GOV-01'],
+    controls: ['CTL-GOV-01'],
+  }
+  const outcomes = (result: ReturnType<typeof answerOptions>) =>
+    result.options.map((option) => `${option.value}:${option.outcome}`)
+
+  it('scores Yes/No questions normally, reversed or not at all', () => {
+    expect(outcomes(answerOptions(template({}), entry))).toEqual([
+      'yes:compliant',
+      'partial:potential_gap',
+      'no:gap',
+    ])
+    expect(outcomes(answerOptions(template({}), { ...entry, scoring: 'reversed' }))).toEqual([
+      'yes:gap',
+      'partial:potential_gap',
+      'no:compliant',
+    ])
+    const recorded = answerOptions(template({}), { ...entry, scoring: 'informational' })
+    expect([recorded.scored, new Set(recorded.options.map((option) => option.outcome))]).toEqual([
+      false,
+      new Set(['informational']),
+    ])
+  })
+
+  it('treats maturity 3 and 4 as compliant, 2 as a potential gap and 0 or 1 as a gap', () => {
+    const maturity = template({ type: 'MATURITY', options: ['0', '1', '2', '3', '4'] })
+    expect(outcomes(answerOptions(maturity, entry))).toEqual([
+      '0:gap',
+      '1:gap',
+      '2:potential_gap',
+      '3:compliant',
+      '4:compliant',
+    ])
+  })
+
+  it('gives choice options the outcome the mapping names, and refuses mismatches', () => {
+    const choice = template({ type: 'SINGLE_SELECT', options: ['Yes', 'No', 'Planned'] })
+    expect(
+      outcomes(answerOptions(choice, { ...entry, outcomes: { Yes: 'compliant', No: 'gap' } })),
+    ).toEqual(['Yes:compliant', 'No:gap', 'Planned:informational'])
+    expect(() => answerOptions(choice, { ...entry, outcomes: { Maybe: 'gap' } })).toThrow(
+      /unknown options: Maybe/,
+    )
+    expect(() => answerOptions(template({ options: ['Yes', 'No'] }), entry)).toThrow(
+      /expected the options/,
+    )
+    expect(() => answerOptions(choice, { ...entry, scoring: 'reversed' })).toThrow(/yes\/no/)
+  })
+
+  it('reads the choices of a multi-select question from its note', () => {
+    expect(optionsFromNote('(pick any, semicolon-separated: Email; SMS ; Phone)')).toEqual([
+      'Email',
+      'SMS',
+      'Phone',
+    ])
+  })
+
+  it('reports unmapped questions, orphaned mappings and broken gates', () => {
+    const one = [{ file: 'x.xlsx', questionnaire: 'TPL-009', questions: [template({})] }]
+    const broken = parseKbMapping(`version: 1
+questionnaires: {}
+questions:
+  "Z1.1":
+    title: A test question
+    domain: D01
+    obligations: [OBL-GOV-01]
+    controls: [CTL-GOV-01]
+    gates:
+      - { question: Z1.1, values: ["Yes"], reason: "It cannot gate itself." }
+  "Z9.9":
+    title: Not in any template
+    domain: D01
+    obligations: [OBL-GOV-01]
+    controls: [CTL-GOV-01]
+    gates:
+      - { question: Z1.1, values: [Maybe], reason: "Maybe is not an option." }
+`)
+    expect(mappingGaps(one, broken)).toEqual({
+      unmapped: [],
+      orphaned: ['Z9.9'],
+      noQuestionnaire: ['TPL-009'],
+      badGates: ['Z1.1: a question cannot gate itself', 'Z9.9: "Maybe" is not an option of Z1.1'],
+    })
+  })
+})
 
 describe('evidence suggestions', () => {
   it('TC-C4.3-01 splits evidence into required, recommended and supporting with no duplicates', () => {
@@ -32,10 +193,6 @@ describe('evidence suggestions', () => {
 })
 
 describe('question bank helpers', () => {
-  it('gives the question code of a control', () => {
-    expect(questionCode('CTL-BRE-01')).toBe('Q-BRE-01')
-  })
-
   it('merges obligation triggers: any "always" wins, otherwise the union of conditions', () => {
     expect(mergeApplicability([{ always: true }, { flags: ['children'] }])).toEqual({
       always: true,
@@ -46,14 +203,6 @@ describe('question bank helpers', () => {
     expect(
       mergeApplicability([{ role: ['sdf'] }, { flags: ['children', 'pwd'] }, { flags: ['pwd'] }]),
     ).toEqual({ always: false, roles: ['sdf'], flags: ['children', 'pwd'], bases: [] })
-  })
-
-  it('weights impact by the heaviest penalty tier', () => {
-    expect(riskWeight(['P7', 'P1'])).toBe(5)
-    expect(riskWeight(['P3'])).toBe(4)
-    expect(riskWeight(['P7'])).toBe(3)
-    expect(riskWeight([null])).toBe(3)
-    expect(riskWeight([])).toBe(2)
   })
 
   it('formats DPDP and other-law references', () => {
@@ -68,15 +217,5 @@ describe('question bank helpers', () => {
         scheduleRef: '',
       }),
     ).toBe('IT Act s.43A; SPDI Rules 2011')
-  })
-
-  it('refuses a question file with two questions for one control', () => {
-    const entry = `  - control: CTL-BRE-01
-    question: Is there an incident response plan with every clock?
-    recommendation: Write an incident response plan with every clock.
-`
-    expect(() => parseQuestionBank(`version: 1\nquestions:\n${entry}${entry}`)).toThrow(
-      /two questions/,
-    )
   })
 })
