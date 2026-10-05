@@ -84,9 +84,11 @@ const run = (
 /** pnpm, through the one running this command when there is one, else through corepack. */
 const pnpm = (args: string[], options: { allowFail?: boolean; quiet?: boolean } = {}) => {
   const execPath = process.env.npm_execpath
-  return execPath && /pnpm/i.test(execPath)
+  if (!execPath || !/pnpm/i.test(execPath)) return run('corepack', ['pnpm', ...args], options)
+  // pnpm ships as a script (run with node) or, from pnpm 12, as a native program.
+  return /\.[cm]?js$/i.test(execPath)
     ? run(process.execPath, [execPath, ...args], options)
-    : run('corepack', ['pnpm', ...args], options)
+    : run(execPath, args, options)
 }
 
 /** A TypeScript tool of the repository, run with tsx. */
