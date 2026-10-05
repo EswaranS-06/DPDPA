@@ -14,7 +14,7 @@ Gate: **passing**
 | C3 | Identity and access | R0 | IN PROGRESS | security pending |
 | C4 | Knowledge base and question bank | R1 | TESTS PASSING | legal_sme pending |
 | C5 | Clients and organisation | R1 | TESTS PASSING | lead_auditor pending |
-| C6 | Assessment execution | R1 | TESTS PASSING | lead_auditor pending |
+| C6 | Assessment execution (multi-view edition; the self-audit edition is C19) | R1 | TESTS PASSING | lead_auditor pending |
 | C7 | Evidence | R1 | TESTS PASSING | lead_auditor pending |
 | C8 | Findings, gaps and risks | R1 | TESTS PASSING | legal_sme pending, lead_auditor pending |
 | C9 | Remediation and re-assessment | R2 | TESTS PASSING | lead_auditor pending |
@@ -22,7 +22,8 @@ Gate: **passing**
 | C11 | Reports | R2 | TESTS PASSING | legal_sme pending |
 | C16 | Interface redesign (design system 2.0) | R2 | IN PROGRESS | lead_auditor pending |
 | C17 | Knowledge base editor and content | R2 | IN PROGRESS | firm_admin pending |
-| C18 | Playbook: guided tours of every task | R2 | IN PROGRESS | firm_admin pending |
+| C18 | Playbook: guided tours of every task (multi-view edition) | R2 | TESTS PASSING | firm_admin pending |
+| C19 | Self-audit edition: ComplyX question bank, departments, self-check, people and reconciliation | R2 | IN PROGRESS | lead_auditor pending, security pending |
 | C12 | Hardening | R3 | PLANNED | security pending |
 | C13 | Pilots and production | R3 | PLANNED | leadership pending |
 | C14 | ROPA, data inventory and DIA (V2) | R3 | PLANNED | legal_sme pending |
@@ -57,27 +58,27 @@ Gate: **passing**
 | TC-C2.5-03 | C2.5 | Triggers are described in plain English | literal cases | literal | PASS |
 | TC-C2.5-04 | C2.5 | Search finds obligations and law by code, citation and words | "Rule 7" finds R07 and OBL-BRE-* | literal | PASS |
 | TC-C2.5-05 | C2.5 | In-force counts by date equal the seed | 7 on 2026-09-30, 13 on 2026-11-13, 99 on 2027-05-13 | oracle | PASS |
-| TC-C3.1-01 | C3.1 | Realm setup is idempotent and the issuer is the LAN URL of realm duatf | same realm and clients after two runs; issuer http://192.168.0.110:58080/realms/duatf | literal | PASS |
-| TC-C3.2-01 | C3.2 | Sessions are stored only as hashes; expired or revoked sessions are refused | no raw token stored; expired and revoked refused | literal | PASS |
-| TC-C3.2-02 | C3.2 | The login callback rejects a mismatched state | callback refused | literal | PASS |
+| TC-C3.1-01 | C3.1 | Realm setup is idempotent and the issuer is the LAN URL of realm duatf | same realm and clients after two runs; issuer http://192.168.0.110:58080/realms/duatf | literal | DEFERRED |
+| TC-C3.2-01 | C3.2 | Sessions are stored only as hashes; expired or revoked sessions, and people without a login, are refused | no raw token stored; expired, revoked, disabled and no-login refused | literal | PASS |
+| TC-C3.2-02 | C3.2 | Sign-in needs the right password of an enabled login and locks after five failures for 15 minutes | same answer for a wrong password and an unknown name; locked; open again after 15 minutes; revoked login refused | literal | PASS |
 | TC-C3.3-01 | C3.3 | Every role x capability equals the documented matrix | 100% match | golden | PASS |
 | TC-C3.3-02 | C3.3 | Auditor refused on an unassigned client; department owner refused outside their department | refused | literal | PASS |
 | TC-C3.3-03 | C3.3 | A client user can never read another client's rows (RLS) | 0 rows | literal | PASS |
 | TC-C3.4-01 | C3.4 | Tampering with one audit row breaks verification at that row | failure at the tampered row | literal | PASS |
-| TC-C3.5-01 | C3.5 | Login through Keycloak from a LAN machine lands on the role home page | signed in | manual | MANUAL-PENDING |
+| TC-C3.5-01 | C3.5 | Signing in on the DUATF sign-in page from a LAN machine and changing the one-time password lands on the role home page | signed in | manual | MANUAL-PENDING |
 | TC-C4.1-01 | C4.1 | Every knowledge-base section returns items and any item resolves by code | all sections non-empty; items resolve | oracle | PASS |
 | TC-C4.2-01 | C4.2 | Release 1.1.0 carries every 1.0.0 row unchanged | equal counts per table | oracle | PASS |
-| TC-C4.2-02 | C4.2 | One question per control, each with references, evidence and a recommendation | questions = controls, all complete | oracle | PASS |
+| TC-C4.2-02 | C4.2 | One question per control, each with references, evidence and a recommendation | questions = controls, all complete | oracle | DEFERRED |
 | TC-C4.2-03 | C4.2 | LNK-SPDI-01 live on 12 May 2027, not on 13 May 2027 | true, false | literal | PASS |
 | TC-C4.3-01 | C4.3 | Suggestions are split into required, recommended and supporting with no duplicates | three disjoint lists | literal | PASS |
 | TC-C5.1-01 | C5.1 | Onboarding validates required fields and gives a unique client code | field errors; unique code | literal | PASS |
 | TC-C5.2-01 | C5.2 | Department codes are unique within a client | duplicate refused | literal | PASS |
-| TC-C5.3-01 | C5.3 | Inviting creates one app user with a role scoped to the client; a repeat invite does not duplicate | 1 user, 1 role | literal | PASS |
+| TC-C5.3-01 | C5.3 | Inviting creates one app user with a role scoped to the client; a repeat invite does not duplicate | 1 user, 1 role | literal | DEFERRED |
 | TC-C5.4-01 | C5.4 | Firm admin sees all clients; auditor sees assigned clients only | filtered lists | literal | PASS |
-| TC-C6.1-01 | C6.1 | A new assessment pins the release and creates one item per question | items = questions | oracle | PASS |
-| TC-C6.2-01 | C6.2 | A department owner can answer only their department's items | refused elsewhere | literal | PASS |
-| TC-C6.3-01 | C6.3 | Not applicable needs a reason; answers map to compliance states | mapping holds | literal | PASS |
-| TC-C6.4-01 | C6.4 | Progress and compliance percentages equal the fixture | fixture values | golden | PASS |
+| TC-C6.1-01 | C6.1 | A new assessment pins the release and creates one item per question | items = questions | oracle | DEFERRED |
+| TC-C6.2-01 | C6.2 | A department owner can answer only their department's items | refused elsewhere | literal | DEFERRED |
+| TC-C6.3-01 | C6.3 | Not applicable needs a reason; answers map to compliance states | mapping holds | literal | DEFERRED |
+| TC-C6.4-01 | C6.4 | Progress and compliance percentages equal the fixture | fixture values | golden | DEFERRED |
 | TC-C7.1-01 | C7.1 | Upload stores SHA-256; downloads only via a short-lived link for authorised users | hash matches; unauthorised refused | literal | PASS |
 | TC-C7.2-01 | C7.2 | One evidence item links to several questions | shown on each | literal | PASS |
 | TC-C7.3-01 | C7.3 | Accept or reject needs a reviewer other than the uploader | uploader refused | literal | PASS |
@@ -86,15 +87,15 @@ Gate: **passing**
 | TC-C8.2-01 | C8.2 | Score = L x I with configurable bands | 4 Low, 5 Medium, 9 Medium, 10 High, 16 High, 17 Critical, 25 Critical | literal | PASS |
 | TC-C8.3-01 | C8.3 | A finding carries its question's recommendation and references | present | oracle | PASS |
 | TC-C9.1-01 | C9.1 | Only allowed status transitions are accepted | invalid refused | literal | PASS |
-| TC-C9.2-01 | C9.2 | Closing without evidence or by the owner is refused | refused | literal | PASS |
-| TC-C9.3-01 | C9.3 | A re-assessment copies scope and links to the previous cycle | copied and linked | literal | PASS |
+| TC-C9.2-01 | C9.2 | Verifying or closing without accepted evidence is refused; owners are people of the client | refused | literal | PASS |
+| TC-C9.3-01 | C9.3 | The next cycle links to the previous one and is refused before the current one completes | copied and linked | literal | PASS |
 | TC-C9.4-01 | C9.4 | Closing the last verified action closes the finding and its risk | closed as remediated | literal | PASS |
 | TC-C9.4-02 | C9.4 | A re-assessment resolves or carries forward earlier findings, counting each gap once | resolved; carried with actions and rating; no double count | literal | PASS |
 | TC-C10.1-01 | C10.1 | Dashboard figures equal direct counts | equal | oracle | PASS |
 | TC-C10.1-02 | C10.1 | Overall heatmap, compliance by domain and actions due equal direct counts | equal | oracle | PASS |
 | TC-C10.2-01 | C10.2 | A client user is sent to their own client and cannot open another | redirected; refused | literal | PASS |
 | TC-C10.3-01 | C10.3 | Department figures add up to the client and equal direct counts | sum = client; equal | oracle | PASS |
-| TC-C10.4-01 | C10.4 | The demo loads through the services, dated, and a reload replaces it | story figures; replaced | literal | PASS |
+| TC-C10.4-01 | C10.4 | The demo loads through the services, dated, and a reload replaces it | story figures; replaced | literal | DEFERRED |
 | TC-C11.1-01 | C11.1 | Risk-register workbook has one row per risk with every column | rows = risks | oracle | PASS |
 | TC-C11.2-01 | C11.2 | Executive report shows required sections, release and date | present | literal | PASS |
 | TC-C11.3-01 | C11.3 | Overall workbook covers the clients the user may export, figures equal the dashboard | rows = clients; equal | oracle | PASS |
@@ -117,11 +118,27 @@ Gate: **passing**
 | TC-C17.3-01 | C17.3 | Release page, draft view and entry forms render at 1440 and 390 px, light and dark | no overlap, no console errors; a client DPO sees no draft | manual | PASS |
 | TC-C17.4-01 | C17.4 | Every drafted entry is accepted by the editor, labelled for legal review and breaks no reference | 41 entries and the engine-flags fix; all awaiting review as AI drafts; no new problems | literal | PASS |
 | TC-C17.5-01 | C17.5 | ComplyX reviews the drafted entries and publishes release 1.2.0 | reviewed, edited or removed; published | manual | MANUAL-PENDING |
-| TC-C18.1-01 | C18.1 | Each task names who can do it exactly as the permission matrix allows, with well-formed steps | equal to core-access for every capability; hands-on step last; no empty group | oracle | PASS |
-| TC-C18.1-02 | C18.1 | Search finds tasks by title, keyword and word start | onboard, upload, evid, risk, excel, dark mode; every title finds its task first | literal | PASS |
-| TC-C18.2-01 | C18.2 | The guide reuses the tab it opened and opens a new one only when none is left | DUATF tab reused; sign-in tab reused; empty tab used; new tab only when all closed | literal | PASS |
-| TC-C18.3-01 | C18.3 | Every tour reaches its end or its hands-on step against the live app, without saving | 43 of 43 | manual | PASS |
-| TC-C18.4-01 | C18.4 | Show me opens a visible Chrome on DUATF, waits for sign-in and a second task reuses the tab | window opens; sign-in wait; tab reused | manual | PASS |
-| TC-C18.4-02 | C18.4 | ComplyX signs in and follows a task to its end in the guide window | done | manual | MANUAL-PENDING |
+| TC-C18.1-01 | C18.1 | Each task names who can do it exactly as the permission matrix allows, with well-formed steps | equal to core-access for every capability; hands-on step last; no empty group | oracle | DEFERRED |
+| TC-C18.1-02 | C18.1 | Search finds tasks by title, keyword and word start | onboard, upload, evid, risk, excel, dark mode; every title finds its task first | literal | DEFERRED |
+| TC-C18.2-01 | C18.2 | The guide reuses the tab it opened and opens a new one only when none is left | DUATF tab reused; sign-in tab reused; empty tab used; new tab only when all closed | literal | DEFERRED |
+| TC-C18.3-01 | C18.3 | Every tour reaches its end or its hands-on step against the live app, without saving | 43 of 43 | manual | DEFERRED |
+| TC-C18.4-01 | C18.4 | Show me opens a visible Chrome on DUATF, waits for sign-in and a second task reuses the tab | window opens; sign-in wait; tab reused | manual | DEFERRED |
+| TC-C18.4-02 | C18.4 | ComplyX signs in and follows a task to its end in the guide window | done | manual | DEFERRED |
+| TC-C19.1-01 | C19.1 | templates.yaml is exactly what the three ComplyX workbooks hold | TPL-001 70, TPL-002 14, TPL-003 58; 142 questions | oracle | PASS |
+| TC-C19.1-02 | C19.1 | Every question is mapped to the knowledge base, with valid answer options and gates | no unmapped, orphaned or broken gates; 71 yes/no, 53 maturity, 10 choice, 1 multi-choice, 7 text | literal | PASS |
+| TC-C19.2-01 | C19.2 | The release holds the three questionnaires and 142 complete questions with law, penalty, controls and gates | no incomplete question; gates stored | oracle | PASS |
+| TC-C19.3-01 | C19.3 | A new department gets exactly the chosen questions, whole questionnaires and sections included, in the first cycle | items = chosen questions | oracle | PASS |
+| TC-C19.3-02 | C19.3 | The same question for two departments is answered separately | two items; separate findings | literal | PASS |
+| TC-C19.3-03 | C19.3 | Taking questions away removes unanswered ones and keeps answered ones | unanswered removed; answered kept | literal | PASS |
+| TC-C19.4-01 | C19.4 | Every option of every chosen question gives the outcome the knowledge base sets for it | outcome = option outcome | oracle | PASS |
+| TC-C19.4-02 | C19.4 | The posture counts maturity and choices like Yes, Partial and No and leaves recorded answers out | equal to the worked figure | literal | PASS |
+| TC-C19.5-01 | C19.5 | A cycle completes only when every question is answered and every answer is ticked as checked | refused until all are checked | literal | PASS |
+| TC-C19.5-02 | C19.5 | After a completed cycle, questions change only in the next cycle, which takes over each department's questions | changes go to the next cycle | literal | PASS |
+| TC-C19.5-03 | C19.5 | The next cycle copies each active department's questions, with no answers | same questions; not answered | literal | PASS |
+| TC-C19.6-01 | C19.6 | A gate answer marks the questions it rules out Not applicable, across departments, and undoes it when it changes | automatic N/A with the reason; contradictory answers refused; undone on change | literal | PASS |
+| TC-C19.7-01 | C19.7 | A person is added without a login, can be given work, and signs in only once a login is issued | assignable; refused before; signed in with a one-time password; refused after revoke | literal | PASS |
+| TC-C19.8-01 | C19.8 | The person given a question sees it and uploads for it, and evidence requests go from requested to accepted | requested, received, requested again on rejection, accepted | literal | PASS |
+| TC-C19.8-02 | C19.8 | Controls get owners, and actions and controls show under the owner's work | listed under the owner's work; gone when the owner is cleared | literal | PASS |
+| TC-C19.9-01 | C19.9 | setup.sh and setup.ps1 install, update, repair and report status | doctor passes; the app answers on the web port | manual | MANUAL-PENDING |
 
 10 further tests are planned in later sub-phases.
