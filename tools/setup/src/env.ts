@@ -93,17 +93,32 @@ export const ensureServiceEnv = (options: EnvOptions): { file: string; added: st
   return { file, added }
 }
 
-/** The first LAN address of this machine (not loopback, not a Docker bridge). */
+// Interfaces of containers, virtual machines and VPNs: never the address other machines use.
+const VIRTUAL =
+  /^(docker|br-|veth|virbr|vmnet|vboxnet|vethernet|lxc|lxd|cni|flannel|tun|tap|wg|zt)/i
+
+/** Private ranges, the likeliest LAN first: 192.168/16, then 10/8, others, then 172.16/12. */
+const rank = (address: string) =>
+  address.startsWith('192.168.')
+    ? 0
+    : address.startsWith('10.')
+      ? 1
+      : /^172\.(1[6-9]|2\d|3[01])\./.test(address)
+        ? 3
+        : 2
+
+/**
+ * The LAN address of this machine: an IPv4 address of a physical interface, not loopback,
+ * Docker, a virtual machine or a VPN. Give --host-ip when the guess is wrong.
+ */
 export const lanAddress = (): string => {
-  const addresses = Object.values(networkInterfaces())
-    .flat()
-    .filter((entry) => entry && entry.family === 'IPv4' && !entry.internal)
-    .map((entry) => entry?.address ?? '')
-  return (
-    addresses.find((address) => !address.startsWith('172.17.') && !address.startsWith('172.18.')) ??
-    addresses[0] ??
-    '127.0.0.1'
-  )
+  const addresses = Object.entries(networkInterfaces())
+    .filter(([name]) => !VIRTUAL.test(name))
+    .flatMap(([, entries]) => entries ?? [])
+    .filter((entry) => entry.family === 'IPv4' && !entry.internal)
+    .map((entry) => entry.address)
+    .sort((a, b) => rank(a) - rank(b))
+  return addresses[0] ?? '127.0.0.1'
 }
 
 /** Writes the root .env the apps read, from infra/.env and the chosen ports and database. */

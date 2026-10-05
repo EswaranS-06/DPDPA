@@ -263,17 +263,29 @@ const doAccount = async (required: boolean) => {
   ])
 }
 
-const doStart = (which: AppName[] = ['api', 'web']) => {
-  const { webPort, apiPort } = settings()
+const portOf = (name: AppName) => (name === 'web' ? settings().webPort : settings().apiPort)
+
+/** Starts the apps and waits until each answers, so a status shown next is the real one. */
+const doStart = async (which: AppName[] = ['api', 'web']) => {
   for (const name of which) {
-    const pid = startApp(root, name, name === 'web' ? webPort : apiPort)
+    const pid = startApp(root, name, portOf(name))
     console.log(`${name} running (pid ${pid}, log ${logFile(root, name)})`)
+  }
+  for (const name of which) {
+    await waitForPort(portOf(name), `${name} (see ${logFile(root, name)})`, 120)
   }
 }
 
-const doStop = (which: AppName[] = ['web', 'api']) => {
-  for (const name of which)
+/** Stops the apps and waits until their ports are free, so a restart cannot meet the old one. */
+const doStop = async (which: AppName[] = ['web', 'api']) => {
+  for (const name of which) {
     console.log(`${name} ${stopApp(root, name) ? 'stopped' : 'was not running'}`)
+  }
+  for (const name of which) {
+    for (let waited = 0; waited < 30 && (await portOpen(portOf(name))); waited += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+    }
+  }
 }
 
 const doStatus = async () => {
@@ -401,9 +413,8 @@ switch (command) {
     step('Administrator')
     await doAccount(false)
     step('Start')
-    doStop()
-    doStart()
-    await new Promise((resolve) => setTimeout(resolve, 3000))
+    await doStop()
+    await doStart()
     await doStatus()
     break
   case 'update':
@@ -412,8 +423,8 @@ switch (command) {
     step('Build')
     pnpm(['build'])
     step('Restart')
-    doStop()
-    doStart()
+    await doStop()
+    await doStart()
     await doStatus()
     break
   case 'repair':
@@ -430,8 +441,8 @@ switch (command) {
     step('Build')
     pnpm(['build'])
     step('Restart')
-    doStop()
-    doStart()
+    await doStop()
+    await doStart()
     await doStatus()
     break
   case 'env':
@@ -456,14 +467,14 @@ switch (command) {
     pnpm(['build'])
     break
   case 'start':
-    doStart()
+    await doStart()
     break
   case 'stop':
-    doStop()
+    await doStop()
     break
   case 'restart':
-    doStop()
-    doStart()
+    await doStop()
+    await doStart()
     break
   case 'status':
     await doStatus()
