@@ -49,7 +49,7 @@ export type SignedInUser = {
   mustChangePassword: boolean
 }
 
-const INVALID = 'The username or password is not right.'
+const INVALID = 'Incorrect username or password.'
 
 /**
  * Checks a username and password. Unknown names take as long as wrong passwords. After
