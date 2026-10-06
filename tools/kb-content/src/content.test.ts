@@ -1,5 +1,10 @@
 import { parseEnv, testDatabaseEnvSchema } from '@duatf/core-config'
 import {
+  DEPARTMENT_PRESETS,
+  normaliseCategory,
+  PERSONAL_DATA_CATEGORIES,
+} from '@duatf/feature-compliance-api/personal-data'
+import {
   draftProblems,
   releaseOverview,
   releaseReviews,
@@ -80,5 +85,33 @@ describe('AI-drafted knowledge-base content', () => {
         throw new Rollback()
       }),
     ).rejects.toBeInstanceOf(Rollback)
+  })
+
+  it('TC-C20.1-01 every data element falls into a data map category, and every suggested element exists', async () => {
+    const released = await app.db.execute<{ code: string; category: string }>(sql`
+      select d.code, d.category from data_element d
+      join framework_release r on r.id = d.release_id
+      where r.status = 'published'`)
+    const drafted = DATA_ELEMENTS.map((row) => ({
+      code: String(row.code),
+      category: String(row.category ?? row.newCategory),
+    }))
+    const all = [...released, ...drafted]
+    expect(released.length).toBeGreaterThan(80)
+    // No element is left in "Other personal data".
+    expect(all.filter((row) => normaliseCategory(row) === 'other').map((row) => row.code)).toEqual(
+      [],
+    )
+    // The drafted elements are new, and every element a department preset suggests exists.
+    const codes = new Set(released.map((row) => row.code))
+    expect(drafted.filter((row) => codes.has(row.code)).map((row) => row.code)).toEqual([])
+    for (const row of drafted) codes.add(row.code)
+    const missing = DEPARTMENT_PRESETS.flatMap((preset) =>
+      preset.elements.filter((code) => !codes.has(code)).map((code) => `${preset.key}:${code}`),
+    )
+    expect(missing).toEqual([])
+    // The categories vocabulary lists every category with its default level.
+    const vocabulary = VOCABULARIES.find((row) => row.code === 'personal-data-categories')
+    expect(String(vocabulary?.terms).split('\n')).toHaveLength(PERSONAL_DATA_CATEGORIES.length)
   })
 })

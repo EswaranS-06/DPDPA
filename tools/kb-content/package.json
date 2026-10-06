@@ -13,6 +13,7 @@
     "@duatf/core-access": "workspace:*",
     "@duatf/core-config": "workspace:*",
     "@duatf/core-utils": "workspace:*",
+    "@duatf/feature-compliance-api": "workspace:*",
     "@duatf/feature-framework-library-api": "workspace:*",
     "@duatf/platform-db": "workspace:*"
   },

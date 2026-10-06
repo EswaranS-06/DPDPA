@@ -41,7 +41,7 @@ const { values, positionals } = parseArgs({
 const HELP = `DUATF self-audit: pnpm duatf <command> [options]
 
   install     Environment, services, database, knowledge base, build, first account, start
-  update      Migrate the database, rebuild and restart (after the code was pulled)
+  update      Migrate the database, update the knowledge base, rebuild and restart (after a pull)
   repair      Recreate what is missing (env, services, databases, buckets), migrate, rebuild, restart
   env         Write infra/.env (secrets, kept) and .env (generated)
   services    up | down | status   the Postgres, Redis and MinIO started by this installer
@@ -222,9 +222,10 @@ const doKb = async () => {
   if (!known.some((row) => row.version === '1.0.0')) tool('tools/seed-import/src/cli.ts')
   known = await releases()
   if (!known.some((row) => row.version === '1.1.0')) tool('tools/seed-import/src/releaseCli.ts')
-  known = await releases()
-  if (!known.some((row) => row.version === '1.2.0'))
-    tool('tools/kb-content/src/cli.ts', ['--publish'])
+  // The AI-drafted entries the release lacks, then the question bank if it changed since the
+  // last release: each publishes a release only when it has something new.
+  tool('tools/kb-content/src/cli.ts', ['--publish'])
+  tool('tools/seed-import/src/bankCli.ts')
   const published = (await releases()).find((row) => row.status === 'published')
   console.log(
     `Knowledge base: release ${published?.version ?? 'none'} published with ${published?.questions ?? 0} questions.`,
@@ -420,6 +421,8 @@ switch (command) {
   case 'update':
     step('Database')
     await doDb()
+    step('Knowledge base')
+    await doKb()
     step('Build')
     pnpm(['build'])
     step('Restart')

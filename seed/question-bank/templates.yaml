@@ -980,6 +980,27 @@ files:
         risk: LOW
         ref: Surfaces shadow IT
         attachment: false
+      - code: B0.3a
+        id: d0000001-b000-0000-0000-000000000001
+        section: Common Module — All Departments
+        text: Is it in-house or third-party/vendor-hosted?
+        type: SINGLE_SELECT
+        options:
+          - In-house
+          - Third-party / Vendor-hosted
+          - Mixed (both)
+        risk: LOW
+        ref: Surfaces shadow IT / vendor risk
+        attachment: false
+      - code: B0.3c
+        id: d0000004-b000-0000-0000-000000000001
+        section: Common Module — All Departments
+        text: What security measures are implemented? (e.g., encryption at rest/in transit, access controls/MFA, audit logs, vulnerability assessments, data backup, breach detection)
+        type: FREE_TEXT
+        options: []
+        risk: LOW
+        ref: Rule 6, A8 security safeguards
+        attachment: false
       - code: B0.4
         id: c0000004-b000-0000-0000-000000000001
         section: Common Module — All Departments
@@ -994,6 +1015,19 @@ files:
           - Mixed
         risk: LOW
         ref: Flags S.9 children data
+        attachment: false
+      - code: B0.5
+        id: d0000002-b000-0000-0000-000000000001
+        section: Common Module — All Departments
+        text: Does your department process personal data of vulnerable data principals (e.g., children, persons with disabilities) under DPDP?
+        type: BINARY_PLUS
+        options:
+          - Yes
+          - Partial
+          - No
+          - N-A
+        risk: LOW
+        ref: S.9 vulnerable data principals
         attachment: false
       - code: B0.6
         id: c0000005-b000-0000-0000-000000000001
@@ -1058,6 +1092,19 @@ files:
         risk: LOW
         ref: Drives A7
         attachment: false
+      - code: B0.11
+        id: d0000003-b000-0000-0000-000000000001
+        section: Common Module — All Departments
+        text: Does your department transfer personal data outside India?
+        type: BINARY_PLUS
+        options:
+          - Yes
+          - Partial
+          - No
+          - N-A
+        risk: LOW
+        ref: S.16, A10 cross-border
+        attachment: false
       - code: B0.12
         id: c0000010-b000-0000-0000-000000000001
         section: Common Module — All Departments
@@ -1111,6 +1158,197 @@ files:
         risk: LOW
         ref: Flags SDF algo due-diligence
         attachment: false
+      - code: B1.1
+        id: c0000001-b100-0000-0000-000000000001
+        section: Human Resources
+        text: Do you collect candidate data and how long is unsuccessful-candidate data kept?
+        type: BINARY_PLUS
+        options:
+          - Yes
+          - Partial
+          - No
+          - N-A
+        risk: LOW
+        ref: S.8(7), Rule 8
+        attachment: false
+      - code: B1.2
+        id: c0000002-b100-0000-0000-000000000001
+        section: Human Resources
+        text: Do you conduct background verification / use third-party screening agencies?
+        type: BINARY_PLUS
+        options:
+          - Yes
+          - Partial
+          - No
+          - N-A
+        risk: LOW
+        ref: S.8(2), Track C
+        attachment: false
+      - code: B1.3
+        id: c0000003-b100-0000-0000-000000000001
+        section: Human Resources
+        text: Do you process biometric data (attendance, access control)?
+        type: BINARY_PLUS
+        options:
+          - Yes
+          - Partial
+          - No
+          - N-A
+        risk: LOW
+        ref: S.9, Rule 6
+        attachment: false
+      - code: B1.4
+        id: c0000004-b100-0000-0000-000000000001
+        section: Human Resources
+        text: Is employee health, payroll, bank, PF/ESI, and tax data access-restricted?
+        type: MATURITY
+        options:
+          - "0"
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+        risk: LOW
+        ref: Rule 6(b)
+        attachment: false
+      - code: B1.5
+        id: c0000005-b100-0000-0000-000000000001
+        section: Human Resources
+        text: Are exit processes deactivating access and handling employee-record retention defined?
+        type: MATURITY
+        options:
+          - "0"
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+        risk: LOW
+        ref: S.8(7), Rule 8
+        attachment: false
+      - code: B1.6
+        id: c0000006-b100-0000-0000-000000000001
+        section: Human Resources
+        text: Do you transfer employee data to a parent/group entity or overseas HR system?
+        type: BINARY_PLUS
+        options:
+          - Yes
+          - Partial
+          - No
+          - N-A
+        risk: LOW
+        ref: S.16, A10
+        attachment: false
+      - code: B2.1
+        id: c0000001-b200-0000-0000-000000000001
+        section: IT / Information Security
+        text: Do you maintain the asset/system inventory holding PII and its data classification?
+        type: MATURITY
+        options:
+          - "0"
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+        risk: LOW
+        ref: Rule 6, A2.4
+        attachment: false
+      - code: B2.2
+        id: c0000002-b200-0000-0000-000000000001
+        section: IT / Information Security
+        text: Are encryption, MFA, RBAC, and logging (1-yr retention) enforced across PII systems?
+        type: MATURITY
+        options:
+          - "0"
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+        risk: LOW
+        ref: Rule 6, A8
+        attachment: false
+      - code: B2.3
+        id: c0000003-b200-0000-0000-000000000001
+        section: IT / Information Security
+        text: Is there centralised log monitoring/SIEM with alerting for unauthorised PII access?
+        type: MATURITY
+        options:
+          - "0"
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+        risk: LOW
+        ref: Rule 6(c), A8.3
+        attachment: false
+      - code: B2.4
+        id: c0000004-b200-0000-0000-000000000001
+        section: IT / Information Security
+        text: Are backups encrypted and tested, and does deletion cascade to backups?
+        type: MATURITY
+        options:
+          - "0"
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+        risk: LOW
+        ref: Rule 6(d), A7.5
+        attachment: false
+      - code: B2.5
+        id: c0000005-b200-0000-0000-000000000001
+        section: IT / Information Security
+        text: Is there a patch/vulnerability management and VAPT cadence for PII-bearing systems?
+        type: MATURITY
+        options:
+          - "0"
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+        risk: LOW
+        ref: Rule 6, A8.8
+        attachment: false
+      - code: B2.6
+        id: c0000006-b200-0000-0000-000000000001
+        section: IT / Information Security
+        text: Do you provision/deprovision access on joiners-movers-leavers within SLA?
+        type: MATURITY
+        options:
+          - "0"
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+        risk: LOW
+        ref: Rule 6(b)
+        attachment: false
+      - code: B2.7
+        id: c0000007-b200-0000-0000-000000000001
+        section: IT / Information Security
+        text: Are admin/privileged accounts vaulted and monitored (PAM)?
+        type: MATURITY
+        options:
+          - "0"
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+        risk: LOW
+        ref: Rule 6(b)(c)
+        attachment: false
+      - code: B3.1
+        id: c0000001-b300-0000-0000-000000000001
+        section: Marketing / Digital / Growth
+        text: Do you collect leads/contacts and is consent captured with a compliant notice?
+        type: BINARY_PLUS
+        options:
+          - Yes
+          - Partial
+          - No
+          - N-A
+        risk: LOW
+        ref: S.5, S.6, A3
+        attachment: false
       - code: B3.2
         id: c0000002-b300-0000-0000-000000000001
         section: Marketing / Digital / Growth
@@ -1123,6 +1361,360 @@ files:
           - N-A
         risk: LOW
         ref: S.6, Rule 3
+        attachment: false
+      - code: B3.3
+        id: c0000003-b300-0000-0000-000000000001
+        section: Marketing / Digital / Growth
+        text: Do you run targeted advertising and ensure none targets children?
+        type: BINARY_PLUS
+        options:
+          - Yes
+          - Partial
+          - No
+          - N-A
+        risk: LOW
+        ref: S.9(3), A4.2
+        attachment: false
+      - code: B3.4
+        id: c0000004-b300-0000-0000-000000000001
+        section: Marketing / Digital / Growth
+        text: Which third-party martech/CRM/email tools hold contact data?
+        type: FREE_TEXT
+        options: []
+        risk: LOW
+        ref: S.8(2), Track C
+        attachment: false
+      - code: B3.5
+        id: c0000005-b300-0000-0000-000000000001
+        section: Marketing / Digital / Growth
+        text: Can you honour opt-out/consent-withdrawal across all marketing channels?
+        type: BINARY_PLUS
+        options:
+          - Yes
+          - Partial
+          - No
+          - N-A
+        risk: LOW
+        ref: S.6(4), A3.4
+        attachment: false
+      - code: B3.6
+        id: c0000006-b300-0000-0000-000000000001
+        section: Marketing / Digital / Growth
+        text: Do you buy/enrich contact lists from external data brokers?
+        type: BINARY_PLUS
+        options:
+          - Yes
+          - Partial
+          - No
+          - N-A
+        risk: LOW
+        ref: S.4, S.5, A3
+        attachment: false
+      - code: B4.1
+        id: c0000001-b400-0000-0000-000000000001
+        section: Sales / Customer Success
+        text: What customer/prospect PII is held in CRM and who can export it?
+        type: SINGLE_SELECT
+        options:
+          - Broad export
+          - Restricted export
+          - No export controls
+        risk: LOW
+        ref: Rule 6(b)
+        attachment: false
+      - code: B4.2
+        id: c0000002-b400-0000-0000-000000000001
+        section: Sales / Customer Success
+        text: Are call recordings/chat transcripts captured, with notice and retention rules?
+        type: BINARY_PLUS
+        options:
+          - Yes
+          - Partial
+          - No
+          - N-A
+        risk: LOW
+        ref: S.5, Rule 8
+        attachment: false
+      - code: B4.3
+        id: c0000003-b400-0000-0000-000000000001
+        section: Sales / Customer Success
+        text: Is customer data shared with channel partners/resellers under contract?
+        type: BINARY_PLUS
+        options:
+          - Yes
+          - Partial
+          - No
+          - N-A
+        risk: LOW
+        ref: S.8(2), Track C
+        attachment: false
+      - code: B5.1
+        id: c0000001-b500-0000-0000-000000000001
+        section: Finance / Accounts
+        text: Do you process payment, bank, KYC, PAN/Aadhaar, or tax data?
+        type: SINGLE_SELECT
+        options:
+          - No
+          - Yes — one type
+          - Yes — multiple types
+        risk: LOW
+        ref: S.8 risk basis
+        attachment: false
+      - code: B5.2
+        id: c0000002-b500-0000-0000-000000000001
+        section: Finance / Accounts
+        text: Are statutory retention obligations reconciled with DPDP minimisation/erasure?
+        type: MATURITY
+        options:
+          - "0"
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+        risk: LOW
+        ref: S.8(7), Rule 8
+        attachment: false
+      - code: B5.3
+        id: c0000003-b500-0000-0000-000000000001
+        section: Finance / Accounts
+        text: Which payment processors / banking integrations receive PII?
+        type: FREE_TEXT
+        options: []
+        risk: LOW
+        ref: S.8(2), Track C
+        attachment: false
+      - code: B5.4
+        id: c0000004-b500-0000-0000-000000000001
+        section: Finance / Accounts
+        text: Is sensitive financial data masked/tokenised in reports and screens?
+        type: MATURITY
+        options:
+          - "0"
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+        risk: LOW
+        ref: Rule 6(a), A8.1
+        attachment: false
+      - code: B6.1
+        id: c0000001-b600-0000-0000-000000000001
+        section: Customer Support / Operations
+        text: How are data-principal rights requests received and routed within SLA?
+        type: MATURITY
+        options:
+          - "0"
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+        risk: LOW
+        ref: Rule 14, A5.2
+        attachment: false
+      - code: B6.2
+        id: c0000002-b600-0000-0000-000000000001
+        section: Customer Support / Operations
+        text: Is the ticketing/helpdesk system access-controlled and is PII redacted where possible?
+        type: MATURITY
+        options:
+          - "0"
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+        risk: LOW
+        ref: Rule 6(b)
+        attachment: false
+      - code: B6.3
+        id: c0000003-b600-0000-0000-000000000001
+        section: Customer Support / Operations
+        text: Are support transcripts/recordings retained per schedule and purged?
+        type: BINARY_PLUS
+        options:
+          - Yes
+          - Partial
+          - No
+          - N-A
+        risk: LOW
+        ref: Rule 8, A7
+        attachment: false
+      - code: B7.1
+        id: c0000001-b700-0000-0000-000000000001
+        section: Procurement / Vendor Management
+        text: Is a DPDP/security due-diligence step mandatory before onboarding any vendor that touches PII?
+        type: BINARY_PLUS
+        options:
+          - Yes
+          - Partial
+          - No
+          - N-A
+        risk: LOW
+        ref: S.8, Track C gate
+        attachment: false
+      - code: B7.2
+        id: c0000002-b700-0000-0000-000000000001
+        section: Procurement / Vendor Management
+        text: Do all such contracts include processor clauses (security, sub-processing, deletion, audit, breach SLA)?
+        type: BINARY_PLUS
+        options:
+          - Yes
+          - Partial
+          - No
+          - N-A
+        risk: LOW
+        ref: S.8(2), Rule 6(f), A11.2
+        attachment: false
+      - code: B7.3
+        id: c0000003-b700-0000-0000-000000000001
+        section: Procurement / Vendor Management
+        text: Is there a maintained vendor register with risk tiers and review dates?
+        type: MATURITY
+        options:
+          - "0"
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+        risk: LOW
+        ref: S.8(2), A11.1
+        attachment: false
+      - code: B8.1
+        id: c0000001-b800-0000-0000-000000000001
+        section: Product / Engineering
+        text: Is privacy-by-design / data-minimisation enforced in design and code review?
+        type: MATURITY
+        options:
+          - "0"
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+        risk: LOW
+        ref: S.8, A13.2
+        attachment: false
+      - code: B8.2
+        id: c0000002-b800-0000-0000-000000000001
+        section: Product / Engineering
+        text: Is PII excluded from logs, test/staging environments, and analytics where not needed?
+        type: MATURITY
+        options:
+          - "0"
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+        risk: LOW
+        ref: Rule 6
+        attachment: false
+      - code: B8.3
+        id: c0000003-b800-0000-0000-000000000001
+        section: Product / Engineering
+        text: Are consent, retention, and erasure enforceable at the data-model level?
+        type: MATURITY
+        options:
+          - "0"
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+        risk: LOW
+        ref: S.8(7), A7
+        attachment: false
+      - code: B8.4
+        id: c0000004-b800-0000-0000-000000000001
+        section: Product / Engineering
+        text: Do features using AI/automated decisions on PII undergo a risk review?
+        type: BINARY_PLUS
+        options:
+          - Yes
+          - Partial
+          - No
+          - N-A
+        risk: LOW
+        ref: Rule 13, A12.4
+        attachment: false
+      - code: B9.1
+        id: c0000001-b900-0000-0000-000000000001
+        section: Legal / Compliance
+        text: Are notices, consent text, and contracts reviewed against current DPDP Rules?
+        type: MATURITY
+        options:
+          - "0"
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+        risk: LOW
+        ref: S.5, S.6, Rule 3
+        attachment: false
+      - code: B9.2
+        id: c0000002-b900-0000-0000-000000000001
+        section: Legal / Compliance
+        text: Is regulatory change (Board directions, schedule updates) monitored and actioned?
+        type: MATURITY
+        options:
+          - "0"
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+        risk: LOW
+        ref: Ongoing compliance
+        attachment: false
+      - code: B9.3
+        id: c0000003-b900-0000-0000-000000000001
+        section: Legal / Compliance
+        text: Is the breach-notification legal workflow (Board + principals) defined?
+        type: MATURITY
+        options:
+          - "0"
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+        risk: LOW
+        ref: Rule 7, A9
+        attachment: false
+      - code: B10.1
+        id: c0000001-ba00-0000-0000-000000000001
+        section: Facilities / Physical Security
+        text: Is physical access to areas/servers holding PII controlled and logged?
+        type: MATURITY
+        options:
+          - "0"
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+        risk: LOW
+        ref: Rule 6
+        attachment: false
+      - code: B10.2
+        id: c0000002-ba00-0000-0000-000000000001
+        section: Facilities / Physical Security
+        text: Are paper records with PII secured and disposed of securely?
+        type: MATURITY
+        options:
+          - "0"
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+        risk: LOW
+        ref: Rule 6
+        attachment: false
+      - code: B10.3
+        id: c0000003-ba00-0000-0000-000000000001
+        section: Facilities / Physical Security
+        text: Is CCTV/visitor data treated as PII with notice and retention rules?
+        type: BINARY_PLUS
+        options:
+          - Yes
+          - Partial
+          - No
+          - N-A
+        risk: LOW
+        ref: S.5, Rule 8
         attachment: false
   - file: TPL-003_External_Data_Handlers.xlsx
     questionnaire: TPL-003

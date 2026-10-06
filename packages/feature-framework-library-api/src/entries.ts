@@ -454,6 +454,9 @@ export const DATA_ELEMENT_GROUPS: Record<string, string> = {
   SEN: 'Sensitive attributes',
   PRP: 'Property',
   VEH: 'Vehicle',
+  DEM: 'Demographic',
+  AUT: 'Authentication',
+  BUS: 'Business identifiers',
 }
 
 const DATA_ELEMENT_CODE = /^DE-[A-Z]{2,4}-\d{3}$/

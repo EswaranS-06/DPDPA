@@ -7,6 +7,7 @@
 #   controls     KB controls it tests: guidance, evidence and the recommendation come from these
 #   scoring      yes/no questions only: reversed (Yes is the gap) or informational (not scored)
 #   outcomes     choice questions only: the outcome of each option (otherwise informational)
+#   options      choice questions only: replaces the workbook's choices where they are wrong
 #   note         where the template reference differs from the KB, or how it is scored
 #   gates        self-reconciliation: when the named question has one of these answers, this
 #                question is marked Not applicable; otherwise it cannot be Not applicable
@@ -19,7 +20,7 @@ questionnaires:
   TPL-002:
     title: Internal data handlers
     respondent: department
-    description: "The common module every department answers about the personal data it handles, such as categories, purposes, systems, access, sharing, retention and training."
+    description: "ComplyX Track B: the common module every department answers about the personal data it handles (categories, purposes, systems, access, sharing, retention, transfers, training), then modules for HR, IT and security, marketing, sales, finance, support, procurement, product, legal and facilities."
   TPL-003:
     title: External data handlers
     respondent: vendor
@@ -457,6 +458,29 @@ questions:
     domain: D03
     obligations: [OBL-MAP-01]
     controls: [CTL-MAP-04]
+    options:
+      - "Personal identifiers"
+      - "Contact details"
+      - "Demographic and personal attributes"
+      - "Family and dependants"
+      - "Government and official identifiers"
+      - "Financial data"
+      - "Employment and professional data"
+      - "Education and training"
+      - "Health and medical data"
+      - "Genetic data"
+      - "Biometric data"
+      - "Online and device identifiers"
+      - "Authentication and security data"
+      - "Behavioural and usage data"
+      - "Location and travel data"
+      - "Communications"
+      - "Images, audio and video"
+      - "Criminal and legal data"
+      - "Protected and sensitive attributes"
+      - "Consent and preference records"
+      - "Other personal data"
+    note: "The workbook offers industry sectors as the choices; DUATF offers the personal data categories of the data map instead. The department's data inventory on the Data mapping page records each element, its level and source."
   "B0.2":
     title: "Purpose and lawful basis per category"
     domain: D04
@@ -468,11 +492,30 @@ questions:
     domain: D03
     obligations: [OBL-MAP-01]
     controls: [CTL-MAP-03]
+  "B0.3a":
+    title: "In-house or vendor-hosted systems"
+    domain: D13
+    obligations: [OBL-PRC-02]
+    controls: [CTL-TPM-01]
+    note: "Recorded, not scored. Vendor-hosted systems make the vendor a Data Processor that needs a contract (s.8(2)) and an external handler questionnaire."
+  "B0.3c":
+    title: "Security measures on department systems"
+    domain: D09
+    obligations: [OBL-SEC-01, OBL-SEC-08]
+    controls: [CTL-SEC-01]
+    note: "Recorded, not scored; compare the answer with the Rule 6 safeguards the IT questions test."
   "B0.4":
     title: "Who the data is collected from"
     domain: D03
     obligations: [OBL-MAP-01, OBL-CHD-03]
     controls: [CTL-MAP-01]
+  "B0.5":
+    title: "Children or persons with disabilities among data principals"
+    domain: D07
+    obligations: [OBL-CHD-03, OBL-PWD-01]
+    controls: [CTL-CHD-01, CTL-PWD-01]
+    scoring: informational
+    note: "Recorded, not scored. A Yes brings in verifiable consent for children (s.9, Rule 10) or of the lawful guardian of a person with disability (Rule 11)."
   "B0.6":
     title: "Department access on a least-privilege basis"
     domain: D09
@@ -502,6 +545,13 @@ questions:
     domain: D11
     obligations: [OBL-RET-01, OBL-RET-06]
     controls: [CTL-RET-01, CTL-RET-02]
+  "B0.11":
+    title: "Department transfers personal data outside India"
+    domain: D14
+    obligations: [OBL-XB-01]
+    controls: [CTL-XB-01]
+    scoring: informational
+    note: "Recorded, not scored. Transfers are allowed except to countries the Central Government restricts by notification (s.16(1)); a law that restricts transfers further still applies (s.16(2)). Check the transfer register."
   "B0.12":
     title: "Department staff trained on DPDP"
     domain: D01
@@ -526,12 +576,238 @@ questions:
     controls: [CTL-DQ-01, CTL-SDF-03]
     scoring: informational
     note: "Recorded, not scored. Flags accuracy under s.8(3) and, for an SDF, algorithmic due diligence under Rule 13(3)."
+  "B1.1":
+    title: "Unsuccessful candidates' data kept only as long as needed"
+    domain: D11
+    obligations: [OBL-RET-01]
+    controls: [CTL-RET-01]
+    note: "Answer Yes when unsuccessful candidates' data is erased after a defined period, No when it is kept without a limit, and Not applicable when the department collects no candidate data."
+  "B1.2":
+    title: "Background verification and screening agencies"
+    domain: D13
+    obligations: [OBL-PRC-01]
+    controls: [CTL-TPM-03]
+    scoring: informational
+    note: "Recorded, not scored. Each screening agency processing on the organisation's behalf is a Data Processor that needs a contract (s.8(2)) and an external handler questionnaire."
+  "B1.3":
+    title: "Biometric data for attendance or access"
+    domain: D09
+    obligations: [OBL-SEC-01, OBL-LB-06]
+    controls: [CTL-LB-03, CTL-SEC-04]
+    scoring: informational
+    note: "Recorded, not scored. Biometric data is Restricted on the data map; check its ground (s.7(i) or consent) and its safeguards (Rule 6)."
+  "B1.4":
+    title: "Restricted access to employee health, payroll and bank data"
+    domain: D09
+    obligations: [OBL-SEC-03]
+    controls: [CTL-SEC-04]
+  "B1.5":
+    title: "Exit process removes access and applies record retention"
+    domain: D11
+    obligations: [OBL-RET-01, OBL-SEC-03]
+    controls: [CTL-SEC-04, CTL-RET-01]
+  "B1.6":
+    title: "Employee data sent to a group entity or overseas HR system"
+    domain: D14
+    obligations: [OBL-XB-01, OBL-PRC-01]
+    controls: [CTL-XB-01, CTL-TPM-05]
+    scoring: informational
+    note: "Recorded, not scored. A group entity that processes for the organisation needs a contract (s.8(2)); transfers abroad are checked against s.16."
+  "B2.1":
+    title: "Inventory and classification of systems holding personal data"
+    domain: D03
+    obligations: [OBL-MAP-01]
+    controls: [CTL-MAP-03, CTL-MAP-04]
+  "B2.2":
+    title: "Encryption, MFA, role-based access and one-year logs"
+    domain: D09
+    obligations: [OBL-SEC-02, OBL-SEC-03, OBL-SEC-04, OBL-SEC-06]
+    controls: [CTL-SEC-02, CTL-SEC-04, CTL-SEC-06, CTL-SEC-07]
+  "B2.3":
+    title: "Monitoring and alerts for unauthorised access to personal data"
+    domain: D09
+    obligations: [OBL-SEC-04]
+    controls: [CTL-SEC-06]
+  "B2.4":
+    title: "Encrypted, tested backups and deletion that reaches them"
+    domain: D09
+    obligations: [OBL-SEC-05, OBL-RET-01]
+    controls: [CTL-SEC-08, CTL-RET-02]
+  "B2.5":
+    title: "Patching, vulnerability management and VAPT"
+    domain: D09
+    obligations: [OBL-SEC-01]
+    controls: [CTL-SEC-09]
+  "B2.6":
+    title: "Joiner, mover and leaver access changes on time"
+    domain: D09
+    obligations: [OBL-SEC-03]
+    controls: [CTL-SEC-04]
+  "B2.7":
+    title: "Privileged accounts vaulted and monitored"
+    domain: D09
+    obligations: [OBL-SEC-03, OBL-SEC-04]
+    controls: [CTL-SEC-05]
+  "B3.1":
+    title: "Lead and contact consent with a compliant notice"
+    domain: D06
+    obligations: [OBL-CON-01, OBL-NOT-01]
+    controls: [CTL-CON-01, CTL-NOT-01]
   "B3.2":
     title: "Consent for cookies, trackers and pixels (department)"
     domain: D06
     obligations: [OBL-CON-01, OBL-NOT-01]
     controls: [CTL-CON-01]
     note: "The DPDP Act has no cookie-specific rule; trackers that process personal data need a ground under s.4, usually consent."
+  "B3.3":
+    title: "No targeted advertising directed at children"
+    domain: D07
+    obligations: [OBL-CHD-05]
+    controls: [CTL-CHD-03]
+    note: "Answer Yes when no advertising targets children (s.9(3)), and Not applicable when the department runs no targeted advertising."
+  "B3.4":
+    title: "Marketing tools that hold contact data"
+    domain: D13
+    obligations: [OBL-PRC-02]
+    controls: [CTL-TPM-01]
+    note: "Recorded, not scored. Each tool's provider is a recipient on the data map and usually a Data Processor."
+  "B3.5":
+    title: "Opt-outs and consent withdrawal honoured on every channel"
+    domain: D06
+    obligations: [OBL-CON-04, OBL-CON-05]
+    controls: [CTL-CON-03, CTL-CON-04]
+  "B3.6":
+    title: "Contact lists bought or enriched from data brokers"
+    domain: D06
+    obligations: [OBL-CON-01, OBL-CON-06]
+    controls: [CTL-CON-06]
+    scoring: reversed
+    note: "Scored in reverse: Yes is a gap, because the organisation cannot show its own notice and consent for people on a bought list (s.5, s.6)."
+  "B4.1":
+    title: "Control over who can export customer data from the CRM"
+    domain: D09
+    obligations: [OBL-SEC-03]
+    controls: [CTL-SEC-04, CTL-SEC-10]
+    outcomes:
+      "Broad export": potential_gap
+      "Restricted export": compliant
+      "No export controls": gap
+  "B4.2":
+    title: "Call recordings and chat transcripts with notice and retention"
+    domain: D11
+    obligations: [OBL-RET-01]
+    controls: [CTL-RET-01, CTL-NOT-01]
+    note: "The Act requires a notice where consent is the ground (s.5); recordings kept on another ground still follow s.8(7) on erasure. Answer Not applicable when nothing is recorded."
+  "B4.3":
+    title: "Customer data shared with partners only under contract"
+    domain: D13
+    obligations: [OBL-PRC-01]
+    controls: [CTL-TPM-03, CTL-TPM-05]
+    note: "Answer Not applicable when no partner receives customer data. A partner that decides its own purposes is a Data Fiduciary in its own right (CTL-TPM-05)."
+  "B5.1":
+    title: "Payment, bank, KYC, PAN, Aadhaar or tax data processed"
+    domain: D03
+    obligations: [OBL-MAP-01]
+    controls: [CTL-MAP-04]
+    note: "Recorded, not scored. These elements are Restricted on the data map."
+  "B5.2":
+    title: "Statutory retention reconciled with erasure"
+    domain: D11
+    obligations: [OBL-RET-06]
+    controls: [CTL-RET-01]
+  "B5.3":
+    title: "Payment processors and banks that receive personal data"
+    domain: D13
+    obligations: [OBL-PRC-02]
+    controls: [CTL-TPM-01]
+    note: "Recorded, not scored. Each is a recipient on the data map."
+  "B5.4":
+    title: "Financial data masked or tokenised in reports and screens"
+    domain: D09
+    obligations: [OBL-SEC-02]
+    controls: [CTL-SEC-03]
+  "B6.1":
+    title: "Rights requests received and routed within the deadline"
+    domain: D12
+    obligations: [OBL-RGT-01, OBL-RGT-05]
+    controls: [CTL-RGT-01, CTL-RGT-02]
+  "B6.2":
+    title: "Helpdesk access-controlled, with personal data redacted"
+    domain: D09
+    obligations: [OBL-SEC-03, OBL-SEC-02]
+    controls: [CTL-SEC-04, CTL-SEC-03]
+  "B6.3":
+    title: "Support transcripts and recordings purged on schedule"
+    domain: D11
+    obligations: [OBL-RET-01]
+    controls: [CTL-RET-01, CTL-RET-02]
+  "B7.1":
+    title: "Privacy and security due diligence before vendor onboarding"
+    domain: D13
+    obligations: [OBL-PRC-02]
+    controls: [CTL-TPM-02]
+  "B7.2":
+    title: "Processor clauses in every vendor contract"
+    domain: D13
+    obligations: [OBL-PRC-01, OBL-SEC-07]
+    controls: [CTL-TPM-03]
+  "B7.3":
+    title: "Vendor register with risk tiers and review dates"
+    domain: D13
+    obligations: [OBL-PRC-02]
+    controls: [CTL-TPM-01, CTL-TPM-04]
+  "B8.1":
+    title: "Privacy by design and data minimisation in development"
+    domain: D01
+    obligations: [OBL-GOV-02, OBL-LB-02]
+    controls: [CTL-GOV-05, CTL-LB-02]
+  "B8.2":
+    title: "Personal data kept out of logs, test data and analytics"
+    domain: D09
+    obligations: [OBL-SEC-01, OBL-SEC-02]
+    controls: [CTL-SEC-12, CTL-SEC-03]
+  "B8.3":
+    title: "Consent, retention and erasure built into the data model"
+    domain: D11
+    obligations: [OBL-RET-01, OBL-CON-05]
+    controls: [CTL-RET-02, CTL-CON-04]
+  "B8.4":
+    title: "Risk review of AI and automated decisions"
+    domain: D08
+    obligations: [OBL-DQ-01, OBL-SDF-06]
+    controls: [CTL-DQ-01, CTL-SDF-03]
+    note: "Rule 13(3) algorithmic due diligence binds a Significant Data Fiduciary; for others the review supports accuracy (s.8(3)). Answer Not applicable when no feature uses AI on personal data."
+  "B9.1":
+    title: "Notices, consent text and contracts checked against the Rules"
+    domain: D05
+    obligations: [OBL-NOT-03, OBL-CON-01]
+    controls: [CTL-NOT-01, CTL-NOT-04]
+  "B9.2":
+    title: "Regulatory changes monitored and acted on"
+    domain: D02
+    obligations: [OBL-GOV-02, OBL-SCP-04]
+    controls: [CTL-SCP-04]
+  "B9.3":
+    title: "Breach notification workflow to the Board and individuals"
+    domain: D10
+    obligations: [OBL-BRE-01, OBL-BRE-02, OBL-BRE-03]
+    controls: [CTL-BRE-01, CTL-BRE-03]
+  "B10.1":
+    title: "Physical access to personal data areas controlled and logged"
+    domain: D09
+    obligations: [OBL-SEC-01]
+    controls: [CTL-SEC-11]
+  "B10.2":
+    title: "Paper records secured and securely disposed of"
+    domain: D09
+    obligations: [OBL-SEC-01, OBL-RET-01]
+    controls: [CTL-SEC-11, CTL-RET-05]
+  "B10.3":
+    title: "CCTV and visitor data with signage and retention"
+    domain: D11
+    obligations: [OBL-RET-01]
+    controls: [CTL-RET-01, CTL-SEC-11]
+    note: "The Act requires a notice where consent is the ground (s.5); CCTV relied on as a legitimate use still needs erasure when its purpose ends (s.8(7)), and signage is good practice."
   "C0.1":
     title: "Vendor identity and processing locations"
     domain: D13

@@ -14,6 +14,7 @@ import {
 import { z } from 'zod'
 import { applyDepartmentQuestions, parseQuestionList, type QuestionChange } from './assessments'
 import { audit, inClient, type ServiceContext } from './context'
+import { applyDepartmentData } from './dataMapping'
 import {
   isUniqueViolation,
   NotFoundError,
@@ -46,9 +47,19 @@ export const departmentCode = (clientCode: string, code: string): string =>
 const sentQuestions = (raw: unknown) =>
   typeof raw === 'object' && raw !== null && 'questions' in raw
 
+/** The personal data the add-department form chose, if it sent any. */
+const sentPersonalData = (raw: unknown): unknown[] | null =>
+  typeof raw === 'object' &&
+  raw !== null &&
+  'personalData' in raw &&
+  Array.isArray(raw.personalData)
+    ? raw.personalData
+    : null
+
 /**
  * Creates a department and gives it the chosen questions: they become its items in the open
- * assessment cycle (the client's first cycle is opened when there is none).
+ * assessment cycle (the client's first cycle is opened when there is none). The personal data
+ * it handles, when sent, becomes its data inventory.
  */
 export const createDepartment = async (
   ctx: ServiceContext,
@@ -58,6 +69,7 @@ export const createDepartment = async (
   authorize(ctx.principal, 'department.manage', { clientId })
   const input = parseInput(departmentFields, raw)
   const codes = sentQuestions(raw) ? parseQuestionList(raw) : []
+  const personalData = sentPersonalData(raw)
   try {
     return await inClient(ctx, clientId, async (tx) => {
       const [created] = await tx
@@ -80,6 +92,15 @@ export const createDepartment = async (
       })
       const id = created?.id ?? ''
       const questions = await applyDepartmentQuestions(tx, ctx, clientId, id, codes)
+      if (personalData?.length) {
+        await applyDepartmentData(
+          tx,
+          ctx,
+          clientId,
+          { id, code: input.code },
+          { elements: personalData },
+        )
+      }
       return { id, questions }
     })
   } catch (error) {

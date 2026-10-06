@@ -24,6 +24,7 @@ Gate: **passing**
 | C17 | Knowledge base editor and content | R2 | IN PROGRESS | firm_admin pending |
 | C18 | Playbook: guided tours of every task (multi-view edition) | R2 | TESTS PASSING | firm_admin pending |
 | C19 | Self-audit edition: ComplyX question bank, departments, self-check, people and reconciliation | R2 | IN PROGRESS | lead_auditor pending, security pending |
+| C20 | Personal data inventory, data mapping and record of processing (self-audit edition) | R2 | TESTS PASSING | lead_auditor pending, legal_sme pending |
 | C12 | Hardening | R3 | PLANNED | security pending |
 | C13 | Pilots and production | R3 | PLANNED | leadership pending |
 | C14 | ROPA, data inventory and DIA (V2) | R3 | PLANNED | legal_sme pending |
@@ -124,9 +125,9 @@ Gate: **passing**
 | TC-C18.3-01 | C18.3 | Every tour reaches its end or its hands-on step against the live app, without saving | 43 of 43 | manual | DEFERRED |
 | TC-C18.4-01 | C18.4 | Show me opens a visible Chrome on DUATF, waits for sign-in and a second task reuses the tab | window opens; sign-in wait; tab reused | manual | DEFERRED |
 | TC-C18.4-02 | C18.4 | ComplyX signs in and follows a task to its end in the guide window | done | manual | DEFERRED |
-| TC-C19.1-01 | C19.1 | templates.yaml is exactly what the three ComplyX workbooks hold | TPL-001 70, TPL-002 14, TPL-003 58; 142 questions | oracle | PASS |
-| TC-C19.1-02 | C19.1 | Every question is mapped to the knowledge base, with valid answer options and gates | no unmapped, orphaned or broken gates; 71 yes/no, 53 maturity, 10 choice, 1 multi-choice, 7 text | literal | PASS |
-| TC-C19.2-01 | C19.2 | The release holds the three questionnaires and 142 complete questions with law, penalty, controls and gates | no incomplete question; gates stored | oracle | PASS |
+| TC-C19.1-01 | C19.1 | templates.yaml is exactly what the three ComplyX workbooks hold | TPL-001 70, TPL-002 59 (Track B), TPL-003 58; 187 questions | oracle | PASS |
+| TC-C19.1-02 | C19.1 | Every question is mapped to the knowledge base, with valid answer options and gates | no unmapped, orphaned or broken gates; 88 yes/no, 75 maturity, 13 choice, 1 multi-choice, 10 text; B0.1 offers the data map categories | literal | PASS |
+| TC-C19.2-01 | C19.2 | The release holds the three questionnaires and 187 complete questions with law, penalty, controls and gates | no incomplete question; gates stored | oracle | PASS |
 | TC-C19.3-01 | C19.3 | A new department gets exactly the chosen questions, whole questionnaires and sections included, in the first cycle | items = chosen questions | oracle | PASS |
 | TC-C19.3-02 | C19.3 | The same question for two departments is answered separately | two items; separate findings | literal | PASS |
 | TC-C19.3-03 | C19.3 | Taking questions away removes unanswered ones and keeps answered ones | unanswered removed; answered kept | literal | PASS |
@@ -140,5 +141,15 @@ Gate: **passing**
 | TC-C19.8-01 | C19.8 | The person given a question sees it and uploads for it, and evidence requests go from requested to accepted | requested, received, requested again on rejection, accepted | literal | PASS |
 | TC-C19.8-02 | C19.8 | Controls get owners, and actions and controls show under the owner's work | listed under the owner's work; gone when the owner is cleared | literal | PASS |
 | TC-C19.9-01 | C19.9 | setup.sh and setup.ps1 install, update, repair and report status | doctor passes; the app answers on the web port | manual | MANUAL-PENDING |
+| TC-C20.1-01 | C20.1 | Every data element falls into a data map category, and every element a department preset suggests exists | none left in Other; no missing preset element | oracle | PASS |
+| TC-C20.1-02 | C20.1 | Each knowledge-base category maps to one category, the classification corrections hold and names suggest the right department kind | equal to the worked cases | literal | PASS |
+| TC-C20.2-01 | C20.2 | A new department keeps the personal data chosen when it was added, in its category and level | category and level = the knowledge base row | oracle | PASS |
+| TC-C20.2-02 | C20.2 | The personal data page can be changed at any time and refuses unknown elements, sources, departments and bases | saved; refused without change | literal | PASS |
+| TC-C20.2-03 | C20.2 | Only the audit team changes personal data, and each client sees only its own | denied; 0 rows across clients | literal | PASS |
+| TC-C20.3-01 | C20.3 | The flows are the ones the departments’ answers describe | equal to the hand-worked flows | oracle | PASS |
+| TC-C20.4-01 | C20.4 | The RoPA workbook holds a row per mapped department, every element and every flow | rows = departments, elements, flows | literal | PASS |
+| TC-C20.5-01 | C20.5 | An unchanged question bank builds no new release | null | literal | PASS |
+| TC-C20.5-02 | C20.5 | Updating the self instance adds the drafted entries and the Track B questions as new releases | releases 1.3.0 and 1.4.0; 187 questions | manual | PASS |
+| TC-C20.6-01 | C20.6 | Add department with personal data, the personal data page and the data mapping views render at 1440 and 390 px | no overlap, no console errors; saves and exports | manual | PASS |
 
 10 further tests are planned in later sub-phases.

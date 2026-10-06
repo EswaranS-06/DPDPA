@@ -6,7 +6,7 @@
   Linux and macOS: use setup.sh. Commands:
     install    Fetch the code (or use this folder), install dependencies, set up the services,
                database, knowledge base and first administrator, build and start
-    update     Pull the latest code, install dependencies, migrate, rebuild and restart
+    update     Pull the latest code, install dependencies, migrate, update the knowledge base, rebuild and restart
     pull       Pull the latest code only (fast-forward), without rebuilding
     repair     Reinstall dependencies, recreate missing settings, databases and buckets,
                migrate, rebuild and restart (data is kept)
@@ -50,7 +50,7 @@ DUATF self-audit setup (Windows)
 Commands
   install     Fetch the code (or use this folder), install dependencies, set up the services,
               database, knowledge base and first administrator, build and start
-  update      Pull the latest code, install dependencies, migrate, rebuild and restart
+  update      Pull the latest code, install dependencies, migrate, update the knowledge base, rebuild and restart
   pull        Pull the latest code only (fast-forward), without rebuilding
   repair      Reinstall dependencies, recreate missing settings, databases and buckets,
               migrate, rebuild and restart (data is kept)

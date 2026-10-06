@@ -496,3 +496,64 @@ export const actionEvent = pgTable(
   },
   (table) => [index('action_event_action').on(table.actionId)],
 )
+
+const textList = (name: string) =>
+  text(name)
+    .array()
+    .notNull()
+    .default(sql`'{}'::text[]`)
+
+/**
+ * A data element a department handles: the department's answer to "what personal data do you
+ * collect". Knowledge-base elements keep their code; ones the department names itself have none.
+ */
+export const departmentDataElement = pgTable(
+  'department_data_element',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenant.id, { onDelete: 'cascade' }),
+    departmentId: uuid('department_id')
+      .notNull()
+      .references(() => department.id, { onDelete: 'cascade' }),
+    elementCode: text('element_code'),
+    title: text('title').notNull(),
+    category: text('category').notNull(),
+    level: text('level').notNull(),
+    /** A DATA_SOURCES code, or dept:<code> for another department. */
+    source: text('source'),
+    storage: text('storage'),
+    security: text('security'),
+    access: text('access'),
+    seq: integer('seq').notNull().default(0),
+  },
+  (table) => [
+    unique('department_data_element_title').on(table.departmentId, table.title),
+    index('department_data_element_department').on(table.departmentId),
+    check('department_data_element_level', sql`${table.level} in ('L1', 'L2', 'L3', 'L4')`),
+  ],
+)
+
+/** What a department does with its personal data: the processing record behind its RoPA row. */
+export const departmentDataProfile = pgTable('department_data_profile', {
+  departmentId: uuid('department_id')
+    .primaryKey()
+    .references(() => department.id, { onDelete: 'cascade' }),
+  tenantId: uuid('tenant_id')
+    .notNull()
+    .references(() => tenant.id, { onDelete: 'cascade' }),
+  purposes: text('purposes'),
+  lawfulBases: textList('lawful_bases'),
+  systems: textList('systems'),
+  /** Codes of the departments it passes data to. */
+  sharedWith: textList('shared_with'),
+  /** Vendors, processors, regulators and others outside the organisation. */
+  recipients: textList('recipients'),
+  transfersAbroad: text('transfers_abroad').notNull().default('unknown'),
+  countries: text('countries'),
+  retention: text('retention'),
+  security: text('security'),
+  updatedBy: uuid('updated_by'),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+})

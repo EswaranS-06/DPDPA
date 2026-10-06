@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./index.ts"
+    ".": "./index.ts",
+    "./personal-data": "./src/personalData.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json"

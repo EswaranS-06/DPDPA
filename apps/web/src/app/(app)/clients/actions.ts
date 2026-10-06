@@ -3,6 +3,7 @@
 import {
   createClient,
   createDepartment,
+  saveDepartmentData,
   setDepartmentActive,
   updateClient,
   updateDepartment,
@@ -42,11 +43,26 @@ export const updateClientAction = async (
   redirect(clientPath(code))
 }
 
-/** The department fields plus every ticked question (one "questions" field each). */
-const departmentInput = (formData: FormData) => ({
-  ...formValues(formData),
-  questions: formData.getAll('questions').filter((item) => typeof item === 'string'),
-})
+/** JSON a client-side editor sends in one hidden field; anything unreadable counts as absent. */
+const jsonField = (formData: FormData, name: string): unknown => {
+  const raw = formData.get(name)
+  if (typeof raw !== 'string' || raw === '') return undefined
+  try {
+    return JSON.parse(raw) as unknown
+  } catch {
+    return undefined
+  }
+}
+
+/** The department fields, every ticked question (one "questions" field each) and its personal data. */
+const departmentInput = (formData: FormData) => {
+  const personalData = jsonField(formData, 'personalData')
+  return {
+    ...formValues(formData),
+    questions: formData.getAll('questions').filter((item) => typeof item === 'string'),
+    ...(Array.isArray(personalData) ? { personalData } : {}),
+  }
+}
 
 /** "kept" notes for questions that could not be taken away, carried to the department page. */
 const keptQuery = (change: QuestionChange | null) =>
@@ -112,4 +128,28 @@ export const setDepartmentActiveAction = async (
     values.active === 'true',
   )
   revalidatePath(clientPath(code, '/departments'))
+}
+
+/** Saves a department's personal data page and stays on it. */
+export const saveDepartmentDataAction = async (
+  target: { clientId: string; clientCode: string; departmentId: string },
+  _: FormState,
+  formData: FormData,
+): Promise<FormState> => {
+  let saved: { elements: number }
+  try {
+    saved = await saveDepartmentData(
+      await serviceContext(),
+      target.clientId,
+      target.departmentId,
+      jsonField(formData, 'data') ?? {},
+    )
+  } catch (error) {
+    return failure(error)
+  }
+  revalidatePath(clientPath(target.clientCode), 'layout')
+  return {
+    status: 'success',
+    message: `Saved. ${saved.elements} data element${saved.elements === 1 ? '' : 's'} on the data map.`,
+  }
 }

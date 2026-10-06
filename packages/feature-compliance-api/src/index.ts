@@ -201,3 +201,23 @@ export {
   type AttentionKind,
 } from './attention'
 export { searchWorkspace, type WorkspaceHit } from './search'
+export {
+  dataMap,
+  departmentData,
+  dataElementPicker,
+  saveDepartmentData,
+  buildRopaWorkbook,
+  transferLabel,
+  RECORD_OF_PROCESSING_NOTE,
+  type CatalogueElement,
+  type DataCatalogue,
+  type DataMap,
+  type DataMapRecord,
+  type DepartmentData,
+  type DepartmentDataInput,
+  type DataElementInput,
+  type FlowEdge,
+  type FlowNode,
+  type FlowKind,
+} from './dataMapping'
+export * from './personalData'

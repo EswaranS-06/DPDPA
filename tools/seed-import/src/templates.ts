@@ -19,7 +19,7 @@ export const TEMPLATE_TYPES = [
 export const TEMPLATE_RISKS = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'] as const
 
 const templateQuestionSchema = z.object({
-  code: z.string().regex(/^[A-Z]\d+(\.\d+)+$/, 'Codes look like A1.1 or C12.4.'),
+  code: z.string().regex(/^[A-Z]\d+(\.\d+)+[a-z]?$/, 'Codes look like A1.1, C12.4 or B0.3a.'),
   id: z.string(),
   section: z.string().min(1),
   text: z.string().min(10),

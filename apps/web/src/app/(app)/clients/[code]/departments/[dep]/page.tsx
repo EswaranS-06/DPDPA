@@ -25,6 +25,7 @@ import {
   ListChecks,
   ListTodo,
   Pencil,
+  Workflow,
   Wrench,
 } from 'lucide-react'
 import type { Metadata } from 'next'
@@ -102,6 +103,13 @@ export default async function Page({ params, searchParams }: Props) {
                 Edit questions
               </Link>
             ) : null}
+            <Link
+              href={`${base}/departments/${department.code}/data`}
+              className={buttonClass('secondary')}
+            >
+              <Workflow size={16} aria-hidden="true" />
+              Personal data
+            </Link>
             <a
               href={`${base}/departments/${department.code}/workbook`}
               className={buttonClass('secondary')}

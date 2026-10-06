@@ -36,6 +36,7 @@ const mappingSchema = z.object({
       controls: z.array(z.string().regex(/^CTL-[A-Z]+-\d{2}$/)).min(1),
       scoring: z.enum(['reversed', 'informational']).optional(),
       outcomes: z.record(z.string(), outcomeSchema).optional(),
+      options: z.array(z.string().min(1)).min(2).optional(),
       note: z.string().min(10).optional(),
       gates: z
         .array(
@@ -67,8 +68,9 @@ export const mappingGaps = (files: readonly TemplateFile[], mapping: KbMapping) 
       const gateQuestion = questions.find((question) => question.code === gate.question)
       if (!gateQuestion) return [`${code}: gate ${gate.question} is not a question`]
       if (gate.question === code) return [`${code}: a question cannot gate itself`]
+      const choices = mapping.questions[gate.question]?.options ?? gateQuestion.options
       return gate.values
-        .filter((value) => !gateQuestion.options.includes(value))
+        .filter((value) => !choices.includes(value))
         .map((value) => `${code}: "${value}" is not an option of ${gate.question}`)
     }),
   )
@@ -136,6 +138,9 @@ export const answerOptions = (
   }
   if (mapping.scoring && answerType !== 'yes_no') fail('scoring applies to yes/no questions only.')
   if (mapping.outcomes && answerType !== 'choice') fail('outcomes apply to choice questions only.')
+  if (mapping.options && answerType !== 'choice' && answerType !== 'multi_choice') {
+    fail('options apply to choice questions only.')
+  }
   let options: AnswerOption[] = []
   if (answerType === 'yes_no') {
     if (template.options.join('|') !== YES_NO_TEMPLATE.join('|')) {
@@ -148,13 +153,12 @@ export const answerOptions = (
     }
     options = MATURITY_LEVELS
   } else if (answerType === 'choice' || answerType === 'multi_choice') {
-    if (template.options.length < 2) fail('a choice question needs at least two options.')
+    const choices = mapping.options ?? template.options
+    if (choices.length < 2) fail('a choice question needs at least two options.')
     const outcomes = mapping.outcomes ?? {}
-    const unknown = Object.keys(outcomes).filter((label) => !template.options.includes(label))
+    const unknown = Object.keys(outcomes).filter((label) => !choices.includes(label))
     if (unknown.length) fail(`outcomes name unknown options: ${unknown.join(', ')}.`)
-    options = template.options.map((label) =>
-      option(label, label, outcomes[label] ?? 'informational'),
-    )
+    options = choices.map((label) => option(label, label, outcomes[label] ?? 'informational'))
   }
   return {
     answerType,

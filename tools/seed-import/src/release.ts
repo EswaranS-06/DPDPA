@@ -5,6 +5,7 @@ import {
   and,
   control,
   createDatabase,
+  desc,
   domain,
   eq,
   FRAMEWORK_CHILD_TABLES,
@@ -294,4 +295,48 @@ export const buildRelease = async (options: {
   } finally {
     await handle.close()
   }
+}
+
+/** 1.2.0 becomes 1.3.0. */
+const nextMinor = (version: string) => {
+  const [major = '1', minor = '0'] = version.split('.')
+  return `${major}.${Number(minor) + 1}.0`
+}
+
+/**
+ * Builds a new release from the published one when the question bank changed since it was last
+ * built into a release (new or edited templates, or a new KB mapping). Assessment cycles keep the
+ * release they started on; new cycles get the new questions. Returns null when nothing changed.
+ */
+export const updateQuestionBank = async (options: {
+  databaseUrl: string
+  questionBank: QuestionBankSource
+}): Promise<ReleaseReport | null> => {
+  const { digest } = readQuestionBank(options.questionBank)
+  const handle = createDatabase(options.databaseUrl, { max: 1 })
+  let from: string
+  try {
+    const rows = await handle.db
+      .select({
+        version: frameworkRelease.version,
+        status: frameworkRelease.status,
+        source: frameworkRelease.source,
+        sourceDigest: frameworkRelease.sourceDigest,
+      })
+      .from(frameworkRelease)
+      .orderBy(desc(frameworkRelease.createdAt))
+    const lastBuilt = rows.find((row) => row.source?.includes('seed/question-bank'))
+    if (!lastBuilt || lastBuilt.sourceDigest === digest) return null
+    if (rows.some((row) => row.status === 'draft' || row.status === 'in_review')) {
+      throw new Error(
+        'A knowledge-base draft is open. Publish or discard it, then update the question bank.',
+      )
+    }
+    const published = rows.find((row) => row.status === 'published')
+    if (!published) throw new Error('No knowledge-base release is published.')
+    from = published.version
+  } finally {
+    await handle.close()
+  }
+  return buildRelease({ ...options, from, to: nextMinor(from), amendments: [] })
 }

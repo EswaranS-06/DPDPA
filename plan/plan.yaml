@@ -770,18 +770,18 @@ phases:
         tests:
           - id: TC-C19.1-01
             title: 'templates.yaml is exactly what the three ComplyX workbooks hold'
-            expected: 'TPL-001 70, TPL-002 14, TPL-003 58; 142 questions'
+            expected: 'TPL-001 70, TPL-002 59 (Track B), TPL-003 58; 187 questions'
             source: oracle
           - id: TC-C19.1-02
             title: 'Every question is mapped to the knowledge base, with valid answer options and gates'
-            expected: 'no unmapped, orphaned or broken gates; 71 yes/no, 53 maturity, 10 choice, 1 multi-choice, 7 text'
+            expected: 'no unmapped, orphaned or broken gates; 88 yes/no, 75 maturity, 13 choice, 1 multi-choice, 10 text; B0.1 offers the data map categories'
             source: literal
       - id: C19.2
         title: 'Release with the question bank'
         state: active
         tests:
           - id: TC-C19.2-01
-            title: 'The release holds the three questionnaires and 142 complete questions with law, penalty, controls and gates'
+            title: 'The release holds the three questionnaires and 187 complete questions with law, penalty, controls and gates'
             expected: 'no incomplete question; gates stored'
             source: oracle
       - id: C19.3
@@ -863,6 +863,78 @@ phases:
           - id: TC-C19.9-01
             title: 'setup.sh and setup.ps1 install, update, repair and report status'
             expected: 'doctor passes; the app answers on the web port'
+            source: manual
+            kind: manual
+
+  - id: C20
+    title: 'Personal data inventory, data mapping and record of processing (self-audit edition)'
+    release: R2
+    reviews: [lead_auditor, legal_sme]
+    subphases:
+      - id: C20.1
+        title: 'Data elements and categories in the knowledge base'
+        state: active
+        tests:
+          - id: TC-C20.1-01
+            title: 'Every data element falls into a data map category, and every element a department preset suggests exists'
+            expected: 'none left in Other; no missing preset element'
+            source: oracle
+          - id: TC-C20.1-02
+            title: 'Each knowledge-base category maps to one category, the classification corrections hold and names suggest the right department kind'
+            expected: 'equal to the worked cases'
+            source: literal
+      - id: C20.2
+        title: 'Each department answers what personal data it handles'
+        state: active
+        tests:
+          - id: TC-C20.2-01
+            title: 'A new department keeps the personal data chosen when it was added, in its category and level'
+            expected: 'category and level = the knowledge base row'
+            source: oracle
+          - id: TC-C20.2-02
+            title: 'The personal data page can be changed at any time and refuses unknown elements, sources, departments and bases'
+            expected: 'saved; refused without change'
+            source: literal
+          - id: TC-C20.2-03
+            title: 'Only the audit team changes personal data, and each client sees only its own'
+            expected: 'denied; 0 rows across clients'
+            source: literal
+      - id: C20.3
+        title: 'Data map: flows in text and as a diagram'
+        state: active
+        tests:
+          - id: TC-C20.3-01
+            title: 'The flows are the ones the departments’ answers describe'
+            expected: 'equal to the hand-worked flows'
+            source: oracle
+      - id: C20.4
+        title: 'Record of processing (RoPA) on screen and as a workbook'
+        state: active
+        tests:
+          - id: TC-C20.4-01
+            title: 'The RoPA workbook holds a row per mapped department, every element and every flow'
+            expected: 'rows = departments, elements, flows'
+            source: literal
+      - id: C20.5
+        title: 'Track B question bank and knowledge-base updates reach existing installations'
+        state: active
+        tests:
+          - id: TC-C20.5-01
+            title: 'An unchanged question bank builds no new release'
+            expected: 'null'
+            source: literal
+          - id: TC-C20.5-02
+            title: 'Updating the self instance adds the drafted entries and the Track B questions as new releases'
+            expected: 'releases 1.3.0 and 1.4.0; 187 questions'
+            source: manual
+            kind: manual
+      - id: C20.6
+        title: 'Screens'
+        state: active
+        tests:
+          - id: TC-C20.6-01
+            title: 'Add department with personal data, the personal data page and the data mapping views render at 1440 and 390 px'
+            expected: 'no overlap, no console errors; saves and exports'
             source: manual
             kind: manual
 

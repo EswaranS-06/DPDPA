@@ -707,6 +707,9 @@ importers:
       '@duatf/core-utils':
         specifier: workspace:*
         version: link:../../packages/core-utils
+      '@duatf/feature-compliance-api':
+        specifier: workspace:*
+        version: link:../../packages/feature-compliance-api
       '@duatf/feature-framework-library-api':
         specifier: workspace:*
         version: link:../../packages/feature-framework-library-api
@@ -760,6 +763,9 @@ importers:
         specifier: 'catalog:'
         version: 4.6.5
     devDependencies:
+      '@duatf/feature-compliance-api':
+        specifier: workspace:*
+        version: link:../../packages/feature-compliance-api
       '@types/node':
         specifier: 'catalog:'
         version: 22.20.4

@@ -41,7 +41,7 @@ describe('navigation', () => {
     expect(
       clientSections('AMMA').map((group) => [group.label, group.links.map((link) => link.label)]),
     ).toEqual([
-      ['Compliance', ['Overview', 'Departments', 'Assessments', 'Evidence']],
+      ['Compliance', ['Overview', 'Departments', 'Data mapping', 'Assessments', 'Evidence']],
       ['Risk and remediation', ['Findings', 'Risk register', 'Remediation']],
       ['Reporting', ['Reports']],
       ['Organisation', ['People', 'Control owners']],
@@ -62,6 +62,21 @@ describe('navigation', () => {
       'Departments',
       'HR',
       'Edit',
+    ])
+    // A department's personal data page sits under the department.
+    expect(labels('/clients/AMMA/departments/HR/data')).toEqual([
+      'Clients',
+      'AMMA',
+      'Departments',
+      'HR',
+      'Personal data',
+    ])
+    expect(labels('/clients/AMMA/data-mapping')).toEqual(['Clients', 'AMMA', 'Data mapping'])
+    expect(labels('/clients/AMMA/departments/new')).toEqual([
+      'Clients',
+      'AMMA',
+      'Departments',
+      'Add department',
     ])
     expect(labels('/account/password')).toEqual(['Account', 'Change password'])
     expect(

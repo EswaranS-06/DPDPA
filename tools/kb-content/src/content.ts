@@ -1,3 +1,9 @@
+import {
+  LEVEL_INFO,
+  LEVELS,
+  PERSONAL_DATA_CATEGORIES,
+} from '@duatf/feature-compliance-api/personal-data'
+
 // Knowledge-base entries drafted with AI assistance (phase C17.4) to fill gaps in the reference
 // sections. Every entry lands in the open draft release labelled "AI draft, awaiting legal
 // review"; nothing here is published until a firm administrator reviews and publishes the draft.
@@ -30,7 +36,7 @@ export const BASES: EntryInput[] = [
   },
 ]
 
-export const DATA_ELEMENTS: EntryInput[] = [
+const GAP_DATA_ELEMENTS: EntryInput[] = [
   {
     code: 'DE-FAM-003',
     title: 'Parent or guardian identity and age proof (verifiable consent)',
@@ -139,6 +145,413 @@ export const DATA_ELEMENTS: EntryInput[] = [
   },
 ]
 
+const element = (
+  code: string,
+  title: string,
+  category: string,
+  contextTags: string[],
+  note: string,
+  personalData: 'yes' | 'no' = 'yes',
+): EntryInput => ({ code, title, category, personalData, contextTags, note })
+
+/**
+ * Data elements for department data maps (phase C20). Drawn from ComplyX's personal data
+ * classification table and common catalogues of personal data (SPDI Rules 2011 r.3, UIDAI's
+ * list of supporting documents, RBI card and KYC directions, GDPR Art. 9 and 10 for the
+ * sensitive kinds). The DPDP Act itself has no sensitive categories; the notes say why an
+ * element needs care.
+ */
+const DATA_MAP_ELEMENTS: EntryInput[] = [
+  element(
+    'DE-ID-011',
+    'Username or account handle',
+    'identity',
+    [],
+    'Personal data when it can be linked to the person, as account names usually can.',
+  ),
+  element(
+    'DE-ID-012',
+    'Student roll or admission number',
+    'identity',
+    ['children'],
+    'Identifies a student; for under-18s the children duties of s.9 apply to the processing.',
+  ),
+  element(
+    'DE-ID-013',
+    'Visitor register entry (name, purpose, time in and out)',
+    'identity',
+    [],
+    'Paper or electronic visitor logs. Give visitors a notice and keep the register only as long as the security purpose needs.',
+  ),
+  element(
+    'DE-ID-014',
+    'Membership or loyalty number',
+    'identity',
+    [],
+    'An internal identifier that links to the member’s profile and history.',
+  ),
+  element(
+    'DE-CON-006',
+    'Work email and phone of a business contact',
+    'contact',
+    [],
+    'The contact details of a vendor’s or client’s employee are that person’s personal data, even when used only for business.',
+  ),
+  element('DE-CON-007', 'Alternate or landline number', 'contact', [], ''),
+  element(
+    'DE-DEM-001',
+    'Preferred language',
+    'demographic',
+    [],
+    'Useful for giving notices in the language the person chose (s.5(3)).',
+  ),
+  element(
+    'DE-DEM-002',
+    'Occupation (outside employment records)',
+    'demographic',
+    [],
+    'For example the occupation recorded for KYC or insurance.',
+  ),
+  element(
+    'DE-DEM-003',
+    'Residential status (resident, NRI, foreign national)',
+    'demographic',
+    [],
+    'Often collected for KYC and tax.',
+  ),
+  element(
+    'DE-FAM-005',
+    'Family members’ details (occupation, contact)',
+    'family',
+    [],
+    'Personal data of the family members themselves; collect only what the purpose needs.',
+  ),
+  element(
+    'DE-GOV-014',
+    'Birth certificate details',
+    'gov_id',
+    ['gov_id'],
+    'Often the age proof for a child; see the verifiable consent duties for children (s.9(1)).',
+  ),
+  element(
+    'DE-GOV-015',
+    'Offline Aadhaar e-KYC XML or DigiLocker documents',
+    'gov_id',
+    ['gov_id'],
+    'Handle like the Aadhaar number (DE-GOV-001): store only what the purpose needs and mask the number where it is shown.',
+  ),
+  element(
+    'DE-GOV-016',
+    'NREGA job card or NPR letter',
+    'gov_id',
+    ['gov_id'],
+    'Officially valid documents for KYC.',
+  ),
+  element(
+    'DE-GOV-017',
+    'Visa, OCI or FRRO registration details',
+    'gov_id',
+    ['gov_id'],
+    'Held for foreign employees, students or guests.',
+  ),
+  element(
+    'DE-GOV-018',
+    'Domicile or income certificate',
+    'gov_id',
+    ['gov_id'],
+    'Often collected for admissions, scholarships or schemes.',
+  ),
+  element(
+    'DE-FIN-012',
+    'Card security data (CVV, PIN)',
+    'payment_card',
+    ['financial'],
+    'Must not be stored after the payment is authorised (PCI DSS). Under RBI’s card-on-file rules, merchants keep tokens, not card data.',
+  ),
+  element(
+    'DE-FIN-013',
+    'Card token or tokenised card reference',
+    'payment_card',
+    ['financial'],
+    '',
+  ),
+  element('DE-FIN-014', 'Demat or trading account details', 'financial', ['financial'], ''),
+  element('DE-FIN-015', 'Wallet or prepaid instrument ID', 'financial', ['financial'], ''),
+  element(
+    'DE-FIN-016',
+    'Auto-debit mandate details (eNACH, UPI AutoPay)',
+    'financial',
+    ['financial'],
+    '',
+  ),
+  element(
+    'DE-FIN-017',
+    'Assets, liabilities or net-worth declarations',
+    'financial',
+    ['financial'],
+    'For example declarations under a code of conduct or for lending.',
+  ),
+  element(
+    'DE-FIN-018',
+    'Expense and reimbursement claims',
+    'financial',
+    ['financial'],
+    'Bills and claims can reveal travel, health or family details; limit who sees them.',
+  ),
+  element(
+    'DE-EMP-009',
+    'CV and job application',
+    'employment_history',
+    [],
+    'Keep unsuccessful applicants’ data only as long as the recruitment purpose needs (s.8(7)).',
+  ),
+  element('DE-EMP-010', 'Interview notes and evaluations', 'performance', [], ''),
+  element('DE-EMP-011', 'Offer letter, appointment and contract terms', 'employment', [], ''),
+  element(
+    'DE-EMP-012',
+    'Reference check details',
+    'background_check',
+    [],
+    'Collected from third parties; tell the candidate before checking.',
+  ),
+  element(
+    'DE-EMP-013',
+    'Exit details (resignation reason, full and final settlement)',
+    'employment',
+    [],
+    '',
+  ),
+  element(
+    'DE-EMP-014',
+    'Professional registration or licence number',
+    'professional',
+    [],
+    'For example a medical council, ICAI or Bar Council registration.',
+  ),
+  element('DE-EMP-015', 'Shift rosters and overtime', 'attendance', [], ''),
+  element('DE-EMP-016', 'Company assets issued (laptop, phone, access card)', 'employment', [], ''),
+  element('DE-EDU-005', 'Training records and certifications', 'education', [], ''),
+  element('DE-EDU-006', 'Student attendance', 'education', ['children'], ''),
+  element(
+    'DE-EDU-007',
+    'Student disciplinary or behaviour records',
+    'education',
+    ['children'],
+    'Behaviour records of children need particular care; behavioural monitoring of children is prohibited unless exempted (s.9(3)).',
+  ),
+  element(
+    'DE-EDU-008',
+    'Scholarship or fee concession details',
+    'education',
+    ['children', 'financial'],
+    'Reveal family income or category; restrict access.',
+  ),
+  element('DE-HLT-015', 'Height, weight or BMI', 'health', ['health'], ''),
+  element(
+    'DE-HLT-016',
+    'Family medical history',
+    'health',
+    ['health'],
+    'Health data about relatives as well as the person.',
+  ),
+  element(
+    'DE-HLT-017',
+    'Allergies and dietary restrictions',
+    'health',
+    ['health'],
+    'Collected by cafeterias, events and travel desks as well as clinics.',
+  ),
+  element(
+    'DE-HLT-018',
+    'Pre-employment or periodic medical examination report',
+    'health',
+    ['health'],
+    '',
+  ),
+  element('DE-HLT-019', 'Medical certificate for sick leave', 'health', ['health'], ''),
+  element('DE-HLT-020', 'Substance use or addiction treatment records', 'health', ['health'], ''),
+  element('DE-HLT-021', 'Paternity or ancestry DNA test result', 'genetic', ['health'], ''),
+  element('DE-BIO-005', 'Palm or finger-vein pattern', 'biometric', ['biometric'], ''),
+  element(
+    'DE-BIO-006',
+    'Behavioural biometrics (keystroke, gait, signature dynamics)',
+    'biometric',
+    ['biometric'],
+    '',
+  ),
+  element(
+    'DE-BIO-007',
+    'Selfie or liveness check for face matching',
+    'biometric',
+    ['biometric'],
+    'Used in e-KYC and account recovery; keep the match result rather than the image where possible.',
+  ),
+  element('DE-DEV-010', 'MAC address or IMEI', 'device_online', [], ''),
+  element(
+    'DE-DEV-011',
+    'Browser or device fingerprint',
+    'device_online',
+    [],
+    'Built from the user agent, screen, fonts and similar signals; identifies a device without a cookie.',
+  ),
+  element('DE-DEV-012', 'Push notification token', 'device_online', [], ''),
+  element('DE-DEV-013', 'Session identifiers', 'device_online', [], ''),
+  element(
+    'DE-AUT-001',
+    'One-time passwords, MFA secrets and recovery codes',
+    'credential',
+    [],
+    'Store secrets hashed or in a vault; never in logs.',
+  ),
+  element('DE-AUT-002', 'Security questions and answers', 'credential', [], ''),
+  element('DE-AUT-003', 'Access tokens and API keys tied to a person', 'credential', [], ''),
+  element(
+    'DE-AUT-004',
+    'Access card or badge ID',
+    'credential',
+    [],
+    'Links physical access logs to the person.',
+  ),
+  element('DE-BEH-005', 'Search history', 'behavioural', [], ''),
+  element('DE-BEH-006', 'Survey and feedback responses', 'behavioural', [], ''),
+  element('DE-BEH-007', 'Loyalty points and rewards activity', 'behavioural', [], ''),
+  element(
+    'DE-BEH-008',
+    'Social media profile and activity',
+    'behavioural',
+    [],
+    'Publicly available data made public by the person is outside the Act (s.3(c)(ii)); data collected through the organisation’s own pages usually is not.',
+  ),
+  element('DE-BEH-009', 'Lead source and campaign responses', 'behavioural', [], ''),
+  element('DE-LOC-004', 'Location history and check-ins', 'location', ['location'], ''),
+  element('DE-LOC-005', 'Wi-Fi or Bluetooth beacon presence', 'location', ['location'], ''),
+  element('DE-COM-005', 'SMS, WhatsApp and other message content', 'communication_content', [], ''),
+  element(
+    'DE-COM-006',
+    'Chatbot and support chat transcripts',
+    'communication_content',
+    [],
+    'Often sent to an AI provider; record it as a recipient.',
+  ),
+  element(
+    'DE-COM-007',
+    'Email and messaging metadata (sender, recipient, time)',
+    'communication_metadata',
+    [],
+    '',
+  ),
+  element('DE-COM-008', 'Support ticket history', 'communication_content', [], ''),
+  element(
+    'DE-COM-009',
+    'Marketing opt-in and opt-out choices',
+    'consent_record',
+    [],
+    'Keep proof of the choice and act on a withdrawal across every channel (s.6(4)).',
+  ),
+  element('DE-AV-006', 'Visitor photograph', 'images_av', [], ''),
+  element(
+    'DE-AV-007',
+    'Screen recordings or screenshots',
+    'images_av',
+    [],
+    'For example from support sessions or monitoring tools.',
+  ),
+  element('DE-SEN-006', 'Police verification certificate', 'sensitive_allegations', [], ''),
+  element(
+    'DE-SEN-007',
+    'Litigation, dispute or legal claim details',
+    'sensitive_allegations',
+    [],
+    'Processing needed to enforce a legal right or claim is exempt from parts of the Act (s.17(1)(a)).',
+  ),
+  element(
+    'DE-SEN-008',
+    'Caste or community certificate',
+    'sensitive_attributes',
+    ['gov_id'],
+    'Reveals caste; collect only where a law or scheme requires it.',
+  ),
+  element('DE-SEN-009', 'Ethnicity or tribe', 'sensitive_attributes', [], ''),
+  element('DE-SEN-010', 'Trade union membership', 'sensitive_attributes', [], ''),
+  element('DE-PRP-002', 'Rental or lease agreement details', 'property', [], ''),
+  element(
+    'DE-BUS-001',
+    'Company PAN or TAN',
+    'business',
+    [],
+    'Identifies a company, not a person. A sole proprietor’s PAN is the person’s own (DE-GOV-003).',
+    'no',
+  ),
+  element(
+    'DE-BUS-002',
+    'CIN or LLPIN',
+    'business',
+    [],
+    'Public company and LLP identifiers; not personal data.',
+    'no',
+  ),
+  element(
+    'DE-BUS-003',
+    'Company GSTIN',
+    'business',
+    [],
+    'Public on the GST portal. A proprietor’s GSTIN is personal data (DE-GOV-010).',
+    'no',
+  ),
+  element(
+    'DE-BUS-004',
+    'Udyam (MSME) registration number',
+    'business',
+    [],
+    'Personal data when the enterprise is a proprietorship.',
+    'no',
+  ),
+  element(
+    'DE-BUS-005',
+    'Company bank account details',
+    'business',
+    [],
+    'A company’s account is not personal data; an individual vendor’s is (DE-FIN-001).',
+    'no',
+  ),
+]
+
+export const DATA_ELEMENTS: EntryInput[] = [...GAP_DATA_ELEMENTS, ...DATA_MAP_ELEMENTS]
+
+/** The data map's categories and levels, as reference vocabularies in the knowledge base. */
+const DATA_MAP_VOCABULARIES: EntryInput[] = [
+  {
+    code: 'personal-data-categories',
+    title: 'Personal data categories',
+    intro:
+      'The categories DUATF groups data elements into on department data maps and in the RoPA, with the sensitivity level each defaults to. A firm’s classification, not a legal one: the DPDP Act has no special categories, but the SPDI Rules 2011 treat passwords, financial, health, sexual orientation and biometric data as sensitive until 13 May 2027.',
+    columns: 'Category\nWhat it covers\nExamples\nDefault level\nData element categories',
+    terms: PERSONAL_DATA_CATEGORIES.map((category) =>
+      [
+        category.title,
+        category.description,
+        category.examples,
+        `${category.level} ${LEVEL_INFO[category.level].label}`,
+        category.kbCategories.join(', '),
+      ].join(' | '),
+    ).join('\n'),
+  },
+  {
+    code: 'data-classification-levels',
+    title: 'Data classification levels',
+    intro:
+      'How sensitive a data element is, and the handling it needs. An element tagged financial, health, biometric or government ID is Restricted whatever its category.',
+    columns: 'Level\nMeaning\nBaseline handling',
+    terms: LEVELS.map((level) =>
+      [
+        `${level} ${LEVEL_INFO[level].label}`,
+        LEVEL_INFO[level].meaning,
+        LEVEL_INFO[level].handling,
+      ].join(' | '),
+    ).join('\n'),
+  },
+]
+
 /** Restores flag names whose underscores were lost when the vault was imported. */
 export const ENGINE_FLAG_FIXES: Record<string, string> = {
   decisionordisclosure: 'decision_or_disclosure',
@@ -234,6 +647,7 @@ export const VOCABULARIES: EntryInput[] = [
       'Details or a virtual token from an authorised entity | Identity and age details, or a token mapped to them, issued by an entity entrusted by law or the Government (for example through DigiLocker) and provided by the parent | R10(1)(b)',
     ].join('\n'),
   },
+  ...DATA_MAP_VOCABULARIES,
 ]
 
 type ProcessInput = EntryInput & { typicalLawfulBasis: string[]; flags: string[] }

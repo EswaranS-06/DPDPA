@@ -13,6 +13,7 @@ import {
   TriangleAlert,
   UserCog,
   Users,
+  Workflow,
   Wrench,
   type LucideIcon,
 } from 'lucide-react'
@@ -32,6 +33,7 @@ export const NAV_ICON: Record<NavIcon, LucideIcon> = {
   actions: Wrench,
   reports: FileText,
   departments: Network,
+  dataMap: Workflow,
   people: Users,
   controls: SlidersHorizontal,
   team: UserCog,

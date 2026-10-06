@@ -14,6 +14,7 @@ export type NavIcon =
   | 'actions'
   | 'reports'
   | 'departments'
+  | 'dataMap'
   | 'people'
   | 'controls'
   | 'team'
@@ -38,6 +39,7 @@ export const clientSections = (code: string): NavGroup[] => {
       links: [
         { href: base, label: 'Overview', icon: 'clientHome', exact: true },
         { href: `${base}/departments`, label: 'Departments', icon: 'departments' },
+        { href: `${base}/data-mapping`, label: 'Data mapping', icon: 'dataMap' },
         { href: `${base}/assessments`, label: 'Assessments', icon: 'assessments' },
         { href: `${base}/evidence`, label: 'Evidence', icon: 'evidence' },
       ],
@@ -86,6 +88,8 @@ const SEGMENT_LABEL: Record<string, string> = {
   actions: 'Remediation',
   reports: 'Reports',
   departments: 'Departments',
+  'data-mapping': 'Data mapping',
+  data: 'Personal data',
   people: 'People',
   controls: 'Control owners',
   team: 'Team',
@@ -144,6 +148,10 @@ export const crumbsFor = (pathname: string, navigation: Navigation): Crumb[] => 
       // A section crumb opens that section of the knowledge base itself.
       const section = index === 2 && part !== 'new' ? `/knowledge-base?section=${part}` : href
       crumbs.push({ label: KB_SEGMENT_LABEL[part] ?? part, href: section })
+      return
+    }
+    if (part === 'new' && previous === 'departments') {
+      crumbs.push({ label: 'Add department', href })
       return
     }
     crumbs.push({ label: SEGMENT_LABEL[part] ?? part, href })

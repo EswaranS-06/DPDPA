@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { findRepoRoot } from '@duatf/core-config'
+import { PERSONAL_DATA_CATEGORIES } from '@duatf/feature-compliance-api/personal-data'
 import { describe, expect, it } from 'vitest'
 import {
   answerOptions,
@@ -39,10 +40,10 @@ describe('ComplyX templates', () => {
     expect(templateBankYaml(fromWorkbooks)).toBe(templatesText)
     expect(files.map((file) => [file.questionnaire, file.questions.length])).toEqual([
       ['TPL-001', 70],
-      ['TPL-002', 14],
+      ['TPL-002', 59],
       ['TPL-003', 58],
     ])
-    expect(questions).toHaveLength(142)
+    expect(questions).toHaveLength(187)
   })
 
   it('TC-C19.1-02 maps every question to the knowledge base, with valid answers and gates', () => {
@@ -59,7 +60,20 @@ describe('ComplyX templates', () => {
       types[answers.answerType] = (types[answers.answerType] ?? 0) + 1
       expect(answers.options.length > 1, question.code).toBe(answers.answerType !== 'text')
     }
-    expect(types).toEqual({ yes_no: 71, maturity: 53, choice: 10, text: 7, multi_choice: 1 })
+    expect(types).toEqual({ yes_no: 88, maturity: 75, choice: 13, text: 10, multi_choice: 1 })
+
+    // B0.1 asks for the categories of personal data: the data map's categories, not the
+    // industry sectors the workbook lists.
+    const b01 = questions.find((question) => question.code === 'B0.1') as TemplateQuestion
+    expect(
+      answerOptions(b01, mapping.questions['B0.1'] as QuestionMapping).options.map(
+        (item) => item.label,
+      ),
+    ).toEqual(
+      PERSONAL_DATA_CATEGORIES.filter((category) => !category.notPersonal).map(
+        (category) => category.title,
+      ),
+    )
 
     // The gates the self-reconciliation relies on.
     const gated = (code: string) =>

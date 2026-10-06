@@ -13,6 +13,7 @@ import {
   readQuestionBank,
   RELEASE_1_1_0,
   ReleaseExistsError,
+  updateQuestionBank,
 } from './release'
 
 const env = parseEnv(testDatabaseEnvSchema)
@@ -74,7 +75,7 @@ describe('framework release 1.1.0', () => {
     }
   })
 
-  it('TC-C19.2-01 holds the three ComplyX questionnaires and 142 complete, mapped questions', async () => {
+  it('TC-C19.2-01 holds the three ComplyX questionnaires and 187 complete, mapped questions', async () => {
     const next = ids['1.1.0'] ?? ''
     const questionnaires = await handle.db.execute<{
       code: string
@@ -87,7 +88,7 @@ describe('framework release 1.1.0', () => {
       from questionnaire qn where qn.release_id = ${next} order by qn.seq`)
     expect(questionnaires.map((row) => [row.code, row.respondent, row.n])).toEqual([
       ['TPL-001', 'organisation', 70],
-      ['TPL-002', 'department', 14],
+      ['TPL-002', 'department', 59],
       ['TPL-003', 'vendor', 58],
     ])
     const { bank } = readQuestionBank(questionBankPaths(findRepoRoot()))
@@ -136,6 +137,15 @@ describe('framework release 1.1.0', () => {
       sql`select gates from question where release_id = ${next} and code = 'A12.1'`,
     )
     expect(gated?.gates.map((gate) => [gate.question, gate.values])).toEqual([['A1.4', ['No']]])
+  })
+
+  it('TC-C20.5-01 an unchanged question bank builds no new release', async () => {
+    await expect(
+      updateQuestionBank({
+        databaseUrl: env.TEST_DATABASE_URL,
+        questionBank: questionBankPaths(findRepoRoot()),
+      }),
+    ).resolves.toBeNull()
   })
 
   it('refuses to build the same release twice', async () => {

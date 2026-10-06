@@ -26,6 +26,7 @@
     "seed:import": "tsx tools/seed-import/src/cli.ts",
     "kb:release": "tsx tools/seed-import/src/releaseCli.ts",
     "questions:import": "tsx tools/seed-import/src/templatesCli.ts",
+    "kb:questions": "tsx tools/seed-import/src/bankCli.ts",
     "account:setup": "tsx tools/account-setup/src/cli.ts",
     "duatf": "tsx tools/setup/src/cli.ts",
     "kb:content": "tsx tools/kb-content/src/cli.ts",

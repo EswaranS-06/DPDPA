@@ -1,0 +1,18 @@
+id: TC-C20.6-01
+result: pass
+by: claude (for EswaranS-06)
+date: '2026-10-06'
+evidence: >-
+  Scratch copy on 127.0.0.1:53510 (database duatf_scratch_qa, fresh releases with the new bank),
+  headless Chromium with a server-side QA session as a senior auditor: a new client with
+  Human Resources, Purchase & Stores and Finance and Accounts added through the personal data
+  question (suggestions for each name, "Add all", one element added by hand); each department's
+  personal data page filled and saved (lawful basis, systems and recipients from the suggestion
+  chips, shared departments, transfers, retention, sources set in bulk and per element); the data
+  map's flow, by-department and record-of-processing views; the RoPA workbook downloaded (200,
+  xlsx). At 1440 and 390 px every page returned 200 with no console or page errors and no
+  horizontal page overflow. Fixed during review: categories that opened themselves (a 9,000 px
+  form), a form reset that showed saved choices as their first values after saving, a gap under
+  Purposes, a narrow level column, clipped labels in the diagram and a hydration error from the
+  diagram's title.
+notes: ComplyX's own look at the screens on the live instance is still welcome.

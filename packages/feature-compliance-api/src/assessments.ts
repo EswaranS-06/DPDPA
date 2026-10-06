@@ -19,6 +19,7 @@ import {
   nextCode,
   question,
   questionnaire,
+  sql,
   tenant,
   type AssessmentStatus,
   type ComplianceState,
@@ -386,9 +387,9 @@ export const applyDepartmentQuestions = async (
   departmentId: string,
   codes: readonly string[],
 ): Promise<QuestionChange> => {
-  const wanted = [...new Set(codes.map((code) => code.trim().toUpperCase()))]
+  const typed = codes.map((code) => code.trim()).filter(Boolean)
   const open = await openCycle(tx, clientId)
-  if (wanted.length === 0 && !open) return { added: 0, removed: 0, kept: [] }
+  if (typed.length === 0 && !open) return { added: 0, removed: 0, kept: [] }
   const cycle = open ?? (await cycleForQuestions(tx, ctx, clientId))
   const available = await tx
     .select({
@@ -399,6 +400,11 @@ export const applyDepartmentQuestions = async (
     })
     .from(question)
     .where(eq(question.releaseId, cycle.releaseId))
+  // Codes match in any case but keep the template's spelling (B0.3a stays B0.3a).
+  const spelling = new Map(available.map((row) => [row.code.toUpperCase(), row.code]))
+  const wanted = [
+    ...new Set(typed.map((code) => spelling.get(code.toUpperCase()) ?? code.toUpperCase())),
+  ]
   const unknown = wanted.filter((code) => !available.some((row) => row.code === code))
   if (unknown.length) {
     throw new ValidationError({ questions: `Unknown questions: ${unknown.join(', ')}.` })
@@ -736,7 +742,7 @@ export const getItem = async (
         and(
           eq(assessmentItem.assessmentId, found.id),
           eq(assessmentItem.departmentId, owner.id),
-          eq(assessmentItem.questionCode, questionCode.toUpperCase()),
+          sql`upper(${assessmentItem.questionCode}) = ${questionCode.toUpperCase()}`,
         ),
       )
     if (!row) throw new NotFoundError(`Question ${questionCode}`)

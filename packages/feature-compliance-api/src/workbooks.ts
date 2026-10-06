@@ -95,10 +95,10 @@ const seriousBands = (bands: readonly Band[]) => bands.filter((band) => band.ton
 const seriousRisks = (figures: Pick<ClientFigures, 'openRisksByBand'>, bands: readonly Band[]) =>
   seriousBands(bands).reduce((sum, band) => sum + (figures.openRisksByBand[band.name] ?? 0), 0)
 
-const toBuffer = async (workbook: ExcelJS.Workbook) =>
+export const toBuffer = async (workbook: ExcelJS.Workbook) =>
   Buffer.from(await workbook.xlsx.writeBuffer())
 
-const newWorkbook = (title: string) => {
+export const newWorkbook = (title: string) => {
   const workbook = new ExcelJS.Workbook()
   workbook.creator = 'DUATF'
   workbook.company = 'ComplyX'
@@ -107,7 +107,7 @@ const newWorkbook = (title: string) => {
   return workbook
 }
 
-const preparedLine = () => `Prepared with DUATF by ComplyX on ${formatIst(new Date())}.`
+export const preparedLine = () => `Prepared with DUATF by ComplyX on ${formatIst(new Date())}.`
 
 /** Counts of actions by status, every status listed. */
 const actionStatusRows = (actions: readonly Pick<ActionRow, 'status'>[]): DashCell[][] =>
@@ -301,7 +301,7 @@ const latestAssessmentOf = (ctx: ServiceContext, clientId: string) =>
     return newest ?? null
   })
 
-const recordExport = (
+export const recordExport = (
   ctx: ServiceContext,
   tenantId: string | null,
   entityId: string,

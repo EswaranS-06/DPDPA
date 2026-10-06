@@ -1,9 +1,13 @@
 'use client'
 
 import type { PickerQuestionnaire } from '@duatf/feature-compliance-api'
-import { FormActions, SubmitButton, TextAreaField, TextField } from '@duatf/core-ui'
-import { useActionState } from 'react'
-import { IDLE, type FormState } from '@/lib/formState'
+import type { ProcessHint } from '@duatf/feature-compliance-api/personal-data'
+import { buttonClass, FormActions, TextAreaField, TextField } from '@duatf/core-ui'
+import { useState } from 'react'
+import type { PickerElement } from '@/components/data/ElementPicker'
+import { PersonalDataStep } from '@/components/data/PersonalDataStep'
+import type { FormState } from '@/lib/formState'
+import { useSubmit } from '@/lib/useSubmit'
 import { Feedback } from './Feedback'
 import { QuestionPicker } from './QuestionPicker'
 import styles from './forms.module.css'
@@ -19,8 +23,8 @@ type DepartmentDefaults = {
 }
 
 /**
- * A department and the questions it answers. New departments choose their code; existing ones
- * keep it. The question list is saved with the details, in one go.
+ * A department, the personal data it handles (new departments) and the questions it answers.
+ * New departments choose their code; existing ones keep it. Everything is saved in one go.
  */
 export const DepartmentForm = ({
   action,
@@ -28,19 +32,34 @@ export const DepartmentForm = ({
   closed,
   defaults = {},
   editing = false,
+  personalData,
 }: {
   action: Action
   questionnaires: PickerQuestionnaire[]
   closed?: string | null
   defaults?: DepartmentDefaults
   editing?: boolean
+  /** The data elements and process hints the personal data question suggests from. */
+  personalData?: { elements: PickerElement[]; processes: ProcessHint[] }
 }) => {
-  const [state, formAction] = useActionState(action, IDLE)
+  const { state, onSubmit, pending } = useSubmit(action)
   const value = (name: keyof DepartmentDefaults) =>
     state.status === 'error' ? (state.values?.[name] ?? '') : (defaults[name] ?? '')
   const error = (name: string) => state.fieldErrors?.[name]
+  // The name and code drive the personal data suggestions as they are typed.
+  const [typed, setTyped] = useState({ name: value('name') ?? '', code: value('code') ?? '' })
   return (
-    <form action={formAction} className={styles.form} noValidate>
+    <form
+      onSubmit={onSubmit}
+      className={styles.form}
+      noValidate
+      onInput={(event) => {
+        const field = event.target
+        if (field instanceof HTMLInputElement && (field.name === 'name' || field.name === 'code')) {
+          setTyped((current) => ({ ...current, [field.name]: field.value }))
+        }
+      }}
+    >
       <Feedback state={state} />
       <div className={styles.inline}>
         {editing ? null : (
@@ -82,12 +101,27 @@ export const DepartmentForm = ({
         defaultValue={value('description')}
         error={error('description')}
       />
+      {personalData ? (
+        <PersonalDataStep
+          name={typed.name}
+          code={typed.code}
+          elements={personalData.elements}
+          processes={personalData.processes}
+          initial={state.status === 'error' ? state.values?.personalData : undefined}
+        />
+      ) : null}
+      {error('form') ? <p className={styles.fieldError}>{error('form')}</p> : null}
       <QuestionPicker questionnaires={questionnaires} disabled={closed} />
       {error('questions') ? <p className={styles.fieldError}>{error('questions')}</p> : null}
       <FormActions>
-        <SubmitButton pendingText="Saving…">
-          {editing ? 'Save department and questions' : 'Add department'}
-        </SubmitButton>
+        <button
+          type="submit"
+          className={buttonClass('primary')}
+          disabled={pending}
+          aria-busy={pending}
+        >
+          {pending ? 'Saving…' : editing ? 'Save department and questions' : 'Add department'}
+        </button>
       </FormActions>
     </form>
   )

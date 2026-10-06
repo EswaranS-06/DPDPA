@@ -159,7 +159,9 @@ describe('answers by type', () => {
     expect(await literal('C1.5', { answer: '≤24 hours' })).toBe('compliant')
     expect(await literal('C1.5', { answer: '≤72 hours' })).toBe('gap')
     expect(await literal('B0.3', { text: 'Darwinbox; payroll sheet' })).toBe('informational')
-    expect(await literal('B0.1', { choices: ['HR', 'Healthcare'] })).toBe('informational')
+    expect(
+      await literal('B0.1', { choices: ['Personal identifiers', 'Health and medical data'] }),
+    ).toBe('informational')
 
     // Answers that do not fit the question are refused; Not applicable needs a reason.
     const refused = async (code: string, input: Record<string, unknown>) =>
@@ -171,7 +173,8 @@ describe('answers by type', () => {
         ).fieldErrors,
       )
     expect(await refused('A1.3', { answer: 'yes' })).toEqual(['answer'])
-    expect(await refused('B0.1', { choices: ['Mining'] })).toEqual(['answer'])
+    // B0.1 offers the categories of personal data, not the sectors the workbook listed.
+    expect(await refused('B0.1', { choices: ['Healthcare'] })).toEqual(['answer'])
     expect(await refused('B0.3', {})).toEqual(['answer'])
     expect(await refused('A1.1', { answer: 'not_applicable', naReason: 'short' })).toEqual([
       'naReason',

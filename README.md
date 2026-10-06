@@ -84,7 +84,9 @@ With `--services external`, the addresses in `infra/.env` are used instead.
 |---|---|---|
 | Sign-in | `/login` | Username and password on DUATF's own page. A new login gets a one-time password that must be changed. After 5 failures the account locks for 15 minutes. Sessions are stored server-side |
 | Overall dashboard | `/` | Every client: latest cycle, gaps, serious risks, overdue actions, compliance by domain, risk heatmap, what needs attention |
-| Departments | client > Departments | Create a department and choose its questions from TPL-001 (Data Fiduciary), TPL-002 (Internal data handlers) and TPL-003 (External data handlers): one by one, a section or a whole template |
+| Departments | client > Departments | Create a department, say what personal data it handles (DUATF suggests the elements from its name) and choose its questions from TPL-001 (Data Fiduciary), TPL-002 (Internal data handlers, ComplyX Track B) and TPL-003 (External data handlers): one by one, a section or a whole template |
+| Personal data | a department > Personal data | Each data element with its category, sensitivity level (L1-L4), source, storage, security and access; the department's purposes, lawful basis, systems, recipients, transfers outside India and retention. Editable at any time |
+| Data mapping | client > Data mapping | The flow of personal data from people and other sources through departments to recipients and other countries, as a diagram and in words; categories by department; the record of processing (RoPA) on screen and as an Excel workbook |
 | Assessments | client > Assessments | Yes / Partial / No, maturity 0-4, choices and text. Each answer is ticked as checked; a cycle completes when every answer is checked. Questions ruled out by another answer become Not applicable automatically |
 | People | client > People | People at the client, with or without a login. Give them questions, evidence requests, actions and controls; they see only their own work |
 | Control owners | client > Control owners | Who owns each knowledge-base control behind the client's questions |
@@ -106,6 +108,8 @@ pnpm questions:import        # rewrites seed/question-bank/templates.yaml from t
 ```
 
 `seed/question-bank/kb-mapping.yaml` maps each question to the knowledge base: domain, obligations (references, penalty, phase), controls (guidance, evidence, recommendation), scoring and gates. The release build refuses a template question without a mapping. The mapping awaits ComplyX's legal review; each `note` records where a template's citation differs from the knowledge base.
+
+`pnpm duatf update` (and `kb`) publishes a new knowledge-base release when the question bank or the AI-drafted entries changed (`pnpm kb:questions`, `pnpm kb:content --publish`). Running assessment cycles keep their release; the next cycle gets the new questions.
 
 ## Layout
 
