@@ -770,18 +770,18 @@ phases:
         tests:
           - id: TC-C19.1-01
             title: 'templates.yaml is exactly what the three ComplyX workbooks hold'
-            expected: 'TPL-001 70, TPL-002 59 (Track B), TPL-003 58; 187 questions'
+            expected: 'TPL-001 70, TPL-002 60 (Track B), TPL-003 58; 188 questions'
             source: oracle
           - id: TC-C19.1-02
             title: 'Every question is mapped to the knowledge base, with valid answer options and gates'
-            expected: 'no unmapped, orphaned or broken gates; 88 yes/no, 75 maturity, 13 choice, 1 multi-choice, 10 text; B0.1 offers the data map categories'
+            expected: 'no unmapped, orphaned or broken gates; 88 yes/no, 77 maturity, 12 choice, 1 multi-choice, 10 text; B0.1 offers the data map categories'
             source: literal
       - id: C19.2
         title: 'Release with the question bank'
         state: active
         tests:
           - id: TC-C19.2-01
-            title: 'The release holds the three questionnaires and 187 complete questions with law, penalty, controls and gates'
+            title: 'The release holds the three questionnaires and 188 complete questions with law, penalty, controls and gates'
             expected: 'no incomplete question; gates stored'
             source: oracle
       - id: C19.3
@@ -937,6 +937,30 @@ phases:
             expected: 'no overlap, no console errors; saves and exports'
             source: manual
             kind: manual
+      - id: C20.7
+        title: 'Track B as ComplyX sent it: 60 questions with their evidence, B11 vendor lifecycle'
+        state: active
+        tests:
+          - id: TC-C20.7-01
+            title: 'Every Track B question asks for the evidence ComplyX lists for it'
+            expected: 'evidence needed = the sheet; none missing'
+            source: oracle
+      - id: C20.8
+        title: 'An open cycle moves to a newer question bank'
+        state: active
+        tests:
+          - id: TC-C20.8-01
+            title: 'Items follow their question across renumbering, keep fitting answers and findings, and nothing answered is lost'
+            expected: 'kept, renumbered, removed and cleared as worked out; refused when answers would be lost'
+            source: literal
+      - id: C20.9
+        title: 'Team roles'
+        state: active
+        tests:
+          - id: TC-C20.9-01
+            title: 'An administrator makes an auditor a senior auditor, who can then add people at a client'
+            expected: 'only an administrator; role changed; can add people'
+            source: literal
 
   - id: C12
     title: 'Hardening'

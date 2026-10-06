@@ -500,6 +500,44 @@ const lastAdmin = async (ctx: ServiceContext, userId: string) => {
   return others.length === 0
 }
 
+/**
+ * Changes a team member's firm-wide role, for example an Auditor to a Senior auditor, who can then
+ * add people at clients. DUATF keeps at least one administrator who can sign in.
+ */
+export const setStaffRole = async (ctx: ServiceContext, userId: string, raw: unknown) => {
+  authorize(ctx.principal, 'platform.admin')
+  const { role } = parseInput(
+    z.object({ role: z.enum(FIRM_ROLES, { error: 'Choose a role.' }) }),
+    raw,
+  )
+  await staffMember(ctx, userId)
+  const current = await ctx.db
+    .select({ role: roleAssignment.role })
+    .from(roleAssignment)
+    .where(and(eq(roleAssignment.userId, userId), isNull(roleAssignment.tenantId)))
+  if (current.length === 1 && current[0]?.role === role) return
+  if (
+    role !== 'firm_admin' &&
+    current.some((row) => row.role === 'firm_admin') &&
+    (await lastAdmin(ctx, userId))
+  ) {
+    throw new RuleError('DUATF needs at least one administrator who can sign in.')
+  }
+  await ctx.db.transaction(async (tx) => {
+    await tx
+      .delete(roleAssignment)
+      .where(and(eq(roleAssignment.userId, userId), isNull(roleAssignment.tenantId)))
+    await tx.insert(roleAssignment).values({ userId, role, createdBy: ctx.principal.userId })
+    await audit(tx, ctx, {
+      tenantId: null,
+      action: 'staff.role',
+      entity: 'app_user',
+      entityId: userId,
+      detail: { from: current.map((row) => row.role), to: role },
+    })
+  })
+}
+
 /** Gives a team member a new one-time password. */
 export const issueStaffLogin = async (ctx: ServiceContext, userId: string) => {
   authorize(ctx.principal, 'platform.admin')

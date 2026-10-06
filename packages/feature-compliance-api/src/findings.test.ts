@@ -106,13 +106,13 @@ describe('risk scoring', () => {
 
     // A1.1 is CRITICAL in the template (impact 5); a gap is likely (4): 20, Critical.
     const client = await newClient(world, 'Risks')
-    const hr = await newDepartment(world, client.id, 'HR', ['A1.1', 'B0.12'])
+    const hr = await newDepartment(world, client.id, 'HR', ['A1.1', 'B0.10'])
     await answerItem(world.ctx, client.id, hr.item('A1.1').id, { answer: 'no' })
-    await answerItem(world.ctx, client.id, hr.item('B0.12').id, { answer: 'partial' })
+    await answerItem(world.ctx, client.id, hr.item('B0.10').id, { answer: 'partial' })
     const risks = await listRisks(world.ctx, client.id)
     expect(risks.map((row) => [row.questionCode, row.likelihood, row.impact]).sort()).toEqual([
       ['A1.1', 4, 5],
-      ['B0.12', 3, 2],
+      ['B0.10', 3, 2],
     ])
     const first = risks.find((row) => row.questionCode === 'A1.1')
     await updateRisk(world.ctx, client.id, first?.id ?? '', {
@@ -145,7 +145,7 @@ describe('risk scoring', () => {
 describe('recommendations', () => {
   it("TC-C8.3-01 gives a finding its question's recommendation and references from the knowledge base", async () => {
     const client = await newClient(world, 'Recommend')
-    const codes = ['A3.1', 'A8.1', 'A9.3', 'C1.1', 'B0.10']
+    const codes = ['A3.1', 'A8.1', 'A9.3', 'C1.1', 'B0.9']
     const dep = await newDepartment(world, client.id, 'OPS', codes)
     for (const code of codes) {
       const item = dep.item(code)

@@ -39,8 +39,7 @@ export const QuestionScreen = async ({ api, code, today }: Props) => {
       <PageHeader
         kicker={
           <span>
-            <Citation>{item.code}</Citation> {item.questionnaire.code} {item.questionnaire.title},{' '}
-            {item.section}
+            <Citation>{item.code}</Citation> {item.questionnaire.title}, {item.section}
           </span>
         }
         title={item.text}
@@ -100,7 +99,7 @@ export const QuestionScreen = async ({ api, code, today }: Props) => {
         </MarginRow>
         <MarginRow margin="From the template">
           <p className={styles.flush}>
-            {item.questionnaire.code} reference: {item.sourceRef ?? 'none given'}
+            {item.questionnaire.title} template reference: {item.sourceRef ?? 'none given'}
           </p>
           {item.mappingNote ? (
             <p className={styles.flush}>

@@ -1,6 +1,11 @@
 'use server'
 
-import { createStaff, issueStaffLogin, revokeStaffLogin } from '@duatf/feature-compliance-api'
+import {
+  createStaff,
+  issueStaffLogin,
+  revokeStaffLogin,
+  setStaffRole,
+} from '@duatf/feature-compliance-api'
 import { revalidatePath } from 'next/cache'
 import { failure, formValues, serviceContext, type FormState } from '@/server/services'
 
@@ -19,6 +24,17 @@ export const createStaffAction = async (_: FormState, formData: FormData): Promi
   } catch (error) {
     return failure(error, values)
   }
+}
+
+export const staffRoleAction = async (_: FormState, formData: FormData): Promise<FormState> => {
+  const values = formValues(formData)
+  try {
+    await setStaffRole(await serviceContext(), values.userId ?? '', values)
+  } catch (error) {
+    return failure(error, values)
+  }
+  revalidatePath(TEAM_PATH)
+  return { status: 'success', message: 'Role saved.' }
 }
 
 export const staffLoginAction = async (_: FormState, formData: FormData): Promise<FormState> => {

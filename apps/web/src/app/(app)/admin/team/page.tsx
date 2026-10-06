@@ -4,11 +4,12 @@ import { Chip, DataTable, PageHeader, Panel } from '@duatf/core-ui'
 import { listStaff } from '@duatf/feature-compliance-api'
 import { KeyRound } from 'lucide-react'
 import type { Metadata } from 'next'
+import { OwnerSelectForm } from '@/components/forms/AssignForms'
 import { AddStaffForm, LoginControls } from '@/components/forms/PeopleForms'
 import { requireCapability } from '@/server/auth'
 import { serviceContext } from '@/server/services'
 import styles from '../../clients/clients.module.css'
-import { createStaffAction, staffLoginAction } from './actions'
+import { createStaffAction, staffLoginAction, staffRoleAction } from './actions'
 
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = { title: 'Team' }
@@ -23,7 +24,7 @@ export default async function Page() {
     <>
       <PageHeader
         title="Team"
-        lede="The ComplyX team: administrators, senior auditors and auditors. They work across every client. Administrators and senior auditors add the people at each client under that client's People."
+        lede="The ComplyX team: administrators, senior auditors and auditors. They work across every client. Administrators and senior auditors add the people at each client under that client's People; change a team member's role here to let them do so."
       />
       <DataTable
         rows={staff}
@@ -43,17 +44,28 @@ export default async function Page() {
           {
             key: 'roles',
             header: 'Role',
-            render: (row) => (
-              <span className={styles.roles}>
-                {row.roles
-                  .filter((item) => item.clientId === null)
-                  .map((item) => (
+            render: (row) => {
+              const firm = row.roles.filter((item) => item.clientId === null)
+              return row.userId === ctx.principal.userId || firm.length !== 1 ? (
+                <span className={styles.roles}>
+                  {firm.map((item) => (
                     <Chip key={item.id} title={ROLE_DESCRIPTION[item.role]}>
                       {ROLE_LABEL[item.role]}
                     </Chip>
                   ))}
-              </span>
-            ),
+                </span>
+              ) : (
+                <OwnerSelectForm
+                  action={staffRoleAction}
+                  hidden={{ userId: row.userId }}
+                  name="role"
+                  label={`Role of ${row.displayName}`}
+                  options={roles}
+                  current={firm[0]?.role ?? null}
+                  placeholder={null}
+                />
+              )
+            },
           },
           {
             key: 'login',

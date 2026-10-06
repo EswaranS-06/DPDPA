@@ -40,10 +40,10 @@ describe('ComplyX templates', () => {
     expect(templateBankYaml(fromWorkbooks)).toBe(templatesText)
     expect(files.map((file) => [file.questionnaire, file.questions.length])).toEqual([
       ['TPL-001', 70],
-      ['TPL-002', 59],
+      ['TPL-002', 60],
       ['TPL-003', 58],
     ])
-    expect(questions).toHaveLength(187)
+    expect(questions).toHaveLength(188)
   })
 
   it('TC-C19.1-02 maps every question to the knowledge base, with valid answers and gates', () => {
@@ -60,7 +60,7 @@ describe('ComplyX templates', () => {
       types[answers.answerType] = (types[answers.answerType] ?? 0) + 1
       expect(answers.options.length > 1, question.code).toBe(answers.answerType !== 'text')
     }
-    expect(types).toEqual({ yes_no: 88, maturity: 75, choice: 13, text: 10, multi_choice: 1 })
+    expect(types).toEqual({ yes_no: 88, maturity: 77, choice: 12, text: 10, multi_choice: 1 })
 
     // B0.1 asks for the categories of personal data: the data map's categories, not the
     // industry sectors the workbook lists.
@@ -199,6 +199,19 @@ describe('evidence suggestions', () => {
     expect(result).toEqual({
       required: ['IR plan', 'Breach register'],
       recommended: ['Board intimation template', 'DP notice'],
+      supporting: ['Incident register (last 24 months)'],
+    })
+    // ComplyX's own list for the question comes first; the knowledge base's becomes recommended.
+    expect(
+      suggestEvidence({
+        templateEvidence: ['IR playbook', 'IR plan'],
+        controlEvidence: ['IR plan', 'Breach register'],
+        obligationEvidence: ['Board intimation template'],
+        domainPbcItems: ['IR playbook', 'Incident register (last 24 months)'],
+      }),
+    ).toEqual({
+      required: ['IR playbook', 'IR plan'],
+      recommended: ['Breach register', 'Board intimation template'],
       supporting: ['Incident register (last 24 months)'],
     })
     const all = [...result.required, ...result.recommended, ...result.supporting].map(key)

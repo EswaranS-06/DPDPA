@@ -109,7 +109,9 @@ pnpm questions:import        # rewrites seed/question-bank/templates.yaml from t
 
 `seed/question-bank/kb-mapping.yaml` maps each question to the knowledge base: domain, obligations (references, penalty, phase), controls (guidance, evidence, recommendation), scoring and gates. The release build refuses a template question without a mapping. The mapping awaits ComplyX's legal review; each `note` records where a template's citation differs from the knowledge base.
 
-`pnpm duatf update` (and `kb`) publishes a new knowledge-base release when the question bank or the AI-drafted entries changed (`pnpm kb:questions`, `pnpm kb:content --publish`). Running assessment cycles keep their release; the next cycle gets the new questions.
+A workbook may add an `Evidence` column after `Requires Attachment` (one item per line); its list becomes the question's "evidence needed".
+
+`pnpm duatf update` (and `kb`) publishes a new knowledge-base release when the question bank or the AI-drafted entries changed (`pnpm kb:questions`, `pnpm kb:content --publish`). A running cycle keeps its release until an Administrator or Senior auditor moves it to the new one from the cycle page; answers stay with their questions.
 
 ## Layout
 

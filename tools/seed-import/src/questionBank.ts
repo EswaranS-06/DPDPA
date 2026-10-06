@@ -191,7 +191,7 @@ const uniqueNew = (items: readonly string[], taken: Set<string>): string[] => {
 }
 
 export type EvidenceSuggestions = {
-  /** The mapped controls' own evidence: needed to answer Yes. */
+  /** ComplyX's evidence list for the question, or else the mapped controls' own: needed to answer Yes. */
   required: string[]
   /** Evidence the linked obligations expect that the controls do not already list. */
   recommended: string[]
@@ -201,13 +201,19 @@ export type EvidenceSuggestions = {
 
 /** Splits evidence into three lists with no item in more than one (compared case-insensitively). */
 export const suggestEvidence = (input: {
+  /** ComplyX's own evidence list for the question; when given it is what is needed. */
+  templateEvidence?: readonly string[]
   controlEvidence: readonly string[]
   obligationEvidence: readonly string[]
   domainPbcItems: readonly string[]
 }): EvidenceSuggestions => {
   const taken = new Set<string>()
-  const required = uniqueNew(input.controlEvidence, taken)
-  const recommended = uniqueNew(input.obligationEvidence, taken)
+  const own = input.templateEvidence ?? []
+  const required = uniqueNew(own.length ? own : input.controlEvidence, taken)
+  const recommended = uniqueNew(
+    own.length ? [...input.controlEvidence, ...input.obligationEvidence] : input.obligationEvidence,
+    taken,
+  )
   const supporting = uniqueNew(input.domainPbcItems, taken)
   return { required, recommended, supporting }
 }

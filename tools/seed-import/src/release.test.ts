@@ -75,7 +75,7 @@ describe('framework release 1.1.0', () => {
     }
   })
 
-  it('TC-C19.2-01 holds the three ComplyX questionnaires and 187 complete, mapped questions', async () => {
+  it('TC-C19.2-01 holds the three ComplyX questionnaires and 188 complete, mapped questions', async () => {
     const next = ids['1.1.0'] ?? ''
     const questionnaires = await handle.db.execute<{
       code: string
@@ -88,7 +88,7 @@ describe('framework release 1.1.0', () => {
       from questionnaire qn where qn.release_id = ${next} order by qn.seq`)
     expect(questionnaires.map((row) => [row.code, row.respondent, row.n])).toEqual([
       ['TPL-001', 'organisation', 70],
-      ['TPL-002', 'department', 59],
+      ['TPL-002', 'department', 60],
       ['TPL-003', 'vendor', 58],
     ])
     const { bank } = readQuestionBank(questionBankPaths(findRepoRoot()))
@@ -137,6 +137,25 @@ describe('framework release 1.1.0', () => {
       sql`select gates from question where release_id = ${next} and code = 'A12.1'`,
     )
     expect(gated?.gates.map((gate) => [gate.question, gate.values])).toEqual([['A1.4', ['No']]])
+  })
+
+  it('TC-C20.7-01 every Track B question asks for the evidence ComplyX lists for it', async () => {
+    const next = ids['1.1.0'] ?? ''
+    const { bank } = readQuestionBank(questionBankPaths(findRepoRoot()))
+    const trackB = bank.files.find((file) => file.questionnaire === 'TPL-002')?.questions ?? []
+    expect(trackB).toHaveLength(60)
+    const rows = await handle.db.execute<{ code: string; required: string[] }>(sql`
+      select code, evidence_required as required from question
+      where release_id = ${next} and questionnaire_code = 'TPL-002'`)
+    const stored = new Map(rows.map((row) => [row.code, row.required]))
+    const differ = trackB
+      .filter(
+        (template) =>
+          JSON.stringify(stored.get(template.code)) !== JSON.stringify(template.evidence),
+      )
+      .map((template) => template.code)
+    expect(differ).toEqual([])
+    expect(trackB.filter((template) => (template.evidence ?? []).length === 0)).toEqual([])
   })
 
   it('TC-C20.5-01 an unchanged question bank builds no new release', async () => {

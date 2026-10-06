@@ -1,7 +1,7 @@
 'use client'
 
 import { PERSONAL_DATA_CATEGORIES, type Level } from '@duatf/feature-compliance-api/personal-data'
-import { ChevronDown, Plus, Search, Sparkles } from 'lucide-react'
+import { Plus, Search, Sparkles } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { LevelChip } from './LevelChip'
 import styles from './ElementPicker.module.css'
@@ -114,7 +114,7 @@ export const ElementPicker = ({
       ) : (
         <p className={styles.note}>
           Suggestions appear when the department’s name says what it does, such as HR, Finance,
-          Purchase, IT, Marketing, Sales, Support, Admin, Legal or Product. Otherwise find the
+          Purchase, IT, Marketing, Sales, Support, Admin, Legal or Product. Otherwise search for the
           elements below.
         </p>
       )}
@@ -130,30 +130,34 @@ export const ElementPicker = ({
         />
       </label>
 
-      {PERSONAL_DATA_CATEGORIES.map((category) => {
-        const own = elements.filter((element) => element.category === category.code)
-        const visible = own.filter((element) => matches(element, words))
-        if (visible.length === 0) return null
-        const count = own.filter((element) => chosen.has(element.code)).length
-        return (
-          <details key={category.code} className={styles.group} open={words.length > 0}>
-            <summary className={styles.groupSummary}>
-              <ChevronDown className={styles.chevron} size={16} aria-hidden="true" />
-              <span className={styles.groupName}>{category.title}</span>
-              <span className={styles.groupCount}>
-                {count} of {own.length}
-              </span>
-            </summary>
+      {words.length === 0 ? (
+        <p className={styles.note}>
+          Search to find any other data element by name or code; matches are listed by category.
+        </p>
+      ) : (
+        <>
+          {PERSONAL_DATA_CATEGORIES.map((category) => {
+            const visible = elements.filter(
+              (element) => element.category === category.code && matches(element, words),
+            )
+            if (visible.length === 0) return null
+            return (
+              <section key={category.code} className={styles.group} aria-label={category.title}>
+                <h3 className={styles.groupHead}>
+                  <span className={styles.groupName}>{category.title}</span>
+                  <LevelChip level={category.level} />
+                </h3>
+                <ul className={styles.items}>{visible.map(row)}</ul>
+              </section>
+            )
+          })}
+          {elements.some((element) => matches(element, words)) ? null : (
             <p className={styles.note}>
-              {category.description} Default level <LevelChip level={category.level} />
+              No data element matches “{query}”. Add it below as the department’s own.
             </p>
-            <ul className={styles.items}>{visible.map(row)}</ul>
-          </details>
-        )
-      })}
-      {words.length > 0 && !elements.some((element) => matches(element, words)) ? (
-        <p className={styles.note}>No data element matches “{query}”. Add it below as your own.</p>
-      ) : null}
+          )}
+        </>
+      )}
 
       <fieldset className={styles.custom} disabled={disabled}>
         <legend className={styles.customLegend}>Not in the list? Add the department’s own</legend>

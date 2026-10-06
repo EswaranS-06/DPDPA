@@ -38,6 +38,7 @@ export {
   issueClientLogin,
   revokeClientLogin,
   createStaff,
+  setStaffRole,
   issueStaffLogin,
   revokeStaffLogin,
   type Person,
@@ -221,3 +222,4 @@ export {
   type FlowKind,
 } from './dataMapping'
 export * from './personalData'
+export { moveCycleToLatestRelease, type ReleaseMove } from './cycleRelease'

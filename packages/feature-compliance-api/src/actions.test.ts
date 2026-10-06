@@ -32,7 +32,7 @@ afterAll(() => closeWorld(world))
 
 const setupFinding = async () => {
   const client = await newClient(world, 'Remediation')
-  const tech = await newDepartment(world, client.id, 'IT', ['A1.1', 'A8.2', 'B0.12'])
+  const tech = await newDepartment(world, client.id, 'IT', ['A1.1', 'A8.2', 'B0.10'])
   await answerItem(world.ctx, client.id, tech.item('A1.1').id, { answer: 'no' })
   const [found] = await listFindings(world.ctx, client.id)
   return { client, department: tech, finding: found }
@@ -144,7 +144,7 @@ describe('re-assessment', () => {
     )
     expect(row?.previous).toBe(cycleId)
     const items = await listItems(world.ctx, client.id, next.id)
-    expect(items.map((item) => item.questionCode).sort()).toEqual(['A1.1', 'A8.2', 'B0.12'])
+    expect(items.map((item) => item.questionCode).sort()).toEqual(['A1.1', 'A8.2', 'B0.10'])
     expect(items.every((item) => item.answer === 'not_assessed')).toBe(true)
   })
 })

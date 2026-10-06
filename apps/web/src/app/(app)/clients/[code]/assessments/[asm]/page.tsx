@@ -2,6 +2,7 @@ import { can } from '@duatf/core-access'
 import { formatDay } from '@duatf/core-utils'
 import {
   buttonClass,
+  Callout,
   DataTable,
   EmptyState,
   Meter,
@@ -34,13 +35,13 @@ import {
 } from '@/components/assessment/AssessmentBits'
 import dash from '@/components/dashboard/DashboardBits.module.css'
 import { ReassessForm } from '@/components/forms/ActionForms'
-import { CheckAllForm, StatusButtons } from '@/components/forms/AssessmentForms'
+import { CheckAllForm, MoveReleaseForm, StatusButtons } from '@/components/forms/AssessmentForms'
 import { loadClient } from '@/server/clients'
 import { firstValue, type SearchParams } from '@/server/searchParams'
 import { serviceContext } from '@/server/services'
 import styles from '../../../clients.module.css'
 import { reassessAction } from '../../actions/actions'
-import { changeStatusAction, checkAllAction } from '../actions'
+import { changeStatusAction, checkAllAction, moveCycleAction } from '../actions'
 
 export const dynamic = 'force-dynamic'
 
@@ -94,6 +95,7 @@ export default async function Page({ params, searchParams }: Props) {
   const filtering = Object.values(filters).some(Boolean)
   const unchecked = detail.progress.answered - detail.progress.accepted
   const open = detail.status !== 'completed'
+  const moved = firstValue(query.moved)
 
   return (
     <>
@@ -124,6 +126,41 @@ export default async function Page({ params, searchParams }: Props) {
         <ProgressBar progress={detail.progress} label="All questions" size="large" />
         <Legend progress={detail.progress} />
       </section>
+
+      {moved ? (
+        <Callout tone="success" title="Cycle moved to the new question bank">
+          <p>{moved} Give departments the new questions on their edit page.</p>
+        </Callout>
+      ) : null}
+
+      {open && detail.latestRelease ? (
+        can(ctx.principal, 'assessment.create', scope) ? (
+          <Panel title="Newer questions are available" titleId="newer-release">
+            <p className={`${styles.flush} ${styles.sectionIntro}`}>
+              This cycle uses knowledge base release {detail.releaseVersion}; release{' '}
+              {detail.latestRelease} has new or changed questions. Moving the cycle keeps every
+              answer, evidence link and finding with its question, even where a question was
+              renumbered. Unanswered questions the new release dropped are removed, and an answer
+              that no longer fits its question is cleared. Then give departments the new questions.
+            </p>
+            <MoveReleaseForm
+              action={moveCycleAction.bind(null, {
+                clientId: client.id,
+                clientCode: client.code,
+                assessmentCode: detail.code,
+              })}
+              version={detail.latestRelease}
+            />
+          </Panel>
+        ) : (
+          <Callout tone="neutral" title="Newer questions are available">
+            <p>
+              Release {detail.latestRelease} has new or changed questions. An Administrator or a
+              Senior auditor can move this cycle to it.
+            </p>
+          </Callout>
+        )
+      ) : null}
 
       {detail.status === 'completed' && can(ctx.principal, 'assessment.create', scope) ? (
         <Panel title="Next cycle" titleId="next-cycle">
@@ -257,7 +294,7 @@ export default async function Page({ params, searchParams }: Props) {
             placeholder="All questionnaires"
             options={detail.questionnaires.map((row) => ({
               value: row.code,
-              label: `${row.code} ${row.title}`,
+              label: row.title,
             }))}
             defaultValue={filters.questionnaire}
           />

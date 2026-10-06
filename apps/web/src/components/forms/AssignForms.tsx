@@ -32,7 +32,8 @@ export const OwnerSelectForm = ({
   label: string
   options: SelectOption[]
   current: string | null
-  placeholder?: string
+  /** The empty choice; null when a value is required. */
+  placeholder?: string | null
 }) => {
   const [state, formAction] = useActionState(action, IDLE)
   // Controlled, so the choice stays shown after saving (React resets uncontrolled fields).
@@ -59,7 +60,7 @@ export const OwnerSelectForm = ({
           onChange={(event) => setChosen(event.target.value)}
           className={styles.compactInput}
         >
-          <option value="">{placeholder}</option>
+          {placeholder === null ? null : <option value="">{placeholder}</option>}
           {options.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}

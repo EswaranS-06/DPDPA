@@ -496,7 +496,8 @@ export default async function Page({ params }: Props) {
               From the template
             </h2>
             <p className={styles.flush}>
-              Reference in {detail.questionnaire.code}: {question.sourceRef ?? 'none given'}.
+              Reference in the {detail.questionnaire.title} template:{' '}
+              {question.sourceRef ?? 'none given'}.
             </p>
             {question.mappingNote ? (
               <Callout tone="neutral" title="ComplyX note">

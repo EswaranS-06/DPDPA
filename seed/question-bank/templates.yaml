@@ -958,6 +958,8 @@ files:
         risk: LOW
         ref: Drives A2 inventory
         attachment: false
+        evidence:
+          - Application form template or application screenshot
       - code: B0.2
         id: c0000002-b000-0000-0000-000000000001
         section: Common Module — All Departments
@@ -971,6 +973,8 @@ files:
         risk: LOW
         ref: Drives A2.3
         attachment: false
+        evidence:
+          - Privacy notice or SOP document
       - code: B0.3
         id: c0000003-b000-0000-0000-000000000001
         section: Common Module — All Departments
@@ -980,27 +984,9 @@ files:
         risk: LOW
         ref: Surfaces shadow IT
         attachment: false
-      - code: B0.3a
-        id: d0000001-b000-0000-0000-000000000001
-        section: Common Module — All Departments
-        text: Is it in-house or third-party/vendor-hosted?
-        type: SINGLE_SELECT
-        options:
-          - In-house
-          - Third-party / Vendor-hosted
-          - Mixed (both)
-        risk: LOW
-        ref: Surfaces shadow IT / vendor risk
-        attachment: false
-      - code: B0.3c
-        id: d0000004-b000-0000-0000-000000000001
-        section: Common Module — All Departments
-        text: What security measures are implemented? (e.g., encryption at rest/in transit, access controls/MFA, audit logs, vulnerability assessments, data backup, breach detection)
-        type: FREE_TEXT
-        options: []
-        risk: LOW
-        ref: Rule 6, A8 security safeguards
-        attachment: false
+        evidence:
+          - Application list with the purpose of each
+          - System inventory with hosting details
       - code: B0.4
         id: c0000004-b000-0000-0000-000000000001
         section: Common Module — All Departments
@@ -1016,20 +1002,9 @@ files:
         risk: LOW
         ref: Flags S.9 children data
         attachment: false
+        evidence:
+          - Application form template or application screenshot
       - code: B0.5
-        id: d0000002-b000-0000-0000-000000000001
-        section: Common Module — All Departments
-        text: Does your department process personal data of vulnerable data principals (e.g., children, persons with disabilities) under DPDP?
-        type: BINARY_PLUS
-        options:
-          - Yes
-          - Partial
-          - No
-          - N-A
-        risk: LOW
-        ref: S.9 vulnerable data principals
-        attachment: false
-      - code: B0.6
         id: c0000005-b000-0000-0000-000000000001
         section: Common Module — All Departments
         text: Who inside the department has access, and is access on a least-privilege basis?
@@ -1043,7 +1018,9 @@ files:
         risk: LOW
         ref: Access governance
         attachment: false
-      - code: B0.7
+        evidence:
+          - User, designation, role and access list (Excel sheet)
+      - code: B0.6
         id: c0000006-b000-0000-0000-000000000001
         section: Common Module — All Departments
         text: Do you export, download, or keep local copies (laptops, USB, email, personal drives)?
@@ -1056,10 +1033,13 @@ files:
         risk: LOW
         ref: High leakage risk
         attachment: false
-      - code: B0.8
+        evidence:
+          - "If allowed: SOP or procedure document with the purpose"
+          - "If not allowed: security policy (DLP)"
+      - code: B0.7
         id: c0000007-b000-0000-0000-000000000001
         section: Common Module — All Departments
-        text: Do you share this data with other internal departments?
+        text: Do you share this data with other internal departments? With whom and why?
         type: BINARY_PLUS
         options:
           - Yes
@@ -1069,7 +1049,10 @@ files:
         risk: LOW
         ref: Internal data-flow map
         attachment: false
-      - code: B0.9
+        evidence:
+          - "If shared: SOP or procedure document with the purpose and justification, and the access details at the receiving end"
+          - "If not shared: declaration form"
+      - code: B0.8
         id: c0000008-b000-0000-0000-000000000001
         section: Common Module — All Departments
         text: Do you share this data with external parties/vendors? Name them.
@@ -1078,7 +1061,10 @@ files:
         risk: LOW
         ref: Feeds Track C
         attachment: false
-      - code: B0.10
+        evidence:
+          - "If shared: vendor details (template)"
+          - "If not shared: declaration form"
+      - code: B0.9
         id: c0000009-b000-0000-0000-000000000001
         section: Common Module — All Departments
         text: How long does your department retain the data, and is there a deletion practice?
@@ -1092,20 +1078,10 @@ files:
         risk: LOW
         ref: Drives A7
         attachment: false
-      - code: B0.11
-        id: d0000003-b000-0000-0000-000000000001
-        section: Common Module — All Departments
-        text: Does your department transfer personal data outside India?
-        type: BINARY_PLUS
-        options:
-          - Yes
-          - Partial
-          - No
-          - N-A
-        risk: LOW
-        ref: S.16, A10 cross-border
-        attachment: false
-      - code: B0.12
+        evidence:
+          - Retention and deletion policy
+          - Deletion log (optional)
+      - code: B0.10
         id: c0000010-b000-0000-0000-000000000001
         section: Common Module — All Departments
         text: Have staff in your department completed DPDP/privacy training?
@@ -1118,7 +1094,9 @@ files:
         risk: LOW
         ref: Links A13
         attachment: false
-      - code: B0.13
+        evidence:
+          - Training record
+      - code: B0.11
         id: c0000011-b000-0000-0000-000000000001
         section: Common Module — All Departments
         text: Are there documented procedures (SOPs) for handling PII in your function?
@@ -1132,7 +1110,9 @@ files:
         risk: LOW
         ref: Defined vs ad-hoc
         attachment: false
-      - code: B0.14
+        evidence:
+          - Procedure document
+      - code: B0.12
         id: c0000012-b000-0000-0000-000000000001
         section: Common Module — All Departments
         text: Have you experienced any near-miss/incident involving personal data in the last 12 months?
@@ -1145,7 +1125,10 @@ files:
         risk: LOW
         ref: Breach readiness signal
         attachment: false
-      - code: B0.15
+        evidence:
+          - "If no: assessment report"
+          - "If yes: incident report"
+      - code: B0.13
         id: c0000013-b000-0000-0000-000000000001
         section: Common Module — All Departments
         text: Do you use any AI / automated decisioning on personal data?
@@ -1158,6 +1141,9 @@ files:
         risk: LOW
         ref: Flags SDF algo due-diligence
         attachment: false
+        evidence:
+          - "If no: declaration form"
+          - "If yes: name, description, purpose and the personal data it uses"
       - code: B1.1
         id: c0000001-b100-0000-0000-000000000001
         section: Human Resources
@@ -1171,6 +1157,9 @@ files:
         risk: LOW
         ref: S.8(7), Rule 8
         attachment: false
+        evidence:
+          - Retention policy or procedure document
+          - "If kept online: an inventory of where the data is held"
       - code: B1.2
         id: c0000002-b100-0000-0000-000000000001
         section: Human Resources
@@ -1184,6 +1173,9 @@ files:
         risk: LOW
         ref: S.8(2), Track C
         attachment: false
+        evidence:
+          - "In-house: checklist template"
+          - "Third party: vendor details (template)"
       - code: B1.3
         id: c0000003-b100-0000-0000-000000000001
         section: Human Resources
@@ -1197,6 +1189,8 @@ files:
         risk: LOW
         ref: S.9, Rule 6
         attachment: false
+        evidence:
+          - Biometric policy or screenshot
       - code: B1.4
         id: c0000004-b100-0000-0000-000000000001
         section: Human Resources
@@ -1211,6 +1205,10 @@ files:
         risk: LOW
         ref: Rule 6(b)
         attachment: false
+        evidence:
+          - RBAC document
+          - Application permission screenshot
+          - Access control policy
       - code: B1.5
         id: c0000005-b100-0000-0000-000000000001
         section: Human Resources
@@ -1225,6 +1223,8 @@ files:
         risk: LOW
         ref: S.8(7), Rule 8
         attachment: false
+        evidence:
+          - Off-boarding SOP or checklist
       - code: B1.6
         id: c0000006-b100-0000-0000-000000000001
         section: Human Resources
@@ -1238,6 +1238,9 @@ files:
         risk: LOW
         ref: S.16, A10
         attachment: false
+        evidence:
+          - "If yes: transfer document and process flow"
+          - "If no: declaration"
       - code: B2.1
         id: c0000001-b200-0000-0000-000000000001
         section: IT / Information Security
@@ -1252,6 +1255,8 @@ files:
         risk: LOW
         ref: Rule 6, A2.4
         attachment: false
+        evidence:
+          - Asset inventory
       - code: B2.2
         id: c0000002-b200-0000-0000-000000000001
         section: IT / Information Security
@@ -1266,6 +1271,10 @@ files:
         risk: LOW
         ref: Rule 6, A8
         attachment: false
+        evidence:
+          - "MFA: screenshot"
+          - "RBAC: document"
+          - "Encryption: configuration"
       - code: B2.3
         id: c0000003-b200-0000-0000-000000000001
         section: IT / Information Security
@@ -1280,6 +1289,8 @@ files:
         risk: LOW
         ref: Rule 6(c), A8.3
         attachment: false
+        evidence:
+          - Tool name and alert configuration or screenshot
       - code: B2.4
         id: c0000004-b200-0000-0000-000000000001
         section: IT / Information Security
@@ -1294,6 +1305,8 @@ files:
         risk: LOW
         ref: Rule 6(d), A7.5
         attachment: false
+        evidence:
+          - Backup policy and schedule
       - code: B2.5
         id: c0000005-b200-0000-0000-000000000001
         section: IT / Information Security
@@ -1308,6 +1321,9 @@ files:
         risk: LOW
         ref: Rule 6, A8.8
         attachment: false
+        evidence:
+          - Patch policy
+          - Recent VAPT report
       - code: B2.6
         id: c0000006-b200-0000-0000-000000000001
         section: IT / Information Security
@@ -1322,6 +1338,8 @@ files:
         risk: LOW
         ref: Rule 6(b)
         attachment: false
+        evidence:
+          - Onboarding and off-boarding process document with the checklist
       - code: B2.7
         id: c0000007-b200-0000-0000-000000000001
         section: IT / Information Security
@@ -1336,6 +1354,8 @@ files:
         risk: LOW
         ref: Rule 6(b)(c)
         attachment: false
+        evidence:
+          - PAM tool configuration or screenshot
       - code: B3.1
         id: c0000001-b300-0000-0000-000000000001
         section: Marketing / Digital / Growth
@@ -1349,6 +1369,8 @@ files:
         risk: LOW
         ref: S.5, S.6, A3
         attachment: false
+        evidence:
+          - Collection form, privacy notice and consent record
       - code: B3.2
         id: c0000002-b300-0000-0000-000000000001
         section: Marketing / Digital / Growth
@@ -1362,6 +1384,8 @@ files:
         risk: LOW
         ref: S.6, Rule 3
         attachment: false
+        evidence:
+          - Cookie configuration or tracking inventory
       - code: B3.3
         id: c0000003-b300-0000-0000-000000000001
         section: Marketing / Digital / Growth
@@ -1375,6 +1399,8 @@ files:
         risk: LOW
         ref: S.9(3), A4.2
         attachment: false
+        evidence:
+          - Advertising platform configuration
       - code: B3.4
         id: c0000004-b300-0000-0000-000000000001
         section: Marketing / Digital / Growth
@@ -1384,6 +1410,8 @@ files:
         risk: LOW
         ref: S.8(2), Track C
         attachment: false
+        evidence:
+          - Vendor list by tool
       - code: B3.5
         id: c0000005-b300-0000-0000-000000000001
         section: Marketing / Digital / Growth
@@ -1397,6 +1425,9 @@ files:
         risk: LOW
         ref: S.6(4), A3.4
         attachment: false
+        evidence:
+          - Consent policy
+          - Marketing workflow
       - code: B3.6
         id: c0000006-b300-0000-0000-000000000001
         section: Marketing / Digital / Growth
@@ -1410,6 +1441,8 @@ files:
         risk: LOW
         ref: S.4, S.5, A3
         attachment: false
+        evidence:
+          - Broker contracts and procedures
       - code: B4.1
         id: c0000001-b400-0000-0000-000000000001
         section: Sales / Customer Success
@@ -1422,6 +1455,10 @@ files:
         risk: LOW
         ref: Rule 6(b)
         attachment: false
+        evidence:
+          - CRM tool screenshot
+          - Data inventory
+          - Audit log (if available)
       - code: B4.2
         id: c0000002-b400-0000-0000-000000000001
         section: Sales / Customer Success
@@ -1435,6 +1472,9 @@ files:
         risk: LOW
         ref: S.5, Rule 8
         attachment: false
+        evidence:
+          - Call recording policy
+          - Call recording notice and retention configuration
       - code: B4.3
         id: c0000003-b400-0000-0000-000000000001
         section: Sales / Customer Success
@@ -1448,6 +1488,8 @@ files:
         risk: LOW
         ref: S.8(2), Track C
         attachment: false
+        evidence:
+          - Partner data-sharing agreement
       - code: B5.1
         id: c0000001-b500-0000-0000-000000000001
         section: Finance / Accounts
@@ -1460,6 +1502,8 @@ files:
         risk: LOW
         ref: S.8 risk basis
         attachment: false
+        evidence:
+          - Data inventory (without values)
       - code: B5.2
         id: c0000002-b500-0000-0000-000000000001
         section: Finance / Accounts
@@ -1474,6 +1518,9 @@ files:
         risk: LOW
         ref: S.8(7), Rule 8
         attachment: false
+        evidence:
+          - Retention and deletion policy
+          - Data classification
       - code: B5.3
         id: c0000003-b500-0000-0000-000000000001
         section: Finance / Accounts
@@ -1483,6 +1530,8 @@ files:
         risk: LOW
         ref: S.8(2), Track C
         attachment: false
+        evidence:
+          - List of payment processors
       - code: B5.4
         id: c0000004-b500-0000-0000-000000000001
         section: Finance / Accounts
@@ -1497,6 +1546,8 @@ files:
         risk: LOW
         ref: Rule 6(a), A8.1
         attachment: false
+        evidence:
+          - Masking configuration or screenshots
       - code: B6.1
         id: c0000001-b600-0000-0000-000000000001
         section: Customer Support / Operations
@@ -1511,6 +1562,9 @@ files:
         risk: LOW
         ref: Rule 14, A5.2
         attachment: false
+        evidence:
+          - Ticketing interface screenshot
+          - Ticketing process and procedures
       - code: B6.2
         id: c0000002-b600-0000-0000-000000000001
         section: Customer Support / Operations
@@ -1525,6 +1579,8 @@ files:
         risk: LOW
         ref: Rule 6(b)
         attachment: false
+        evidence:
+          - Access list and configuration
       - code: B6.3
         id: c0000003-b600-0000-0000-000000000001
         section: Customer Support / Operations
@@ -1538,6 +1594,8 @@ files:
         risk: LOW
         ref: Rule 8, A7
         attachment: false
+        evidence:
+          - Retention policy and purge configuration
       - code: B7.1
         id: c0000001-b700-0000-0000-000000000001
         section: Procurement / Vendor Management
@@ -1551,6 +1609,9 @@ files:
         risk: LOW
         ref: S.8, Track C gate
         attachment: false
+        evidence:
+          - SOP document for onboarding
+          - Application or tool screenshot
       - code: B7.2
         id: c0000002-b700-0000-0000-000000000001
         section: Procurement / Vendor Management
@@ -1564,6 +1625,8 @@ files:
         risk: LOW
         ref: S.8(2), Rule 6(f), A11.2
         attachment: false
+        evidence:
+          - Contract template
       - code: B7.3
         id: c0000003-b700-0000-0000-000000000001
         section: Procurement / Vendor Management
@@ -1578,6 +1641,8 @@ files:
         risk: LOW
         ref: S.8(2), A11.1
         attachment: false
+        evidence:
+          - Vendor inventory
       - code: B8.1
         id: c0000001-b800-0000-0000-000000000001
         section: Product / Engineering
@@ -1592,6 +1657,8 @@ files:
         risk: LOW
         ref: S.8, A13.2
         attachment: false
+        evidence:
+          - Secure SDLC or privacy-by-design policy
       - code: B8.2
         id: c0000002-b800-0000-0000-000000000001
         section: Product / Engineering
@@ -1606,6 +1673,8 @@ files:
         risk: LOW
         ref: Rule 6
         attachment: false
+        evidence:
+          - Test data policy or log configuration
       - code: B8.3
         id: c0000003-b800-0000-0000-000000000001
         section: Product / Engineering
@@ -1620,6 +1689,8 @@ files:
         risk: LOW
         ref: S.8(7), A7
         attachment: false
+        evidence:
+          - Consent, notice and data retention policy
       - code: B8.4
         id: c0000004-b800-0000-0000-000000000001
         section: Product / Engineering
@@ -1633,6 +1704,9 @@ files:
         risk: LOW
         ref: Rule 13, A12.4
         attachment: false
+        evidence:
+          - "If no: declaration"
+          - "If yes: name, description, purpose and the personal data it uses"
       - code: B9.1
         id: c0000001-b900-0000-0000-000000000001
         section: Legal / Compliance
@@ -1647,6 +1721,8 @@ files:
         risk: LOW
         ref: S.5, S.6, Rule 3
         attachment: false
+        evidence:
+          - Privacy notice and legal records
       - code: B9.2
         id: c0000002-b900-0000-0000-000000000001
         section: Legal / Compliance
@@ -1661,6 +1737,8 @@ files:
         risk: LOW
         ref: Ongoing compliance
         attachment: false
+        evidence:
+          - Change-monitoring log
       - code: B9.3
         id: c0000003-b900-0000-0000-000000000001
         section: Legal / Compliance
@@ -1675,6 +1753,8 @@ files:
         risk: LOW
         ref: Rule 7, A9
         attachment: false
+        evidence:
+          - Incident response playbook or runbook
       - code: B10.1
         id: c0000001-ba00-0000-0000-000000000001
         section: Facilities / Physical Security
@@ -1689,6 +1769,9 @@ files:
         risk: LOW
         ref: Rule 6
         attachment: false
+        evidence:
+          - Access control policy
+          - "Physical access control for the file room, server room and CCTV monitoring room: biometric, access card, visitor log"
       - code: B10.2
         id: c0000002-ba00-0000-0000-000000000001
         section: Facilities / Physical Security
@@ -1703,6 +1786,8 @@ files:
         risk: LOW
         ref: Rule 6
         attachment: false
+        evidence:
+          - Disposal policy or shredder photo
       - code: B10.3
         id: c0000003-ba00-0000-0000-000000000001
         section: Facilities / Physical Security
@@ -1716,6 +1801,129 @@ files:
         risk: LOW
         ref: S.5, Rule 8
         attachment: false
+        evidence:
+          - Procedure for managing CCTV and visitor data
+          - CCTV notice
+          - Retention policy
+      - code: B11.1
+        id: c0000001-bb00-0000-0000-000000000001
+        section: Vendor Lifecycle
+        text: Can you walk us through the complete vendor onboarding and procurement process, from vendor registration to vendor closure?
+        type: MATURITY
+        options:
+          - "0"
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+        risk: LOW
+        ref: null
+        attachment: false
+        evidence:
+          - Vendor onboarding or procurement SOP or workflow
+          - Vendor registration form or portal
+          - Vendor due-diligence checklist
+          - Vendor evaluation and approval records
+          - Purchase requisition and PO workflow
+          - Contract approval workflow
+          - Vendor master list
+          - Periodic vendor review process
+          - Vendor closure or offboarding procedure
+          - Sample completed vendor onboarding and closure records
+      - code: B11.2
+        id: c0000002-bb00-0000-0000-000000000001
+        section: Vendor Lifecycle
+        text: What personal-data documents are collected from vendor representatives, proprietors, directors, or authorised signatories during onboarding?
+        type: FREE_TEXT
+        options: []
+        risk: LOW
+        ref: null
+        attachment: false
+        evidence:
+          - Vendor onboarding form
+          - List of personal-data fields and documents collected
+          - KYC or vendor verification requirements
+          - PAN, GST or company registration documents, where applicable
+          - Authorised signatory details
+          - Identity and address documents, if collected
+          - Bank and payment details, if collected
+          - Vendor privacy notice or collection notice
+          - Retention requirements for these documents
+          - Sample redacted vendor onboarding record
+      - code: B11.3
+        id: c0000003-bb00-0000-0000-000000000001
+        section: Vendor Lifecycle
+        text: Do any vendors, suppliers, or third parties process or have access to the organisation's personal data? If yes, what data and for what purpose?
+        type: BINARY_PLUS
+        options:
+          - Yes
+          - Partial
+          - No
+          - N-A
+        risk: LOW
+        ref: null
+        attachment: false
+        evidence:
+          - Vendor and third-party inventory
+          - Data processor and vendor list
+          - Personal data flow diagram
+          - Vendor-to-data mapping
+          - List of personal data categories shared
+          - Purpose of processing or access
+          - System and application access list
+          - Vendor access and RBAC records
+          - Data processing or data-sharing agreement, where applicable
+          - Sample vendor assessment showing access to personal data
+      - code: B11.4
+        id: c0000004-bb00-0000-0000-000000000001
+        section: Vendor Lifecycle
+        text: Are DPDP/privacy and information-security requirements included in vendor due diligence, contracts, agreements, or purchase orders where applicable?
+        type: BINARY_PLUS
+        options:
+          - Yes
+          - Partial
+          - No
+          - N-A
+        risk: LOW
+        ref: null
+        attachment: false
+        evidence:
+          - Vendor due-diligence questionnaire or checklist
+          - Privacy and security assessment questionnaire
+          - Standard vendor agreement or contract
+          - Data processing clauses
+          - Confidentiality and NDA clauses
+          - Information-security requirements
+          - Breach and incident notification clauses
+          - Data retention, deletion and return clauses
+          - Sub-processor requirements, where applicable
+          - Audit and right-to-access clauses, where applicable
+          - Sample executed vendor contract
+      - code: B11.5
+        id: c0000005-bb00-0000-0000-000000000001
+        section: Vendor Lifecycle
+        text: When a vendor relationship ends, what is the process for revoking access and returning/deleting personal data and related documents?
+        type: MATURITY
+        options:
+          - "0"
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+        risk: LOW
+        ref: null
+        attachment: false
+        evidence:
+          - Vendor offboarding or termination SOP
+          - Vendor closure checklist
+          - Access revocation and deprovisioning records
+          - System and account disablement logs
+          - Data return or deletion requirement in the contract
+          - Vendor data deletion certificate or confirmation
+          - Asset and document return records
+          - Backup and data retention handling procedure
+          - Final access review
+          - Sample completed vendor offboarding record
   - file: TPL-003_External_Data_Handlers.xlsx
     questionnaire: TPL-003
     questions:

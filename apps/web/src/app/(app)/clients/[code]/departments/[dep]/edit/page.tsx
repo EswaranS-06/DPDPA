@@ -3,6 +3,7 @@ import { departmentQuestionPicker, listDepartments } from '@duatf/feature-compli
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { DepartmentForm } from '@/components/forms/DepartmentForms'
+import { NewerReleaseNotice } from '@/components/forms/NewerReleaseNotice'
 import { loadClient } from '@/server/clients'
 import { serviceContext } from '@/server/services'
 import { updateDepartmentAction } from '../../../../actions'
@@ -35,6 +36,7 @@ export default async function Page({ params }: Props) {
             : 'The questions you choose open the first assessment cycle of this client.'
         }
       />
+      <NewerReleaseNotice clientCode={client.code} picker={picker} />
       <DepartmentForm
         action={updateDepartmentAction.bind(null, {
           clientId: client.id,

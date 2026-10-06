@@ -81,15 +81,15 @@ describe('questions chosen for a department', () => {
 
   it('TC-C19.3-02 the same question for two departments is answered separately', async () => {
     const client = await newClient(world)
-    const hr = await newDepartment(world, client.id, 'HR', ['B0.12', 'B0.7'])
-    const fin = await newDepartment(world, client.id, 'FIN', ['B0.12'])
+    const hr = await newDepartment(world, client.id, 'HR', ['B0.10', 'B0.6'])
+    const fin = await newDepartment(world, client.id, 'FIN', ['B0.10'])
     expect(fin.cycle?.id).toBe(hr.cycle?.id)
-    await answerItem(world.ctx, client.id, hr.item('B0.12').id, { answer: 'yes' })
-    await answerItem(world.ctx, client.id, fin.item('B0.12').id, { answer: 'no' })
+    await answerItem(world.ctx, client.id, hr.item('B0.10').id, { answer: 'yes' })
+    await answerItem(world.ctx, client.id, fin.item('B0.10').id, { answer: 'no' })
     const rows = await listItems(world.ctx, client.id, hr.cycle?.id ?? '')
     expect(
       rows
-        .filter((row) => row.questionCode === 'B0.12')
+        .filter((row) => row.questionCode === 'B0.10')
         .map((row) => [row.departmentCode, row.complianceState])
         .sort(),
     ).toEqual([
@@ -121,7 +121,7 @@ describe('answers by type', () => {
     const client = await newClient(world)
     // One question of every kind: yes/no, yes/no scored in reverse, yes/no recorded only,
     // maturity, a scored choice, a recorded choice, several choices and free text.
-    const codes = ['A1.1', 'B0.7', 'B0.8', 'A1.3', 'C1.5', 'A1.4', 'B0.1', 'B0.3']
+    const codes = ['A1.1', 'B0.6', 'B0.7', 'A1.3', 'C1.5', 'A1.4', 'B0.1', 'B0.3']
     const shapes = await optionsOf(codes)
     const dep = await newDepartment(world, client.id, 'OPS', codes)
     const mismatches: string[] = []
@@ -150,9 +150,9 @@ describe('answers by type', () => {
     // The outcomes ComplyX set: Yes on B0.7 is a gap; maturity 2 is partial; 3 and 4 comply.
     const literal = async (code: string, input: Record<string, unknown>) =>
       (await answerItem(world.ctx, client.id, dep.item(code).id, input)).complianceState
-    expect(await literal('B0.7', { answer: 'yes' })).toBe('gap')
-    expect(await literal('B0.7', { answer: 'no' })).toBe('compliant')
-    expect(await literal('B0.8', { answer: 'no' })).toBe('informational')
+    expect(await literal('B0.6', { answer: 'yes' })).toBe('gap')
+    expect(await literal('B0.6', { answer: 'no' })).toBe('compliant')
+    expect(await literal('B0.7', { answer: 'no' })).toBe('informational')
     expect(await literal('A1.3', { answer: '2' })).toBe('potential_gap')
     expect(await literal('A1.3', { answer: '3' })).toBe('compliant')
     expect(await literal('A1.3', { answer: '1' })).toBe('gap')
@@ -269,10 +269,10 @@ describe('self-check and cycles', () => {
 
   it('TC-C19.5-02 after a completed cycle questions change only in the next cycle, which takes over each department’s questions', async () => {
     const client = await newClient(world)
-    const hr = await newDepartment(world, client.id, 'HR', ['A1.1', 'B0.12'])
+    const hr = await newDepartment(world, client.id, 'HR', ['A1.1', 'B0.10'])
     const cycleId = hr.cycle?.id ?? ''
     await answerItem(world.ctx, client.id, hr.item('A1.1').id, { answer: 'yes' })
-    await answerItem(world.ctx, client.id, hr.item('B0.12').id, { answer: 'no' })
+    await answerItem(world.ctx, client.id, hr.item('B0.10').id, { answer: 'no' })
     await checkAnswered(world.ctx, client.id, cycleId)
     await changeAssessmentStatus(world.ctx, client.id, cycleId, 'completed')
 
@@ -289,10 +289,10 @@ describe('self-check and cycles', () => {
 
   it('TC-C19.5-03 the next cycle copies each active department’s questions, with no answers', async () => {
     const client = await newClient(world)
-    const hr = await newDepartment(world, client.id, 'HR', ['A1.1', 'B0.12'])
+    const hr = await newDepartment(world, client.id, 'HR', ['A1.1', 'B0.10'])
     const tech = await newDepartment(world, client.id, 'IT', ['A8.2'])
     const cycleId = hr.cycle?.id ?? ''
-    for (const item of [hr.item('A1.1'), hr.item('B0.12'), tech.item('A8.2')]) {
+    for (const item of [hr.item('A1.1'), hr.item('B0.10'), tech.item('A8.2')]) {
       await answerItem(world.ctx, client.id, item.id, {
         answer: item.answerType === 'maturity' ? '4' : 'yes',
       })
@@ -304,6 +304,6 @@ describe('self-check and cycles', () => {
     const rows = await listItems(world.ctx, client.id, next.id)
     expect(
       rows.map((row) => `${row.departmentCode}/${row.questionCode}/${row.answer}`).sort(),
-    ).toEqual(['HR/A1.1/not_assessed', 'HR/B0.12/not_assessed', 'IT/A8.2/not_assessed'])
+    ).toEqual(['HR/A1.1/not_assessed', 'HR/B0.10/not_assessed', 'IT/A8.2/not_assessed'])
   })
 })

@@ -68,7 +68,7 @@ export const QuestionIndexScreen = async ({ api, params }: Props) => {
             <option value="">All questionnaires</option>
             {questionnaires.map((group) => (
               <option key={group.code} value={group.code}>
-                {group.code} {group.title}
+                {group.title}
               </option>
             ))}
           </select>
@@ -123,7 +123,7 @@ export const QuestionIndexScreen = async ({ api, params }: Props) => {
               aria-labelledby={`q-${group.code}`}
             >
               <h2 id={`q-${group.code}`} className={styles.sectionTitle}>
-                {group.code} {group.title}
+                {group.title}
               </h2>
               <p className={`${styles.flush} ${styles.muted}`}>{group.description}</p>
               {[...new Set(items.map((item) => item.section))].map((section) => (

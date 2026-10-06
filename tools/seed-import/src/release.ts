@@ -197,6 +197,7 @@ const buildQuestions = async (tx: Transaction, toId: string, bank: QuestionBank)
       .sort((a, b) => a.code.localeCompare(b.code))
     const answers = answerOptions(template, entry)
     const evidence = suggestEvidence({
+      templateEvidence: template.evidence,
       controlEvidence: mapped.flatMap((row) => row.evidence),
       obligationEvidence: linked.flatMap((row) => row.evidenceExpected),
       domainPbcItems: pbc

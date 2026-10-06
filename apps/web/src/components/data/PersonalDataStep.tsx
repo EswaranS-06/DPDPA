@@ -54,6 +54,7 @@ export const PersonalDataStep = ({
 }) => {
   const [chosen, setChosen] = useState<Chosen>(() => restore(initial))
   const codes = useMemo(() => new Set(chosen.codes), [chosen.codes])
+  const byCode = useMemo(() => new Map(elements.map((row) => [row.code, row])), [elements])
   const suggestion = useMemo(() => suggestFor(name, code, processes), [name, code, processes])
   const value = JSON.stringify([
     ...chosen.codes.map((item) => ({ code: item })),
@@ -69,9 +70,10 @@ export const PersonalDataStep = ({
             What personal data does this department handle?
           </h2>
           <p className={styles.lede}>
-            Tick each data element it collects, receives or keeps. Each is filed under its category
-            and sensitivity level. Add where it comes from, where it is kept and who receives it on
-            the department’s personal data page; you can change all of it at any time.
+            Pick the data elements it collects, receives or keeps: take the suggestions or search
+            for others. Each is filed under its category and sensitivity level. Add where it comes
+            from, where it is kept and who receives it on the department’s personal data page; you
+            can change all of it at any time.
           </p>
         </div>
         <p className={styles.count} aria-live="polite">
@@ -79,14 +81,44 @@ export const PersonalDataStep = ({
         </p>
       </header>
       <input type="hidden" name="personalData" value={value} />
-      {chosen.custom.length > 0 ? (
-        <ul className={styles.customList} aria-label="Data elements added by hand">
+      {total > 0 ? (
+        <ul className={styles.chips} aria-label="Data elements chosen">
+          {chosen.codes.map((item) => {
+            const element = byCode.get(item)
+            if (!element) return null
+            return (
+              <li
+                key={item}
+                className={styles.chip}
+                title={`${element.code}, ${categoryInfo(element.category).title}`}
+              >
+                <span>{element.title}</span>
+                <span className={`${styles.chipLevel} ${styles[`level${element.level}`]}`}>
+                  {element.level}
+                </span>
+                <button
+                  type="button"
+                  aria-label={`Remove ${element.title}`}
+                  onClick={() =>
+                    setChosen((current) => ({
+                      ...current,
+                      codes: current.codes.filter((other) => other !== item),
+                    }))
+                  }
+                >
+                  <X size={14} aria-hidden="true" />
+                </button>
+              </li>
+            )
+          })}
           {chosen.custom.map((item) => (
-            <li key={item.title} className={styles.customChip}>
-              <span>
-                {item.title}{' '}
-                <span className={styles.muted}>· {categoryInfo(item.category).title}</span>
-              </span>
+            <li
+              key={`custom:${item.title}`}
+              className={styles.chip}
+              title={`Added by hand, ${categoryInfo(item.category).title}`}
+            >
+              <span>{item.title}</span>
+              <span className={styles.chipLevel}>own</span>
               <button
                 type="button"
                 aria-label={`Remove ${item.title}`}

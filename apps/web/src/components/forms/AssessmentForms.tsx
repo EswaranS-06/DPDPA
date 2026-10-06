@@ -317,6 +317,21 @@ export const CheckAllForm = ({ action, count }: { action: Action; count: number 
   )
 }
 
+/** Moves the open cycle to the newest question bank, once. */
+export const MoveReleaseForm = ({ action, version }: { action: Action; version: string }) => {
+  const [state, formAction] = useActionState(action, IDLE)
+  return (
+    <form action={formAction} className={styles.form}>
+      <Feedback state={state} />
+      {state.status === 'success' ? null : (
+        <FormActions>
+          <SubmitButton pendingText="Moving…">Use release {version}</SubmitButton>
+        </FormActions>
+      )}
+    </form>
+  )
+}
+
 export const StatusButtons = ({
   action,
   transitions,

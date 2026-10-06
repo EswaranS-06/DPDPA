@@ -1,6 +1,6 @@
-import { can, CLIENT_ROLES, ROLE_DESCRIPTION, ROLE_LABEL } from '@duatf/core-access'
+import { can, CLIENT_ROLES, describeDenial, ROLE_DESCRIPTION, ROLE_LABEL } from '@duatf/core-access'
 import { formatIst } from '@duatf/core-utils'
-import { Chip, DataTable, Disclosure, EmptyState, PageHeader, Panel } from '@duatf/core-ui'
+import { Callout, Chip, DataTable, Disclosure, EmptyState, PageHeader, Panel } from '@duatf/core-ui'
 import { listClientPeople, listDepartments } from '@duatf/feature-compliance-api'
 import { KeyRound, Users } from 'lucide-react'
 import type { Metadata } from 'next'
@@ -17,6 +17,17 @@ import { createPersonAction, personAction } from './actions'
 
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = { title: 'People' }
+
+/** Why the add form is missing, and how to get it. */
+const AddPeopleNotice = ({ denial }: { denial: ReturnType<typeof describeDenial> }) => (
+  <Callout tone="locked" title="Adding people is for the Administrator and Senior auditors">
+    <p>
+      You are signed in as {denial.yourRoles.join(', ') || 'a user without a role here'}. People are
+      added by: {denial.allowedRoles.join(', ')}. Ask {denial.ask} to add the person, or to make you
+      a Senior auditor under Administration, Team.
+    </p>
+  </Callout>
+)
 
 export default async function Page({ params }: { params: Promise<{ code: string }> }) {
   const client = await loadClient((await params).code)
@@ -45,8 +56,9 @@ export default async function Page({ params }: { params: Promise<{ code: string 
       />
       {clientPeople.length === 0 ? (
         <EmptyState icon={Users} title="No people yet">
-          Add the heads of departments and other contacts you work with. They need no login to be
-          given work.
+          {canManage
+            ? 'Add the heads of departments and other contacts you work with. They need no login to be given work.'
+            : null}
         </EmptyState>
       ) : (
         <DataTable
@@ -143,6 +155,11 @@ export default async function Page({ params }: { params: Promise<{ code: string 
                 ]
               : []),
           ]}
+        />
+      )}
+      {canManage ? null : (
+        <AddPeopleNotice
+          denial={describeDenial(ctx.principal, 'user.invite', { clientId: client.id })}
         />
       )}
       {canManage ? (

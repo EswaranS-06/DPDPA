@@ -9,6 +9,7 @@ import {
   checkAnswered,
   checkItem,
   createAssessment,
+  moveCycleToLatestRelease,
   requestEvidence,
 } from '@duatf/feature-compliance-api'
 import { revalidatePath } from 'next/cache'
@@ -120,6 +121,38 @@ export const changeStatusAction = async (
   }
   revalidatePath(clientPath(target.clientCode), 'layout')
   return { status: 'success', message: 'Status updated.' }
+}
+
+/** Moves an open cycle to the newest knowledge-base release (new and renumbered questions). */
+export const moveCycleAction = async (
+  target: { clientId: string; clientCode: string; assessmentCode: string },
+  _: FormState,
+): Promise<FormState> => {
+  let moved: Awaited<ReturnType<typeof moveCycleToLatestRelease>>
+  try {
+    moved = await moveCycleToLatestRelease(
+      await serviceContext(),
+      target.clientId,
+      target.assessmentCode,
+    )
+  } catch (error) {
+    return failure(error)
+  }
+  revalidatePath(clientPath(target.clientCode), 'layout')
+  const parts = [
+    `${moved.kept} questions kept their answers, evidence and findings`,
+    moved.renumbered ? `${moved.renumbered} of them under a new code` : '',
+    moved.removed
+      ? `${moved.removed} unanswered questions the new release dropped were removed`
+      : '',
+    moved.cleared.length
+      ? `answers that no longer fit were cleared for ${moved.cleared.join(', ')}`
+      : '',
+  ].filter(Boolean)
+  // The page shows the summary: the move panel itself is gone once the cycle is up to date.
+  redirect(
+    `${assessmentPath(target.clientCode, target.assessmentCode)}?moved=${encodeURIComponent(`Release ${moved.to}: ${parts.join('; ')}.`)}`,
+  )
 }
 
 /** Gives one question to a person (or takes it back). */

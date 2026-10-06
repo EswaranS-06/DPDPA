@@ -69,7 +69,7 @@ const assessmentSchema = z
     },
   )
 
-const publishedRelease = async (tx: Transaction) => {
+export const publishedRelease = async (tx: Transaction) => {
   const [row] = await tx
     .select({ id: frameworkRelease.id, version: frameworkRelease.version })
     .from(frameworkRelease)
@@ -252,10 +252,12 @@ export type QuestionPicker = {
   cycle: { id: string; code: string; status: AssessmentStatus } | null
   /** Set when the questions cannot be changed now (the last cycle is completed). */
   closed: string | null
+  /** A newer published release the open cycle could move to, with more or changed questions. */
+  newerRelease: string | null
   questionnaires: PickerQuestionnaire[]
 }
 
-const lockReasons = async (tx: Transaction, itemIds: string[]) => {
+export const lockReasons = async (tx: Transaction, itemIds: string[]) => {
   if (itemIds.length === 0) return new Map<string, string>()
   const items = await tx
     .select({ id: assessmentItem.id, answer: assessmentItem.answer })
@@ -333,9 +335,11 @@ export const departmentQuestionPicker = async (
       tx,
       mine.map((row) => row.id),
     )
+    const published = cycle ? await publishedRelease(tx) : release
     return {
       release,
       cycle: cycle ? { id: cycle.id, code: cycle.code, status: cycle.status } : null,
+      newerRelease: published.id === release.id ? null : published.version,
       closed: latest
         ? `${latest.code} is completed. Start the next cycle to change questions.`
         : null,
@@ -542,7 +546,7 @@ export const listAssessments = async (ctx: ServiceContext, clientId: string) => 
 }
 export type AssessmentSummary = Awaited<ReturnType<typeof listAssessments>>[number]
 
-const findAssessment = async (tx: Transaction, clientId: string, code: string) => {
+export const findAssessment = async (tx: Transaction, clientId: string, code: string) => {
   const [row] = await tx
     .select({ assessment, releaseVersion: frameworkRelease.version })
     .from(assessment)
@@ -599,8 +603,10 @@ export const getAssessment = async (ctx: ServiceContext, clientId: string, code:
       .orderBy(asc(questionnaire.seq))
     const progressWhere = (match: (row: (typeof byGroup)[number]) => boolean) =>
       summariseProgress(byGroup.filter(match))
+    const latest = await publishedRelease(tx)
     return {
       ...found,
+      latestRelease: latest.id === found.releaseId ? null : latest.version,
       progress: summariseProgress(byGroup),
       domains: domains
         .map((row) => ({ ...row, progress: progressWhere((item) => item.domainCode === row.code) }))

@@ -147,9 +147,7 @@ export const QuestionPicker = ({
           >
             <summary className={styles.groupSummary}>
               <ChevronDown className={styles.chevron} size={16} aria-hidden="true" />
-              <span className={styles.groupName}>
-                <span className="code">{group.code}</span> {group.title}
-              </span>
+              <span className={styles.groupName}>{group.title}</span>
               <span className={styles.groupCount}>
                 {groupState.count} of {codes.length}
               </span>

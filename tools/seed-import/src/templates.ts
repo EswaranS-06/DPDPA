@@ -28,6 +28,8 @@ const templateQuestionSchema = z.object({
   risk: z.enum(TEMPLATE_RISKS),
   ref: z.string().nullable(),
   attachment: z.boolean(),
+  /** ComplyX's evidence list for the question, when the workbook has an Evidence column. */
+  evidence: z.array(z.string().min(1)).optional(),
 })
 export type TemplateQuestion = z.infer<typeof templateQuestionSchema>
 
@@ -86,6 +88,13 @@ export const optionsFromNote = (note: string): string[] => {
     .filter(Boolean)
 }
 
+/** One evidence item per line of the Evidence cell, without bullets. */
+export const evidenceItems = (cell: string): string[] =>
+  cell
+    .split(/\r?\n/)
+    .map((line) => line.replace(/^[\s•\-*]+/, '').trim())
+    .filter(Boolean)
+
 /** The drop-down list of a row: "_options!$A$2:$D$2" read from the options sheet. */
 const listFor = (formula: string | undefined, options: ExcelJS.Worksheet): string[] => {
   const match = /_options!\$([A-Z]+)\$(\d+):\$([A-Z]+)\$(\d+)/.exec(formula ?? '')
@@ -115,6 +124,7 @@ export const readTemplateWorkbook = async (path: string): Promise<TemplateFile> 
   if (header.join('|') !== HEADERS.join('|')) {
     throw new Error(`${file}: unexpected columns ${header.join(', ')}.`)
   }
+  const evidenceColumn = cellText(sheet.getRow(1).getCell(HEADERS.length + 1).value) === 'Evidence'
   const validations = (
     sheet as unknown as { dataValidations: { model: Record<string, { formulae?: string[] }> } }
   ).dataValidations.model
@@ -127,6 +137,7 @@ export const readTemplateWorkbook = async (path: string): Promise<TemplateFile> 
     const note = cell(6)
     const listed = listFor(validations[`F${number}`]?.formulae?.[0], options)
     const ref = cell(8)
+    const evidence = evidenceColumn ? evidenceItems(cell(HEADERS.length + 1)) : []
     questions.push(
       templateQuestionSchema.parse({
         code: cell(3),
@@ -138,6 +149,7 @@ export const readTemplateWorkbook = async (path: string): Promise<TemplateFile> 
         risk: cell(7),
         ref: ref === '' || ref === '—' || ref === '-' ? null : ref,
         attachment: cell(9).toLowerCase() === 'yes',
+        ...(evidence.length ? { evidence } : {}),
       }),
     )
   })

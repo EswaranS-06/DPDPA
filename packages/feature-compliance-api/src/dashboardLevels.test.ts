@@ -44,7 +44,7 @@ beforeAll(() => {
 })
 afterAll(() => closeWorld(world))
 
-const HR_CODES = ['A1.1', 'A1.3', 'A1.6', 'B0.12']
+const HR_CODES = ['A1.1', 'A1.3', 'A1.6', 'B0.10']
 const IT_CODES = ['A8.1', 'A8.2', 'A8.4', 'A8.6']
 
 /**
@@ -294,7 +294,7 @@ describe('dashboard workbooks', () => {
       ['A1.1', 'TPL-001', 'HR department', 'No', 'No'],
       ['A1.3', 'TPL-001', 'HR department', '2 · Developing', 'No'],
       ['A1.6', 'TPL-001', 'HR department', 'Yes', 'No'],
-      ['B0.12', 'TPL-002', 'HR department', 'Not answered', 'No'],
+      ['B0.10', 'TPL-002', 'HR department', 'Not answered', 'No'],
     ])
     const findings = dataRows(book.getWorksheet('Findings'))
     expect(findings.map((cells) => cells[7])).toEqual(['HR department', 'HR department'])
