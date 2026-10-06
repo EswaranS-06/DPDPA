@@ -219,14 +219,14 @@ describe('evidence suggestions', () => {
   })
 })
 
-describe('school operations module', () => {
-  it("TC-C20.10-01 B12 asks schools about children's data, tied to the children's obligations, with evidence", () => {
+describe('education operations module', () => {
+  it("TC-C20.10-01 B12 asks educational institutions about students' data, tied to the children's obligations, with evidence", () => {
     const school = questions.filter((question) => question.code.startsWith('B12.'))
     expect(school.map((question) => question.code)).toEqual(
       Array.from({ length: 13 }, (_, index) => `B12.${index + 1}`),
     )
     expect(new Set(school.map((question) => question.section))).toEqual(
-      new Set(['School Operations']),
+      new Set(['Education Operations']),
     )
     expect(school.filter((question) => (question.evidence ?? []).length === 0)).toEqual([])
     const children = school

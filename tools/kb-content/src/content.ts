@@ -517,12 +517,13 @@ const DATA_MAP_ELEMENTS: EntryInput[] = [
 ]
 
 /**
- * Data elements of schools and other educational institutions (phase C20.10), where most data
- * principals are children: a parent's or guardian's verifiable consent is needed where consent is
- * the ground (s.9(1)), and tracking, behavioural monitoring and targeted advertising are barred
- * except as the Fourth Schedule allows (s.9(3), Rule 12).
+ * Data elements of educational institutions of every kind (phase C20.10): schools, colleges,
+ * universities, polytechnics, diploma and coaching institutes. For students under 18 a parent's or
+ * guardian's verifiable consent is needed where consent is the ground (s.9(1)), and tracking,
+ * behavioural monitoring and targeted advertising are barred except as the Fourth Schedule allows
+ * (s.9(3), Rule 12).
  */
-const SCHOOL_ELEMENTS: EntryInput[] = [
+const EDUCATION_ELEMENTS: EntryInput[] = [
   element(
     'DE-EDU-009',
     'Admission application and entrance test results',
@@ -530,21 +531,27 @@ const SCHOOL_ELEMENTS: EntryInput[] = [
     ['children'],
     'Keep applicants not admitted only as long as the admission purpose needs (s.8(7)).',
   ),
-  element('DE-EDU-010', 'Report cards and progress reports', 'education', ['children'], ''),
   element(
-    'DE-EDU-011',
-    'Transfer, migration or school leaving certificate',
+    'DE-EDU-010',
+    'Report cards, grade sheets and transcripts',
     'education',
     ['children'],
     '',
   ),
-  element('DE-EDU-012', 'Previous school records', 'education', ['children'], ''),
+  element(
+    'DE-EDU-011',
+    'Transfer, migration or leaving certificate',
+    'education',
+    ['children'],
+    '',
+  ),
+  element('DE-EDU-012', 'Previous school or college records', 'education', ['children'], ''),
   element(
     'DE-EDU-013',
     'Answer scripts and examination records',
     'assessment_results',
     ['children'],
-    'Boards and the school may set how long these are kept.',
+    'Boards, universities and the institution may set how long these are kept.',
   ),
   element(
     'DE-EDU-014',
@@ -580,8 +587,24 @@ const SCHOOL_ELEMENTS: EntryInput[] = [
     'Learning platform activity and progress data',
     'behavioural',
     ['children', 'ai'],
-    'Profiling children for anything beyond the educational activity risks the s.9(3) bar on behavioural monitoring.',
+    'Profiling students under 18 for anything beyond the educational activity risks the s.9(3) bar on behavioural monitoring.',
   ),
+  element(
+    'DE-EDU-020',
+    'University or board enrolment and registration number',
+    'education',
+    [],
+    '',
+  ),
+  element(
+    'DE-EDU-021',
+    'Internship and placement records',
+    'education',
+    [],
+    'Share with recruiters only for the placement purpose the student agreed to.',
+  ),
+  element('DE-EDU-022', 'Alumni records', 'education', [], ''),
+  element('DE-EDU-023', 'Research, project and thesis records', 'education', [], ''),
   element(
     'DE-FAM-006',
     'Parent or guardian occupation and income',
@@ -597,7 +620,7 @@ const SCHOOL_ELEMENTS: EntryInput[] = [
     'UDISE+ Permanent Education Number (PEN)',
     'gov_id',
     ['gov_id', 'children'],
-    'Issued through the government school data system; disclose only as that system requires.',
+    'Issued to school students through the government school data system; disclose only as that system requires.',
   ),
   element(
     'DE-GOV-020',
@@ -608,21 +631,21 @@ const SCHOOL_ELEMENTS: EntryInput[] = [
   ),
   element(
     'DE-LOC-006',
-    'School bus route, stop and pick-up times',
+    'Student transport route, stop and pick-up times',
     'location',
     ['location', 'children'],
     '',
   ),
   element(
     'DE-LOC-007',
-    'School transport GPS tracking',
+    'Student transport GPS tracking',
     'location',
     ['location', 'children'],
     "Location tracking of children while they are transported is one of the Fourth Schedule purposes (Rule 12); don't use it for anything else.",
   ),
   element(
     'DE-HLT-022',
-    'Medical room visits and first-aid records',
+    'Medical room or health centre visits and first-aid records',
     'health',
     ['health', 'children'],
     '',
@@ -642,24 +665,37 @@ const SCHOOL_ELEMENTS: EntryInput[] = [
     'Keep with the designated child protection staff; mandatory reporting under POCSO applies alongside DPDP.',
   ),
   element(
+    'DE-SEN-012',
+    'Anti-ragging and internal complaints committee records',
+    'sensitive_allegations',
+    [],
+    'Kept by the committee; restrict access to its members.',
+  ),
+  element(
     'DE-AV-008',
     'Classroom and campus CCTV footage',
     'images_av',
     ['cctv', 'children'],
-    'Monitoring of students is allowed for educational activities or their safety under the Fourth Schedule; set a short retention.',
+    'Monitoring of students under 18 is allowed for educational activities or their safety under the Fourth Schedule; set a short retention.',
   ),
   element(
     'DE-AV-009',
     'Student photos and videos for events, website or social media',
     'images_av',
     ['children'],
-    "Publish only with the parent's consent, and take down when it is withdrawn.",
+    'Publish only with consent (a parent or guardian for students under 18), and take down when it is withdrawn.',
   ),
   element('DE-AV-010', 'Online class recordings', 'images_av', ['children'], ''),
-  element('DE-FIN-019', 'School fee payment records', 'financial', ['financial', 'children'], ''),
+  element(
+    'DE-FIN-019',
+    'Tuition and fee payment records',
+    'financial',
+    ['financial', 'children'],
+    '',
+  ),
   element(
     'DE-AUT-005',
-    'Student login credentials for school apps and platforms',
+    'Student login credentials for institution apps and learning platforms',
     'credential',
     ['children'],
     '',
@@ -670,7 +706,7 @@ const SCHOOL_ELEMENTS: EntryInput[] = [
     'Driver and attendant verification (licence, police verification, medical fitness)',
     'background_check',
     ['gov_id'],
-    'Kept for the safety of children in school transport.',
+    'Kept for the safety of students in the institution’s transport.',
   ),
   element(
     'DE-COM-010',
@@ -684,7 +720,7 @@ const SCHOOL_ELEMENTS: EntryInput[] = [
 export const DATA_ELEMENTS: EntryInput[] = [
   ...GAP_DATA_ELEMENTS,
   ...DATA_MAP_ELEMENTS,
-  ...SCHOOL_ELEMENTS,
+  ...EDUCATION_ELEMENTS,
 ]
 
 /** The data map's categories and levels, as reference vocabularies in the knowledge base. */

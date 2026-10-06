@@ -153,7 +153,7 @@ Gate: **passing**
 | TC-C20.6-01 | C20.6 | Add department with personal data, the personal data page and the data mapping views render at 1440 and 390 px | no overlap, no console errors; saves and exports | manual | PASS |
 | TC-C20.7-01 | C20.7 | Every Track B question asks for the evidence ComplyX lists for it | evidence needed = the sheet; none missing | oracle | PASS |
 | TC-C20.8-01 | C20.8 | Items follow their question across renumbering, keep fitting answers and findings, and nothing answered is lost | kept, renumbered, removed and cleared as worked out; refused when answers would be lost | literal | PASS |
-| TC-C20.10-01 | C20.10 | B12 asks schools about children's data, tied to the children's obligations, with evidence | 13 questions; B12.1, .3, .4, .5, .7, .8, .13 link OBL-CHD; evidence for every one | literal | PASS |
+| TC-C20.10-01 | C20.10 | B12 asks educational institutions about students' data, tied to the children's obligations, with evidence | 13 questions; B12.1, .3, .4, .5, .7, .8, .13 link OBL-CHD; evidence for every one | literal | PASS |
 | TC-C20.9-01 | C20.9 | An administrator makes an auditor a senior auditor, who can then add people at a client | only an administrator; role changed; can add people | literal | PASS |
 
 10 further tests are planned in later sub-phases.

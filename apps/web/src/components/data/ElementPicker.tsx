@@ -125,7 +125,7 @@ export const ElementPicker = ({
       ) : (
         <p className={styles.note}>
           Suggestions appear when the department’s name says what it does, such as HR, Finance,
-          Purchase, IT, Marketing, Sales, Support, Admin, Legal, Product or School. Otherwise
+          Purchase, IT, Marketing, Sales, Support, Admin, Legal, Product or Academics. Otherwise
           search, or browse a category, below.
         </p>
       )}

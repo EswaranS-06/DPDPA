@@ -89,8 +89,37 @@ export const applyContent = async (ctx: AuthoringContext): Promise<ContentReport
     report.added.push(`${section}/${code}`)
   }
 
+  // A drafted data element that nobody has reviewed yet takes the corrected text; one a person
+  // reviewed or edited stays as they left it.
+  const refreshElement = async (input: EntryInput) => {
+    const code = String(input.code)
+    const form = await entryForm(ctx, 'data-elements', { code })
+    if (form.review?.status !== 'awaiting_review' || form.review.origin !== 'assistant') {
+      report.skipped.push(`data-elements/${code}`)
+      return
+    }
+    const tags = (value: unknown) =>
+      JSON.stringify(Array.isArray(value) ? value.map(String).sort() : [])
+    const current = form.values
+    if (
+      current.title === input.title &&
+      current.category === (input.category ?? input.newCategory) &&
+      current.personalData === input.personalData &&
+      (current.note ?? '') === (input.note ?? '') &&
+      tags(current.contextTags) === tags(input.contextTags)
+    ) {
+      report.skipped.push(`data-elements/${code}`)
+      return
+    }
+    await saveEntry(ctx, 'data-elements', input, code)
+    report.fixed.push(`data-elements/${code}`)
+  }
+
   for (const input of BASES) await add('bases', input)
-  for (const input of DATA_ELEMENTS) await add('data-elements', input)
+  for (const input of DATA_ELEMENTS) {
+    if (await exists(ctx, 'data-elements', String(input.code))) await refreshElement(input)
+    else await add('data-elements', input)
+  }
 
   const flags = await entryForm(ctx, 'vocabularies', { code: 'engine-flags' })
   const terms = typeof flags.values.terms === 'string' ? flags.values.terms : ''
