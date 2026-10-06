@@ -71,6 +71,15 @@ export const AddPersonForm = ({
   const { state, formAction, value, error } = useForm(action)
   const [role, setRole] = useState(value('role') || 'department_owner')
   const [login, setLogin] = useState(value('allowLogin') === 'on')
+  // React clears the form after a person is added; the remembered choices follow it.
+  const [seen, setSeen] = useState(state)
+  if (seen !== state) {
+    setSeen(state)
+    if (state.status === 'success') {
+      setRole('department_owner')
+      setLogin(false)
+    }
+  }
   return (
     <form action={formAction} className={styles.form} noValidate>
       <Feedback state={state} />
@@ -252,6 +261,11 @@ export const AddRoleForm = ({
 }) => {
   const { state, formAction, error } = useForm(action)
   const [role, setRole] = useState('department_owner')
+  const [seen, setSeen] = useState(state)
+  if (seen !== state) {
+    setSeen(state)
+    if (state.status === 'success') setRole('department_owner')
+  }
   return (
     <form action={formAction} className={styles.form} noValidate>
       <Feedback state={state} />

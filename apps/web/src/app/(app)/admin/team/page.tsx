@@ -63,6 +63,9 @@ export default async function Page() {
                   options={roles}
                   current={firm[0]?.role ?? null}
                   placeholder={null}
+                  confirm={{
+                    firm_admin: `Make ${row.displayName} an Administrator? Administrators manage the team, risk bands and the knowledge base.`,
+                  }}
                 />
               )
             },

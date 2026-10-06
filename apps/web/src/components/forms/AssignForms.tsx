@@ -10,6 +10,7 @@ import {
 } from '@duatf/core-ui'
 import { useActionState, useState } from 'react'
 import { IDLE, type FormState } from '@/lib/formState'
+import { useSubmit } from '@/lib/useSubmit'
 import { Feedback } from './Feedback'
 import styles from './forms.module.css'
 import answerStyles from './AssessmentForms.module.css'
@@ -25,6 +26,7 @@ export const OwnerSelectForm = ({
   options,
   current,
   placeholder = 'No one',
+  confirm = {},
 }: {
   action: Action
   hidden?: Record<string, string>
@@ -34,9 +36,11 @@ export const OwnerSelectForm = ({
   current: string | null
   /** The empty choice; null when a value is required. */
   placeholder?: string | null
+  /** Choices that need a confirmation before they are saved, with the question to ask. */
+  confirm?: Record<string, string>
 }) => {
-  const [state, formAction] = useActionState(action, IDLE)
-  // Controlled, so the choice stays shown after saving (React resets uncontrolled fields).
+  // Submitted without React's form reset, which would show a stale or first option after saving.
+  const { state, onSubmit } = useSubmit(action)
   const [chosen, setChosen] = useState(current ?? '')
   // A new value from the server (saved here or elsewhere) replaces the shown choice.
   const [shown, setShown] = useState(current)
@@ -45,7 +49,17 @@ export const OwnerSelectForm = ({
     setChosen(current ?? '')
   }
   return (
-    <form action={formAction} className={styles.secret}>
+    <form
+      onSubmit={(event) => {
+        const question = confirm[chosen]
+        if (question && chosen !== current && !window.confirm(question)) {
+          event.preventDefault()
+          return
+        }
+        onSubmit(event)
+      }}
+      className={styles.secret}
+    >
       {Object.entries(hidden).map(([key, value]) => (
         <input key={key} type="hidden" name={key} value={value} />
       ))}

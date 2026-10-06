@@ -1,10 +1,11 @@
 'use client'
 
-import { FormActions, SubmitButton, TextAreaField, TextField } from '@duatf/core-ui'
+import { buttonClass, FormActions, SubmitButton, TextAreaField, TextField } from '@duatf/core-ui'
 import type { AnswerOption, AnswerType, ItemResponse } from '@duatf/platform-db'
 import { BadgeCheck, CircleAlert, CircleCheck, CircleX, Info, Minus, Undo2 } from 'lucide-react'
 import { useActionState, useState } from 'react'
 import { IDLE, type FormState } from '@/lib/formState'
+import { useSubmit } from '@/lib/useSubmit'
 import { Feedback } from './Feedback'
 import styles from './forms.module.css'
 import answerStyles from './AssessmentForms.module.css'
@@ -135,7 +136,8 @@ const OptionCard = ({
  * to 4; one or several of the listed choices; or free text. Not applicable needs a reason.
  */
 export const AnswerForm = ({ action, shape, current, disabled, gate }: AnswerFormProps) => {
-  const [state, formAction] = useActionState(action, IDLE)
+  // Submitted without React's form reset, so the chosen answer stays shown after saving.
+  const { state, onSubmit, pending } = useSubmit(action)
   const answered = current.answer !== 'not_assessed'
   const [single, setSingle] = useState(
     current.answer === NOT_APPLICABLE ? NOT_APPLICABLE : (chosenValues(current.response)[0] ?? ''),
@@ -151,7 +153,7 @@ export const AnswerForm = ({ action, shape, current, disabled, gate }: AnswerFor
       : `${answerStyles.answers} ${answerStyles.list}`
 
   return (
-    <form action={formAction} className={styles.form} noValidate>
+    <form onSubmit={onSubmit} className={styles.form} noValidate>
       <Feedback state={state} />
       <fieldset
         className={columns}
@@ -269,9 +271,14 @@ export const AnswerForm = ({ action, shape, current, disabled, gate }: AnswerFor
         <p className={styles.small}>{disabled}</p>
       ) : (
         <FormActions>
-          <SubmitButton pendingText="Saving…">
-            {answered ? 'Update answer' : 'Save answer'}
-          </SubmitButton>
+          <button
+            type="submit"
+            className={buttonClass('primary')}
+            disabled={pending}
+            aria-busy={pending}
+          >
+            {pending ? 'Saving…' : answered ? 'Update answer' : 'Save answer'}
+          </button>
         </FormActions>
       )}
     </form>
