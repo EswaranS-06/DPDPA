@@ -125,9 +125,9 @@ Gate: **passing**
 | TC-C18.3-01 | C18.3 | Every tour reaches its end or its hands-on step against the live app, without saving | 43 of 43 | manual | DEFERRED |
 | TC-C18.4-01 | C18.4 | Show me opens a visible Chrome on DUATF, waits for sign-in and a second task reuses the tab | window opens; sign-in wait; tab reused | manual | DEFERRED |
 | TC-C18.4-02 | C18.4 | ComplyX signs in and follows a task to its end in the guide window | done | manual | DEFERRED |
-| TC-C19.1-01 | C19.1 | templates.yaml is exactly what the three ComplyX workbooks hold | TPL-001 70, TPL-002 60 (Track B), TPL-003 58; 188 questions | oracle | PASS |
-| TC-C19.1-02 | C19.1 | Every question is mapped to the knowledge base, with valid answer options and gates | no unmapped, orphaned or broken gates; 88 yes/no, 77 maturity, 12 choice, 1 multi-choice, 10 text; B0.1 offers the data map categories | literal | PASS |
-| TC-C19.2-01 | C19.2 | The release holds the three questionnaires and 188 complete questions with law, penalty, controls and gates | no incomplete question; gates stored | oracle | PASS |
+| TC-C19.1-01 | C19.1 | templates.yaml is exactly what the three ComplyX workbooks hold | TPL-001 70, TPL-002 73 (Track B with B12), TPL-003 58; 201 questions | oracle | PASS |
+| TC-C19.1-02 | C19.1 | Every question is mapped to the knowledge base, with valid answer options and gates | no unmapped, orphaned or broken gates; 93 yes/no, 85 maturity, 12 choice, 1 multi-choice, 10 text; B0.1 offers the data map categories | literal | PASS |
+| TC-C19.2-01 | C19.2 | The release holds the three questionnaires and 201 complete questions with law, penalty, controls and gates | no incomplete question; gates stored | oracle | PASS |
 | TC-C19.3-01 | C19.3 | A new department gets exactly the chosen questions, whole questionnaires and sections included, in the first cycle | items = chosen questions | oracle | PASS |
 | TC-C19.3-02 | C19.3 | The same question for two departments is answered separately | two items; separate findings | literal | PASS |
 | TC-C19.3-03 | C19.3 | Taking questions away removes unanswered ones and keeps answered ones | unanswered removed; answered kept | literal | PASS |
@@ -153,6 +153,7 @@ Gate: **passing**
 | TC-C20.6-01 | C20.6 | Add department with personal data, the personal data page and the data mapping views render at 1440 and 390 px | no overlap, no console errors; saves and exports | manual | PASS |
 | TC-C20.7-01 | C20.7 | Every Track B question asks for the evidence ComplyX lists for it | evidence needed = the sheet; none missing | oracle | PASS |
 | TC-C20.8-01 | C20.8 | Items follow their question across renumbering, keep fitting answers and findings, and nothing answered is lost | kept, renumbered, removed and cleared as worked out; refused when answers would be lost | literal | PASS |
+| TC-C20.10-01 | C20.10 | B12 asks schools about children's data, tied to the children's obligations, with evidence | 13 questions; B12.1, .3, .4, .5, .7, .8, .13 link OBL-CHD; evidence for every one | literal | PASS |
 | TC-C20.9-01 | C20.9 | An administrator makes an auditor a senior auditor, who can then add people at a client | only an administrator; role changed; can add people | literal | PASS |
 
 10 further tests are planned in later sub-phases.

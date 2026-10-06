@@ -75,7 +75,7 @@ describe('framework release 1.1.0', () => {
     }
   })
 
-  it('TC-C19.2-01 holds the three ComplyX questionnaires and 188 complete, mapped questions', async () => {
+  it('TC-C19.2-01 holds the three ComplyX questionnaires and 201 complete, mapped questions', async () => {
     const next = ids['1.1.0'] ?? ''
     const questionnaires = await handle.db.execute<{
       code: string
@@ -88,7 +88,7 @@ describe('framework release 1.1.0', () => {
       from questionnaire qn where qn.release_id = ${next} order by qn.seq`)
     expect(questionnaires.map((row) => [row.code, row.respondent, row.n])).toEqual([
       ['TPL-001', 'organisation', 70],
-      ['TPL-002', 'department', 60],
+      ['TPL-002', 'department', 73],
       ['TPL-003', 'vendor', 58],
     ])
     const { bank } = readQuestionBank(questionBankPaths(findRepoRoot()))
@@ -143,7 +143,7 @@ describe('framework release 1.1.0', () => {
     const next = ids['1.1.0'] ?? ''
     const { bank } = readQuestionBank(questionBankPaths(findRepoRoot()))
     const trackB = bank.files.find((file) => file.questionnaire === 'TPL-002')?.questions ?? []
-    expect(trackB).toHaveLength(60)
+    expect(trackB).toHaveLength(73)
     const rows = await handle.db.execute<{ code: string; required: string[] }>(sql`
       select code, evidence_required as required from question
       where release_id = ${next} and questionnaire_code = 'TPL-002'`)

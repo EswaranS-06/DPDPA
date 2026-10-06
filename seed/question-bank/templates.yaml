@@ -1924,6 +1924,234 @@ files:
           - Backup and data retention handling procedure
           - Final access review
           - Sample completed vendor offboarding record
+      - code: B12.1
+        id: c0000001-bc00-0000-0000-000000000001
+        section: School Operations
+        text: Is a parent's or lawful guardian's verifiable consent obtained before a student's personal data is processed on the basis of consent?
+        type: BINARY_PLUS
+        options:
+          - Yes
+          - Partial
+          - No
+          - N-A
+        risk: HIGH
+        ref: S.9(1), Rule 10
+        attachment: false
+        evidence:
+          - Admission form with the parental consent section
+          - Consent records for each student
+          - How the school checks that the person consenting is the parent or guardian and an adult
+      - code: B12.2
+        id: c0000002-bc00-0000-0000-000000000001
+        section: School Operations
+        text: Does the admission process collect only the student and parent data the school needs, with a notice that lists that data and its purposes?
+        type: MATURITY
+        options:
+          - "0"
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+        risk: MEDIUM
+        ref: S.5, S.6, Rule 3
+        attachment: false
+        evidence:
+          - Admission form
+          - Privacy notice for parents
+          - List of admission data fields with the purpose of each
+      - code: B12.3
+        id: c0000003-bc00-0000-0000-000000000001
+        section: School Operations
+        text: Is tracking or behavioural monitoring of students (classroom CCTV, bus GPS, attendance or learning apps) limited to educational activities and student safety?
+        type: MATURITY
+        options:
+          - "0"
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+        risk: HIGH
+        ref: S.9(3), S.9(4), Rule 12, Fourth Schedule
+        attachment: false
+        evidence:
+          - List of monitoring and tracking in use, with the purpose of each
+          - CCTV and GPS policy
+          - Exemption register entry for each Fourth Schedule purpose relied on
+      - code: B12.4
+        id: c0000004-bc00-0000-0000-000000000001
+        section: School Operations
+        text: Are students' data kept from advertising, marketing and any use detrimental to their well-being, including promotions by ed-tech, uniform or book vendors?
+        type: BINARY_PLUS
+        options:
+          - Yes
+          - Partial
+          - No
+          - N-A
+        risk: HIGH
+        ref: S.9(2), S.9(3)
+        attachment: false
+        evidence:
+          - Policy on use of student data
+          - Vendor contracts with no-marketing clauses
+          - Declaration of no targeted advertising to students
+      - code: B12.5
+        id: c0000005-bc00-0000-0000-000000000001
+        section: School Operations
+        text: Is school transport data (routes, stops, pick-up times, GPS tracking, driver and attendant details) access-controlled and shared only with parents and authorised staff?
+        type: MATURITY
+        options:
+          - "0"
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+        risk: MEDIUM
+        ref: S.8(5), Rule 6, Fourth Schedule
+        attachment: false
+        evidence:
+          - Transport app access list
+          - Transport vendor contract
+          - Driver and attendant verification records
+      - code: B12.6
+        id: c0000006-bc00-0000-0000-000000000001
+        section: School Operations
+        text: Are students' health records (medical room visits, allergies, vaccinations, special needs) kept confidential and open only to the staff who need them?
+        type: MATURITY
+        options:
+          - "0"
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+        risk: MEDIUM
+        ref: S.8(5), Rule 6
+        attachment: false
+        evidence:
+          - Medical room register and where it is kept
+          - Access list for health records
+          - Procedure for sharing health information with teachers
+      - code: B12.7
+        id: c0000007-bc00-0000-0000-000000000001
+        section: School Operations
+        text: Are counselling, disciplinary and child-protection (POCSO) records kept separately, with access restricted to the designated staff?
+        type: MATURITY
+        options:
+          - "0"
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+        risk: HIGH
+        ref: S.8(5), S.9(2), Rule 6
+        attachment: false
+        evidence:
+          - Child protection policy
+          - Access list for counselling and incident records
+          - Storage arrangement for these records
+      - code: B12.8
+        id: c0000008-bc00-0000-0000-000000000001
+        section: School Operations
+        text: Are photos and videos of students published (website, social media, newsletters) only with parental consent, and taken down when consent is withdrawn?
+        type: BINARY_PLUS
+        options:
+          - Yes
+          - Partial
+          - No
+          - N-A
+        risk: MEDIUM
+        ref: S.6(4), S.9(1)
+        attachment: false
+        evidence:
+          - Photo and video consent form
+          - Register of consents and withdrawals
+          - Take-down procedure
+      - code: B12.9
+        id: c0000009-bc00-0000-0000-000000000001
+        section: School Operations
+        text: Are student and parent records shared with boards, government portals and ed-tech or transport vendors only where a law requires it or under a contract?
+        type: BINARY_PLUS
+        options:
+          - Yes
+          - Partial
+          - No
+          - N-A
+        risk: MEDIUM
+        ref: S.7, S.8(2)
+        attachment: false
+        evidence:
+          - List of portals and vendors that receive student data, with the legal basis or contract for each
+          - Data processing agreements with vendors
+      - code: B12.10
+        id: c0000010-bc00-0000-0000-000000000001
+        section: School Operations
+        text: Is there a retention schedule for admission, academic, fee and transfer records, including applicants not admitted and students who have left?
+        type: MATURITY
+        options:
+          - "0"
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+        risk: MEDIUM
+        ref: S.8(7), Rule 8
+        attachment: false
+        evidence:
+          - Retention schedule for student records
+          - Deletion or archival log
+          - Board or regulatory retention requirements relied on
+      - code: B12.11
+        id: c0000011-bc00-0000-0000-000000000001
+        section: School Operations
+        text: Can parents ask to see, correct or erase their child's data and raise grievances, and does the school verify that the request comes from the parent or guardian?
+        type: MATURITY
+        options:
+          - "0"
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+        risk: MEDIUM
+        ref: S.11-S.13, Rule 14
+        attachment: false
+        evidence:
+          - Rights request form or channel for parents
+          - Requester verification procedure
+          - Rights and grievance request log
+      - code: B12.12
+        id: c0000012-bc00-0000-0000-000000000001
+        section: School Operations
+        text: Are visitor, gate-pass and authorised pick-up records controlled and kept only as long as they are needed?
+        type: MATURITY
+        options:
+          - "0"
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+        risk: LOW
+        ref: S.8(5), S.8(7)
+        attachment: false
+        evidence:
+          - Visitor and gate-pass register
+          - Authorised pick-up list procedure
+          - Retention period for these records
+      - code: B12.13
+        id: c0000013-bc00-0000-0000-000000000001
+        section: School Operations
+        text: Are student accounts on learning platforms and school apps set up without behavioural profiling or targeted advertising, and are the vendor terms checked for this?
+        type: BINARY_PLUS
+        options:
+          - Yes
+          - Partial
+          - No
+          - N-A
+        risk: HIGH
+        ref: S.9(3), S.8(2)
+        attachment: false
+        evidence:
+          - List of learning platforms and apps with student accounts
+          - Vendor terms or data processing agreements
+          - Platform privacy settings for students
   - file: TPL-003_External_Data_Handlers.xlsx
     questionnaire: TPL-003
     questions:

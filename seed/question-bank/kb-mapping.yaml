@@ -20,7 +20,7 @@ questionnaires:
   TPL-002:
     title: Internal data handlers
     respondent: department
-    description: "ComplyX Track B, answered by the department head: the common module every department answers about the personal data it handles (categories, purposes, systems, access, sharing, retention, training), then modules for HR, IT and security, marketing, sales, finance, support, procurement, product, legal, facilities and the vendor lifecycle. Each question lists the evidence ComplyX expects."
+    description: "ComplyX Track B, answered by the department head: the common module every department answers about the personal data it handles (categories, purposes, systems, access, sharing, retention, training), then modules for HR, IT and security, marketing, sales, finance, support, procurement, product, legal, facilities, the vendor lifecycle and school operations (B12, drafted by DUATF). Each question lists the evidence to ask for."
   TPL-003:
     title: External data handlers
     respondent: vendor
@@ -812,6 +812,75 @@ questions:
     obligations: [OBL-PRC-03, OBL-RET-02]
     controls: [CTL-RET-04, CTL-SEC-04]
     note: "Answered on the maturity scale. The organisation must have its processors erase the data when the purpose ends or consent is withdrawn (s.8(7))."
+  "B12.1":
+    title: "Verifiable parental consent for students' data"
+    domain: D07
+    obligations: [OBL-CHD-01, OBL-CHD-02]
+    controls: [CTL-CHD-02]
+    note: "Where a school relies on consent, the consent of a parent or lawful guardian must be verifiable (s.9(1), Rule 10). Processing on a legitimate use under s.7 needs no consent. The Fourth Schedule (Rule 12) lifts s.9(1) and s.9(3) only for the classes and purposes it names, such as an educational institution tracking or monitoring students for educational activities or their safety, and location tracking during school transport. Record each one relied on in the exemption register (OBL-CHD-06)."
+  "B12.2":
+    title: "Admission data limited to what is needed, with a notice"
+    domain: D05
+    obligations: [OBL-NOT-03, OBL-LB-02]
+    controls: [CTL-NOT-01, CTL-LB-02]
+  "B12.3":
+    title: "Student tracking and monitoring limited to education and safety"
+    domain: D07
+    obligations: [OBL-CHD-05, OBL-CHD-06]
+    controls: [CTL-CHD-03, CTL-CHD-04]
+    note: "The Fourth Schedule (Rule 12) lifts s.9(1) and s.9(3) only for the classes and purposes it names, such as an educational institution tracking or monitoring students for educational activities or their safety, and location tracking during school transport. Record each one relied on in the exemption register (OBL-CHD-06)."
+  "B12.4":
+    title: "No advertising or detrimental use of students' data"
+    domain: D07
+    obligations: [OBL-CHD-04, OBL-CHD-05]
+    controls: [CTL-CHD-03]
+  "B12.5":
+    title: "School transport data access-controlled"
+    domain: D09
+    obligations: [OBL-SEC-03, OBL-CHD-06]
+    controls: [CTL-SEC-04, CTL-CHD-04]
+    note: "Location tracking of children while they are transported is one of the Fourth Schedule purposes; the rest of the transport data follows the usual safeguards (Rule 6)."
+  "B12.6":
+    title: "Student health records confidential"
+    domain: D09
+    obligations: [OBL-SEC-03, OBL-SEC-01]
+    controls: [CTL-SEC-04, CTL-SEC-11]
+  "B12.7":
+    title: "Counselling, disciplinary and child-protection records restricted"
+    domain: D09
+    obligations: [OBL-SEC-03, OBL-CHD-04]
+    controls: [CTL-SEC-04, CTL-SEC-11]
+  "B12.8":
+    title: "Student photos and videos published only with parental consent"
+    domain: D06
+    obligations: [OBL-CHD-01, OBL-CON-04, OBL-CON-05]
+    controls: [CTL-CHD-02, CTL-CON-03]
+  "B12.9":
+    title: "Student records shared only by law or under contract"
+    domain: D13
+    obligations: [OBL-PRC-01, OBL-LB-04]
+    controls: [CTL-TPM-03, CTL-TPM-05]
+    note: "Disclosures a law requires (for example to a board or a government portal) rest on s.7; vendors that process for the school need a contract (s.8(2))."
+  "B12.10":
+    title: "Retention schedule for student records"
+    domain: D11
+    obligations: [OBL-RET-01, OBL-RET-06]
+    controls: [CTL-RET-01, CTL-RET-02]
+  "B12.11":
+    title: "Parents can exercise their child's rights, with verification"
+    domain: D12
+    obligations: [OBL-RGT-01, OBL-RGT-07]
+    controls: [CTL-RGT-01, CTL-RGT-03]
+  "B12.12":
+    title: "Visitor, gate-pass and pick-up records controlled"
+    domain: D11
+    obligations: [OBL-RET-01, OBL-SEC-03]
+    controls: [CTL-SEC-11, CTL-RET-01]
+  "B12.13":
+    title: "Learning platforms without profiling or targeted ads for students"
+    domain: D07
+    obligations: [OBL-CHD-05, OBL-PRC-01]
+    controls: [CTL-CHD-03, CTL-TPM-02]
   "C0.1":
     title: "Vendor identity and processing locations"
     domain: D13

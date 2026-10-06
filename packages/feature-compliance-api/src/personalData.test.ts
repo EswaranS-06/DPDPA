@@ -52,7 +52,9 @@ describe('Personal data categories and suggestions', () => {
     expect(keys('Accounts', 'FIN')).toEqual(['finance'])
     expect(keys('Information Technology', 'IT')).toEqual(['it'])
     expect(keys('Front Office', 'FO')).toEqual(['admin'])
-    expect(keys('Hostel', 'HST')).toEqual([])
+    expect(keys('Academics', 'ACD')).toEqual(['school'])
+    expect(keys('Hostel', 'HST')).toEqual(['school'])
+    expect(keys('Housekeeping', 'HK')).toEqual([])
     // Every preset lists distinct elements.
     for (const preset of DEPARTMENT_PRESETS) {
       expect(new Set(preset.elements).size, preset.key).toBe(preset.elements.length)

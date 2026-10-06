@@ -516,7 +516,176 @@ const DATA_MAP_ELEMENTS: EntryInput[] = [
   ),
 ]
 
-export const DATA_ELEMENTS: EntryInput[] = [...GAP_DATA_ELEMENTS, ...DATA_MAP_ELEMENTS]
+/**
+ * Data elements of schools and other educational institutions (phase C20.10), where most data
+ * principals are children: a parent's or guardian's verifiable consent is needed where consent is
+ * the ground (s.9(1)), and tracking, behavioural monitoring and targeted advertising are barred
+ * except as the Fourth Schedule allows (s.9(3), Rule 12).
+ */
+const SCHOOL_ELEMENTS: EntryInput[] = [
+  element(
+    'DE-EDU-009',
+    'Admission application and entrance test results',
+    'education',
+    ['children'],
+    'Keep applicants not admitted only as long as the admission purpose needs (s.8(7)).',
+  ),
+  element('DE-EDU-010', 'Report cards and progress reports', 'education', ['children'], ''),
+  element(
+    'DE-EDU-011',
+    'Transfer, migration or school leaving certificate',
+    'education',
+    ['children'],
+    '',
+  ),
+  element('DE-EDU-012', 'Previous school records', 'education', ['children'], ''),
+  element(
+    'DE-EDU-013',
+    'Answer scripts and examination records',
+    'assessment_results',
+    ['children'],
+    'Boards and the school may set how long these are kept.',
+  ),
+  element(
+    'DE-EDU-014',
+    'Special educational needs or learning support plan',
+    'education',
+    ['children', 'health'],
+    'Reveals a disability or learning difficulty; share only with the staff who support the student.',
+  ),
+  element('DE-EDU-015', 'Library borrowing records', 'education', ['children'], ''),
+  element(
+    'DE-EDU-016',
+    'Sports, co-curricular and achievement records',
+    'education',
+    ['children'],
+    '',
+  ),
+  element(
+    'DE-EDU-017',
+    'Teacher remarks and student observation notes',
+    'education',
+    ['children'],
+    '',
+  ),
+  element(
+    'DE-EDU-018',
+    'Hostel or boarding details (room, leave, visitors)',
+    'education',
+    ['children'],
+    '',
+  ),
+  element(
+    'DE-EDU-019',
+    'Learning platform activity and progress data',
+    'behavioural',
+    ['children', 'ai'],
+    'Profiling children for anything beyond the educational activity risks the s.9(3) bar on behavioural monitoring.',
+  ),
+  element(
+    'DE-FAM-006',
+    'Parent or guardian occupation and income',
+    'family',
+    ['financial'],
+    'Often collected for fee concessions or quota admissions; collect only where it is needed.',
+  ),
+  element('DE-FAM-007', 'Authorised pick-up persons and their photos', 'family', ['children'], ''),
+  element('DE-FAM-008', 'Sibling details', 'family', ['children'], ''),
+  element('DE-ID-015', 'Student ID card details', 'identity', ['children'], ''),
+  element(
+    'DE-GOV-019',
+    'UDISE+ Permanent Education Number (PEN)',
+    'gov_id',
+    ['gov_id', 'children'],
+    'Issued through the government school data system; disclose only as that system requires.',
+  ),
+  element(
+    'DE-GOV-020',
+    'RTE admission category proof (EWS or disadvantaged group)',
+    'gov_id',
+    ['gov_id', 'children', 'financial'],
+    'Reveals family income or social group; restrict access to admissions and accounts staff.',
+  ),
+  element(
+    'DE-LOC-006',
+    'School bus route, stop and pick-up times',
+    'location',
+    ['location', 'children'],
+    '',
+  ),
+  element(
+    'DE-LOC-007',
+    'School transport GPS tracking',
+    'location',
+    ['location', 'children'],
+    "Location tracking of children while they are transported is one of the Fourth Schedule purposes (Rule 12); don't use it for anything else.",
+  ),
+  element(
+    'DE-HLT-022',
+    'Medical room visits and first-aid records',
+    'health',
+    ['health', 'children'],
+    '',
+  ),
+  element(
+    'DE-HLT-023',
+    'Student health check-up and growth records',
+    'health',
+    ['health', 'children'],
+    '',
+  ),
+  element(
+    'DE-SEN-011',
+    'Child protection or POCSO incident records',
+    'sensitive_allegations',
+    ['children'],
+    'Keep with the designated child protection staff; mandatory reporting under POCSO applies alongside DPDP.',
+  ),
+  element(
+    'DE-AV-008',
+    'Classroom and campus CCTV footage',
+    'images_av',
+    ['cctv', 'children'],
+    'Monitoring of students is allowed for educational activities or their safety under the Fourth Schedule; set a short retention.',
+  ),
+  element(
+    'DE-AV-009',
+    'Student photos and videos for events, website or social media',
+    'images_av',
+    ['children'],
+    "Publish only with the parent's consent, and take down when it is withdrawn.",
+  ),
+  element('DE-AV-010', 'Online class recordings', 'images_av', ['children'], ''),
+  element('DE-FIN-019', 'School fee payment records', 'financial', ['financial', 'children'], ''),
+  element(
+    'DE-AUT-005',
+    'Student login credentials for school apps and platforms',
+    'credential',
+    ['children'],
+    '',
+  ),
+  element('DE-EMP-017', 'Teacher eligibility certificate (TET or CTET)', 'professional', [], ''),
+  element(
+    'DE-EMP-018',
+    'Driver and attendant verification (licence, police verification, medical fitness)',
+    'background_check',
+    ['gov_id'],
+    'Kept for the safety of children in school transport.',
+  ),
+  element(
+    'DE-COM-010',
+    'Parent-teacher communications (diary, app messages)',
+    'communication_content',
+    ['children'],
+    '',
+  ),
+]
+
+export const DATA_ELEMENTS: EntryInput[] = [
+  ...GAP_DATA_ELEMENTS,
+  ...DATA_MAP_ELEMENTS,
+  ...SCHOOL_ELEMENTS,
+]
 
 /** The data map's categories and levels, as reference vocabularies in the knowledge base. */
 const DATA_MAP_VOCABULARIES: EntryInput[] = [

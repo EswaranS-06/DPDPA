@@ -40,10 +40,10 @@ describe('ComplyX templates', () => {
     expect(templateBankYaml(fromWorkbooks)).toBe(templatesText)
     expect(files.map((file) => [file.questionnaire, file.questions.length])).toEqual([
       ['TPL-001', 70],
-      ['TPL-002', 60],
+      ['TPL-002', 73],
       ['TPL-003', 58],
     ])
-    expect(questions).toHaveLength(188)
+    expect(questions).toHaveLength(201)
   })
 
   it('TC-C19.1-02 maps every question to the knowledge base, with valid answers and gates', () => {
@@ -60,7 +60,7 @@ describe('ComplyX templates', () => {
       types[answers.answerType] = (types[answers.answerType] ?? 0) + 1
       expect(answers.options.length > 1, question.code).toBe(answers.answerType !== 'text')
     }
-    expect(types).toEqual({ yes_no: 88, maturity: 77, choice: 12, text: 10, multi_choice: 1 })
+    expect(types).toEqual({ yes_no: 93, maturity: 85, choice: 12, text: 10, multi_choice: 1 })
 
     // B0.1 asks for the categories of personal data: the data map's categories, not the
     // industry sectors the workbook lists.
@@ -216,6 +216,27 @@ describe('evidence suggestions', () => {
     })
     const all = [...result.required, ...result.recommended, ...result.supporting].map(key)
     expect(new Set(all).size).toBe(all.length)
+  })
+})
+
+describe('school operations module', () => {
+  it("TC-C20.10-01 B12 asks schools about children's data, tied to the children's obligations, with evidence", () => {
+    const school = questions.filter((question) => question.code.startsWith('B12.'))
+    expect(school.map((question) => question.code)).toEqual(
+      Array.from({ length: 13 }, (_, index) => `B12.${index + 1}`),
+    )
+    expect(new Set(school.map((question) => question.section))).toEqual(
+      new Set(['School Operations']),
+    )
+    expect(school.filter((question) => (question.evidence ?? []).length === 0)).toEqual([])
+    const children = school
+      .filter((question) =>
+        (mapping.questions[question.code]?.obligations ?? []).some((code) =>
+          code.startsWith('OBL-CHD-'),
+        ),
+      )
+      .map((question) => question.code)
+    expect(children).toEqual(['B12.1', 'B12.3', 'B12.4', 'B12.5', 'B12.7', 'B12.8', 'B12.13'])
   })
 })
 
