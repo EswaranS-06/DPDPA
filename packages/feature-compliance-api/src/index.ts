@@ -207,7 +207,6 @@ export {
   departmentData,
   dataElementPicker,
   saveDepartmentData,
-  buildRopaWorkbook,
   transferLabel,
   RECORD_OF_PROCESSING_NOTE,
   type CatalogueElement,
@@ -222,4 +221,29 @@ export {
   type FlowKind,
 } from './dataMapping'
 export * from './personalData'
+export * from './ropaKb'
+export {
+  activityForm,
+  adoptProcesses,
+  deleteActivity,
+  listActivities,
+  parseRef,
+  refLabel,
+  ropaCatalogue,
+  saveActivity,
+  type ActivityForm,
+  type ActivityList,
+  type ActivityRow,
+  type RopaCatalogue,
+} from './ropa'
+export {
+  applyImport,
+  buildDataElementWorkbook,
+  buildRopaWorkbook,
+  previewImport,
+  type ImportChange,
+  type ImportIssue,
+  type ImportKind,
+  type ImportPlan,
+} from './ropaWorkbook'
 export { moveCycleToLatestRelease, type ReleaseMove } from './cycleRelease'

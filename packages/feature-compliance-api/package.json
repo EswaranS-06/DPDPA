@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     ".": "./index.ts",
-    "./personal-data": "./src/personalData.ts"
+    "./personal-data": "./src/personalData.ts",
+    "./ropa-kb": "./src/ropaKb.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json"

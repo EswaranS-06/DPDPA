@@ -44,6 +44,7 @@ export const ElementPicker = ({
   suggestion,
   onAddCustom,
   disabled = false,
+  suggestionTitle,
 }: {
   elements: PickerElement[]
   chosen: ReadonlySet<string>
@@ -51,6 +52,8 @@ export const ElementPicker = ({
   suggestion: PickerSuggestion
   onAddCustom: (title: string, category: string) => void
   disabled?: boolean
+  /** Heading of the suggestions, when they don't come from a kind of department. */
+  suggestionTitle?: string
 }) => {
   const [query, setQuery] = useState('')
   const [browse, setBrowse] = useState('')
@@ -97,8 +100,8 @@ export const ElementPicker = ({
         <section className={styles.suggested} aria-labelledby="suggested-title">
           <div className={styles.suggestedHead}>
             <h3 id="suggested-title" className={styles.suggestedTitle}>
-              <Sparkles size={16} aria-hidden="true" /> Suggested for{' '}
-              {suggestion.presets.join(' and ').toLowerCase()}
+              <Sparkles size={16} aria-hidden="true" />{' '}
+              {suggestionTitle ?? `Suggested for ${suggestion.presets.join(' and ').toLowerCase()}`}
             </h3>
             <button
               type="button"

@@ -892,7 +892,7 @@ phases:
             expected: 'category and level = the knowledge base row'
             source: oracle
           - id: TC-C20.2-02
-            title: 'The personal data page can be changed at any time and refuses unknown elements, sources, departments and bases'
+            title: 'The personal data page can be changed at any time and refuses unknown elements, sources and departments'
             expected: 'saved; refused without change'
             source: literal
           - id: TC-C20.2-03
@@ -904,7 +904,7 @@ phases:
         state: active
         tests:
           - id: TC-C20.3-01
-            title: 'The flows are the ones the departments’ answers describe'
+            title: 'The flows are the ones the departments’ activities and data elements describe'
             expected: 'equal to the hand-worked flows'
             source: oracle
       - id: C20.4
@@ -912,8 +912,8 @@ phases:
         state: active
         tests:
           - id: TC-C20.4-01
-            title: 'The RoPA workbook holds a row per mapped department, every element and every flow'
-            expected: 'rows = departments, elements, flows'
+            title: 'The RoPA workbook holds one row per processing activity, with its personal data'
+            expected: 'one row per activity; its elements and answers'
             source: literal
       - id: C20.5
         title: 'Track B question bank and knowledge-base updates reach existing installations'
@@ -969,6 +969,61 @@ phases:
             title: 'An administrator makes an auditor a senior auditor, who can then add people at a client'
             expected: 'only an administrator; role changed; can add people'
             source: literal
+
+  - id: C21
+    title: 'Process-focused record of processing with Excel export and import (self-audit edition)'
+    release: R2
+    reviews: [lead_auditor, legal_sme]
+    subphases:
+      - id: C21.1
+        title: 'RoPA answer lists and every catalogue process’s RoPA defaults in the knowledge base'
+        state: active
+        tests:
+          - id: TC-C21.1-01
+            title: 'Every catalogue process has RoPA defaults drawn from the RoPA lists, and every data element one short name'
+            expected: 'no default outside its list; one name per element, no shared spelling'
+            source: literal
+      - id: C21.2
+        title: 'Processing activities, added in bulk from the process catalogue'
+        state: active
+        tests:
+          - id: TC-C21.2-01
+            title: 'Simple answers, other spellings and lists typed in one cell become the knowledge base’s answers'
+            expected: 'equal to the worked payroll example; closed lists refuse, open lists keep and warn'
+            source: literal
+          - id: TC-C21.2-02
+            title: 'A department adopts its catalogue processes in one step, with the knowledge base’s RoPA defaults'
+            expected: 'two activities with payroll’s defaults; repeats skipped; elements on the department page'
+            source: literal
+          - id: TC-C21.2-03
+            title: 'Activities are edited and removed by the audit team only, and refuse unknown answers'
+            expected: 'saved; refused; denied to the client'
+            source: literal
+      - id: C21.3
+        title: 'RoPA and data element workbooks: dropdowns from the knowledge base, import checked before it saves'
+        state: active
+        tests:
+          - id: TC-C21.3-01
+            title: 'The exported RoPA has a dropdown from the knowledge base on every answer column'
+            expected: 'strict on closed answers, typed lists allowed on multi-answer columns, blank rows included'
+            source: literal
+          - id: TC-C21.3-02
+            title: 'An edited RoPA imports only after its changes are checked, and a bad file saves nothing'
+            expected: 'unchanged file 0 changes; edited file 1 add, 1 change, 1 remove; stale, wrong or erroneous files refused'
+            source: literal
+          - id: TC-C21.3-03
+            title: 'The data element workbook adds, changes and removes a department’s data elements'
+            expected: '2 added, 1 changed, 1 removed; unknown department refused'
+            source: literal
+      - id: C21.4
+        title: 'Screens and the self instance'
+        state: active
+        tests:
+          - id: TC-C21.4-01
+            title: 'On a copy of the self instance, the release with the RoPA lists publishes and the catalogue, activity form, RoPA tab, export and import work at 1440 and 390 px'
+            expected: 'release published; no overlap or console errors; an exported, edited workbook imports'
+            source: manual
+            kind: manual
 
   - id: C12
     title: 'Hardening'

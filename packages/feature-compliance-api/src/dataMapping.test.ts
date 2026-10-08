@@ -2,19 +2,21 @@ import { AccessDeniedError } from '@duatf/core-access'
 import {
   dataElement,
   departmentDataElement,
-  departmentDataProfile,
   desc,
   eq,
   frameworkRelease,
   inArray,
+  processingActivity,
   withTenant,
 } from '@duatf/platform-db'
 import ExcelJS from 'exceljs'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { dataMap, departmentData, saveDepartmentData, buildRopaWorkbook } from './dataMapping'
+import { dataMap, departmentData, saveDepartmentData } from './dataMapping'
 import { createDepartment } from './departments'
 import { ValidationError } from './errors'
 import { defaultLevel, normaliseCategory } from './personalData'
+import { saveActivity } from './ropa'
+import { buildRopaWorkbook } from './ropaWorkbook'
 import { as, closeWorld, newClient, newPerson, openWorld, type World } from './testing'
 
 let world: World
@@ -100,59 +102,33 @@ describe('Personal data of departments', () => {
     const first = await saveDepartmentData(world.ctx, client.id, hr.id, {
       elements: [
         { code: 'DE-ID-001', source: 'employees', storage: 'HRMS', access: 'HR team' },
-        { code: 'DE-FIN-001', source: 'employees', level: 'L3' },
+        { code: 'DE-FIN-001', source: 'dept:FIN', level: 'L3' },
       ],
-      profile: {
-        purposes: 'Payroll and employment records',
-        lawfulBases: ['s7i'],
-        systems: ['HRMS', 'HRMS', ''],
-        sharedWith: ['FIN'],
-        recipients: ['Payroll outsourcer'],
-        transfersAbroad: 'no',
-        countries: 'ignored when no transfer',
-        retention: 'Eight years after exit',
-      },
     })
     expect(first.elements).toBe(2)
     let view = await departmentData(world.ctx, client.id, 'HR')
     expect(view.elements.map((row) => [row.code, row.level, row.source, row.storage])).toEqual([
       ['DE-ID-001', 'L2', 'employees', 'HRMS'],
-      ['DE-FIN-001', 'L3', 'employees', null],
+      ['DE-FIN-001', 'L3', 'dept:FIN', null],
     ])
-    expect(view.profile).toMatchObject({
-      purposes: 'Payroll and employment records',
-      lawfulBases: ['s7i'],
-      systems: ['HRMS'],
-      sharedWith: ['FIN'],
-      recipients: ['Payroll outsourcer'],
-      transfersAbroad: 'no',
-      countries: null,
-    })
+    expect(view.activities).toEqual([])
 
-    // Changed later: one element removed, another added, transfers now known.
+    // Changed later: one element removed, another added.
     await saveDepartmentData(world.ctx, client.id, hr.id, {
       elements: [
         { code: 'DE-ID-001', source: 'employees' },
         { code: 'DE-HLT-001', source: 'employees' },
       ],
-      profile: { transfersAbroad: 'yes', countries: 'Singapore' },
     })
     view = await departmentData(world.ctx, client.id, 'HR')
     expect(view.elements.map((row) => row.code)).toEqual(['DE-ID-001', 'DE-HLT-001'])
-    expect(view.profile).toMatchObject({
-      transfersAbroad: 'yes',
-      countries: 'Singapore',
-      sharedWith: [],
-    })
 
     // Refused, and nothing changes: an unknown source, a department that does not exist, a
-    // lawful basis the knowledge base lacks, a department sharing with itself.
+    // department as its own source, an element without a name.
     for (const bad of [
       { elements: [{ code: 'DE-ID-001', source: 'aliens' }] },
       { elements: [{ code: 'DE-ID-001', source: 'dept:XYZ' }] },
       { elements: [{ code: 'DE-ID-001', source: 'dept:HR' }] },
-      { elements: [], profile: { lawfulBases: ['s99'] } },
-      { elements: [], profile: { sharedWith: ['HR'] } },
       { elements: [{ title: '' }] },
     ]) {
       await expect(saveDepartmentData(world.ctx, client.id, hr.id, bad)).rejects.toBeInstanceOf(
@@ -172,11 +148,13 @@ describe('Personal data of departments', () => {
       questions: [],
     })
     await saveDepartmentData(world.ctx, client.id, hr.id, { elements: [{ code: 'DE-ID-001' }] })
+    await saveActivity(world.ctx, client.id, null, { department: 'HR', name: 'Payroll' })
 
     const dpo = await newPerson(world, 'client_dpo', { clientId: client.id })
     const view = await departmentData(as(world, dpo), client.id, 'HR')
     expect(view.canEdit).toBe(false)
     expect(view.elements).toHaveLength(1)
+    expect(view.activities.map((row) => row.name)).toEqual(['Payroll'])
     await expect(
       saveDepartmentData(as(world, dpo), client.id, hr.id, { elements: [] }),
     ).rejects.toBeInstanceOf(AccessDeniedError)
@@ -187,15 +165,16 @@ describe('Personal data of departments', () => {
     // Row-level security: inside the other client's scope the rows do not exist.
     const seen = await withTenant(world.app.db, other.id, async (tx) => ({
       elements: await tx.select().from(departmentDataElement),
-      profiles: await tx.select().from(departmentDataProfile),
+      activities: await tx.select().from(processingActivity),
     }))
     expect(seen.elements.filter((row) => row.tenantId === client.id)).toEqual([])
+    expect(seen.activities.filter((row) => row.tenantId === client.id)).toEqual([])
     expect((await dataMap(world.ctx, other.id)).summary.elements).toBe(0)
   })
 })
 
 describe('Data map and record of processing', () => {
-  it('TC-C20.3-01 the flows are the ones the departments’ answers describe', async () => {
+  it('TC-C20.3-01 the flows are the ones the departments’ activities and data elements describe', async () => {
     const client = await newClient(world, 'Flows')
     const hr = await createDepartment(world.ctx, client.id, {
       code: 'HR',
@@ -215,19 +194,30 @@ describe('Data map and record of processing', () => {
         { code: 'DE-HLT-001', source: 'employees' },
         { code: 'DE-GOV-003' },
       ],
-      profile: {
-        sharedWith: ['FIN'],
-        recipients: ['Payroll Co'],
-        transfersAbroad: 'yes',
-        countries: 'Singapore',
-      },
     })
     await saveDepartmentData(world.ctx, client.id, fin.id, {
       elements: [
         { code: 'DE-FIN-001', source: 'dept:HR' },
         { code: 'DE-GOV-003', source: 'individual_vendors' },
       ],
-      profile: { recipients: ['Bank'], transfersAbroad: 'no' },
+    })
+    await saveActivity(world.ctx, client.id, null, {
+      department: 'HR',
+      name: 'Payroll',
+      principals: ['Employee'],
+      elements: ['DE-ID-001', 'DE-FIN-001', 'DE-HLT-001', 'DE-GOV-003'],
+      internalRecipients: ['FIN'],
+      processors: ['Payroll Co'],
+      transfersAbroad: 'yes',
+      countries: 'Singapore',
+    })
+    await saveActivity(world.ctx, client.id, null, {
+      department: 'Finance',
+      name: 'Vendor payments',
+      principals: 'Individual vendor',
+      elements: 'DE-GOV-003; DE-FIN-001',
+      recipients: 'Bank',
+      transfersAbroad: 'No',
     })
     const map = await dataMap(world.ctx, client.id)
     const flows = map.edges
@@ -236,15 +226,16 @@ describe('Data map and record of processing', () => {
           `${edge.kind} ${edge.from} > ${edge.to} [${[...edge.elements].sort().join(', ')}] ${edge.level}${edge.note ? ` ${edge.note}` : ''}`,
       )
       .sort()
-    // Worked out by hand from the two departments' answers above.
+    // Worked out by hand from the answers above. A department with activities takes its data
+    // principals from them; data from another department still flows from that department.
+    const all = 'Bank account number & IFSC, Diagnosis / medical condition, Full name, PAN'
     expect(flows).toEqual(
       [
-        'collected src:employees > dept:HR [Diagnosis / medical condition, Full name, Bank account number & IFSC] L4',
-        'collected src:unknown > dept:HR [PAN] L4',
-        'internal dept:HR > dept:FIN [Bank account number & IFSC, Diagnosis / medical condition, Full name, PAN] L4',
-        'external dept:HR > ext:payroll co [Bank account number & IFSC, Diagnosis / medical condition, Full name, PAN] L4',
-        'abroad dept:HR > abroad [Bank account number & IFSC, Diagnosis / medical condition, Full name, PAN] L4 Singapore',
-        'collected src:individual_vendors > dept:FIN [PAN] L4',
+        `collected pr:employee > dept:HR [${all}] L4`,
+        `internal dept:HR > dept:FIN [${all}] L4`,
+        `external dept:HR > ext:payroll co [${all}] L4`,
+        `abroad dept:HR > abroad [${all}] L4 Singapore`,
+        'collected pr:individual vendor > dept:FIN [Bank account number & IFSC, PAN] L4',
         'external dept:FIN > ext:bank [Bank account number & IFSC, PAN] L4',
       ]
         .map((line) =>
@@ -258,6 +249,7 @@ describe('Data map and record of processing', () => {
     expect(map.summary).toMatchObject({
       departments: 3,
       mapped: 2,
+      activities: 2,
       elements: 4,
       restricted: 3,
       recipients: 2,
@@ -266,49 +258,48 @@ describe('Data map and record of processing', () => {
     })
     expect(map.summary.unmapped.map((row) => row.code)).toEqual(['MKT'])
     const record = map.records.find((row) => row.department.code === 'FIN')
-    expect(record?.principals).toEqual(['Individual vendors and consultants'])
+    expect(record?.principals).toEqual(['Individual vendor'])
     expect(record?.otherSources).toEqual(['HR'])
+    expect(record?.activities.map((row) => row.refLabel)).toEqual(['PA-002'])
   })
 
-  it('TC-C20.4-01 the RoPA workbook holds a row per mapped department, every element and every flow', async () => {
+  it('TC-C20.4-01 the RoPA workbook holds one row per processing activity, with its personal data', async () => {
     const client = await newClient(world, 'Ropa')
-    const hr = await createDepartment(world.ctx, client.id, {
-      code: 'HR',
-      name: 'HR',
-      questions: [],
-    })
+    await createDepartment(world.ctx, client.id, { code: 'HR', name: 'HR', questions: [] })
     await createDepartment(world.ctx, client.id, { code: 'ADM', name: 'Admin', questions: [] })
-    await saveDepartmentData(world.ctx, client.id, hr.id, {
-      elements: [
-        { code: 'DE-ID-001', source: 'employees' },
-        { code: 'DE-BIO-001', source: 'employees', storage: 'Attendance device' },
-      ],
-      profile: {
-        purposes: 'Attendance',
-        lawfulBases: ['s7i'],
-        recipients: ['Device vendor'],
-        retention: 'One year',
-      },
+    await saveActivity(world.ctx, client.id, null, {
+      department: 'HR',
+      name: 'Attendance',
+      purpose: 'Attendance',
+      lawfulBases: ['s7i'],
+      elements: ['DE-ID-001', 'DE-BIO-001'],
+      systems: 'Attendance device',
+      processors: 'Device vendor',
+      retention: 'One year',
     })
-    const map = await dataMap(world.ctx, client.id)
     const workbook = new ExcelJS.Workbook()
     const file = await buildRopaWorkbook(world.ctx, client.id)
     await workbook.xlsx.load(file.content as unknown as ArrayBuffer)
-    expect(file.fileName).toMatch(/-record-of-processing-\d{4}-\d{2}-\d{2}\.xlsx$/)
-    expect(workbook.worksheets.map((sheet) => sheet.name)).toEqual([
-      'About',
-      'RoPA',
-      'Data inventory',
-      'Data flows',
-      'Categories',
-    ])
-    const rows = (name: string) => (workbook.getWorksheet(name)?.rowCount ?? 0) - 1
-    expect(rows('RoPA')).toBe(1)
-    expect(rows('Data inventory')).toBe(2)
-    expect(rows('Data flows')).toBe(map.edges.length)
-    const ropa = workbook.getWorksheet('RoPA')?.getRow(2)
-    expect(ropa?.getCell(2).value).toBe('HR')
-    expect(ropa?.getCell(9).text).toContain('Fingerprint')
-    expect(ropa?.getCell(11).text).toBe('Attendance device')
+    expect(file.fileName).toMatch(/-RoPA-\d{4}-\d{2}-\d{2}\.xlsx$/)
+    expect(workbook.worksheets.map((sheet) => sheet.name)).toEqual(['Read me', 'RoPA', 'Lists'])
+    const sheet = workbook.getWorksheet('RoPA')
+    const header = (name: string) => {
+      let at = 0
+      sheet?.getRow(1).eachCell((cell, column) => {
+        if (cell.text === name) at = column
+      })
+      return at
+    }
+    const row = sheet?.getRow(2)
+    expect(row?.getCell(header('Activity ID')).text).toBe('PA-001')
+    expect(row?.getCell(header('Department')).text).toBe('HR')
+    expect(row?.getCell(header('Personal data')).text).toContain('Fingerprint')
+    expect(row?.getCell(header('Systems')).text).toBe('Attendance device')
+    expect(row?.getCell(header('Retention period')).text).toBe('One year')
+    expect(sheet?.getRow(3).getCell(header('Processing activity')).text).toBe('')
+    // The adopted element is now on the department's personal data page too.
+    expect(
+      (await departmentData(world.ctx, client.id, 'HR')).elements.map((item) => item.code),
+    ).toEqual(['DE-ID-001', 'DE-BIO-001'])
   })
 })

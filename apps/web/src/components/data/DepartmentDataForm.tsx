@@ -31,109 +31,30 @@ export type ElementRow = {
   access: string | null
 }
 
-export type ProfileValues = {
-  purposes: string | null
-  lawfulBases: string[]
-  systems: string[]
-  sharedWith: string[]
-  recipients: string[]
-  transfersAbroad: string
-  countries: string | null
-  retention: string | null
-  security: string | null
-}
-
 type Props = {
   action: Action
   elements: ElementRow[]
-  profile: ProfileValues | null
   catalogue: PickerElement[]
-  bases: { code: string; name: string; reference: string }[]
   departments: { code: string; name: string }[]
-  suggestion: PickerSuggestion & { systems: string[]; recipients: string[]; sources: string[] }
+  suggestion: PickerSuggestion & { systems: string[] }
   disabled?: boolean
 }
 
-const lines = (text: string) => [
-  ...new Set(
-    text
-      .split('\n')
-      .map((line) => line.trim())
-      .filter(Boolean),
-  ),
-]
-
-const EMPTY_PROFILE: ProfileValues = {
-  purposes: null,
-  lawfulBases: [],
-  systems: [],
-  sharedWith: [],
-  recipients: [],
-  transfersAbroad: 'unknown',
-  countries: null,
-  retention: null,
-  security: null,
-}
-
-/** Chips that add a suggested line to a one-per-line list. */
-const SuggestLines = ({
-  label,
-  options,
-  current,
-  onAdd,
-}: {
-  label: string
-  options: string[]
-  current: string
-  onAdd: (value: string) => void
-}) => {
-  const taken = new Set(lines(current).map((line) => line.toLowerCase()))
-  const left = options.filter((option) => !taken.has(option.toLowerCase()))
-  if (left.length === 0) return null
-  return (
-    <div className={styles.suggestLine}>
-      <span className={styles.muted}>{label}</span>
-      {left.map((option) => (
-        <button
-          key={option}
-          type="button"
-          className={styles.suggestChip}
-          onClick={() => onAdd(option)}
-        >
-          <Plus size={12} aria-hidden="true" /> {option}
-        </button>
-      ))}
-    </div>
-  )
-}
-
 /**
- * A department's personal data: what it does with it (purposes, lawful basis, systems,
- * recipients, transfers, retention, security) and each data element with its category, level,
- * source, storage and access. Sent as one "data" field.
+ * A department's personal data: each data element with its category, level, source, storage and
+ * access. What the department does with it is recorded in its processing activities. Sent as one
+ * "data" field.
  */
 export const DepartmentDataForm = ({
   action,
   elements,
-  profile,
   catalogue,
-  bases,
   departments,
   suggestion,
   disabled = false,
 }: Props) => {
   const { state, onSubmit, pending } = useSubmit(action)
   const [rows, setRows] = useState<ElementRow[]>(elements)
-  const start = profile ?? EMPTY_PROFILE
-  const [purposes, setPurposes] = useState(start.purposes ?? '')
-  const [lawfulBases, setLawfulBases] = useState<string[]>(start.lawfulBases)
-  const [systems, setSystems] = useState(start.systems.join('\n'))
-  const [sharedWith, setSharedWith] = useState<string[]>(start.sharedWith)
-  const [recipients, setRecipients] = useState(start.recipients.join('\n'))
-  const [transfersAbroad, setTransfersAbroad] = useState(start.transfersAbroad)
-  const [countries, setCountries] = useState(start.countries ?? '')
-  const [retention, setRetention] = useState(start.retention ?? '')
-  const [security, setSecurity] = useState(start.security ?? '')
   const [allFrom, setAllFrom] = useState('')
 
   const byCode = useMemo(() => new Map(catalogue.map((row) => [row.code, row])), [catalogue])
@@ -176,17 +97,6 @@ export const DepartmentDataForm = ({
       security: row.security ?? '',
       access: row.access ?? '',
     })),
-    profile: {
-      purposes,
-      lawfulBases,
-      systems: lines(systems),
-      sharedWith,
-      recipients: lines(recipients),
-      transfersAbroad,
-      countries,
-      retention,
-      security,
-    },
   })
 
   const principals = DATA_SOURCES.filter((source) => source.group === 'principal')
@@ -225,164 +135,6 @@ export const DepartmentDataForm = ({
     <form onSubmit={onSubmit} className={styles.form} noValidate>
       <Feedback state={state} />
       <input type="hidden" name="data" value={data} />
-      <fieldset className={styles.block} disabled={disabled}>
-        <legend className={styles.blockTitle}>What the department does with it</legend>
-        <label className={styles.field}>
-          <span className={styles.label}>Purposes</span>
-          <span className={styles.hint}>Why it collects and uses the data, in plain words.</span>
-          <textarea
-            rows={3}
-            value={purposes}
-            maxLength={2000}
-            onChange={(event) => setPurposes(event.target.value)}
-          />
-        </label>
-        <fieldset className={styles.choices}>
-          <legend className={styles.label}>Lawful basis</legend>
-          <div className={styles.choiceGrid}>
-            {bases.map((basis) => (
-              <label key={basis.code} className={styles.choice}>
-                <input
-                  type="checkbox"
-                  checked={lawfulBases.includes(basis.code)}
-                  onChange={(event) =>
-                    setLawfulBases((current) =>
-                      event.target.checked
-                        ? [...current, basis.code]
-                        : current.filter((code) => code !== basis.code),
-                    )
-                  }
-                />
-                <span>
-                  {basis.name} <span className={styles.muted}>{basis.reference}</span>
-                </span>
-              </label>
-            ))}
-          </div>
-          {state.fieldErrors?.lawfulBases ? (
-            <p className={styles.error}>{state.fieldErrors.lawfulBases}</p>
-          ) : null}
-        </fieldset>
-        <div className={styles.pair}>
-          <label className={styles.field}>
-            <span className={styles.label}>Systems and storage</span>
-            <span className={styles.hint}>
-              One per line: applications, shared drives, paper files.
-            </span>
-            <textarea
-              rows={4}
-              value={systems}
-              onChange={(event) => setSystems(event.target.value)}
-            />
-            <SuggestLines
-              label="Typical:"
-              options={suggestion.systems}
-              current={systems}
-              onAdd={(value) => setSystems((current) => lines(`${current}\n${value}`).join('\n'))}
-            />
-          </label>
-          <label className={styles.field}>
-            <span className={styles.label}>Recipients outside the organisation</span>
-            <span className={styles.hint}>
-              One per line: vendors, processors, regulators, group companies.
-            </span>
-            <textarea
-              rows={4}
-              value={recipients}
-              onChange={(event) => setRecipients(event.target.value)}
-            />
-            <SuggestLines
-              label="Typical:"
-              options={suggestion.recipients}
-              current={recipients}
-              onAdd={(value) =>
-                setRecipients((current) => lines(`${current}\n${value}`).join('\n'))
-              }
-            />
-          </label>
-        </div>
-        {departments.length > 0 ? (
-          <fieldset className={styles.choices}>
-            <legend className={styles.label}>Shares this data with departments</legend>
-            <div className={styles.choiceGrid}>
-              {departments.map((item) => (
-                <label key={item.code} className={styles.choice}>
-                  <input
-                    type="checkbox"
-                    checked={sharedWith.includes(item.code)}
-                    onChange={(event) =>
-                      setSharedWith((current) =>
-                        event.target.checked
-                          ? [...current, item.code]
-                          : current.filter((code) => code !== item.code),
-                      )
-                    }
-                  />
-                  <span>
-                    {item.name} <span className="code">{item.code}</span>
-                  </span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
-        ) : null}
-        <div className={styles.pair}>
-          <fieldset className={styles.choices}>
-            <legend className={styles.label}>Transfers outside India</legend>
-            <div className={styles.radioRow}>
-              {[
-                ['no', 'No'],
-                ['yes', 'Yes'],
-                ['unknown', 'Not yet known'],
-              ].map(([value, label]) => (
-                <label key={value} className={styles.choice}>
-                  <input
-                    type="radio"
-                    name="transfersAbroadChoice"
-                    checked={transfersAbroad === value}
-                    onChange={() => setTransfersAbroad(value ?? 'unknown')}
-                  />
-                  <span>{label}</span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
-          {transfersAbroad === 'yes' ? (
-            <label className={styles.field}>
-              <span className={styles.label}>Countries</span>
-              <input
-                value={countries}
-                maxLength={300}
-                placeholder="e.g. Singapore (cloud hosting), USA (CRM)"
-                onChange={(event) => setCountries(event.target.value)}
-              />
-            </label>
-          ) : null}
-        </div>
-        <div className={styles.pair}>
-          <label className={styles.field}>
-            <span className={styles.label}>Retention</span>
-            <span className={styles.hint}>How long it is kept and what happens then.</span>
-            <textarea
-              rows={3}
-              value={retention}
-              onChange={(event) => setRetention(event.target.value)}
-            />
-          </label>
-          <label className={styles.field}>
-            <span className={styles.label}>Security measures</span>
-            <span className={styles.hint}>
-              Encryption, access control, masking, logging and so on.
-            </span>
-            <textarea
-              rows={3}
-              value={security}
-              onChange={(event) => setSecurity(event.target.value)}
-            />
-          </label>
-        </div>
-      </fieldset>
-
       <fieldset className={styles.block} disabled={disabled}>
         <legend className={styles.blockTitle}>
           Data elements <span className={styles.muted}>({rows.length})</span>
@@ -526,7 +278,7 @@ export const DepartmentDataForm = ({
               </table>
             </div>
             <datalist id="data-systems">
-              {[...new Set([...lines(systems), ...suggestion.systems])].map((system) => (
+              {suggestion.systems.map((system) => (
                 <option key={system} value={system} />
               ))}
             </datalist>

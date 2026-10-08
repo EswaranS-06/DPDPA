@@ -1,0 +1,25 @@
+id: TC-C21.4-01
+result: pass
+by: claude (for EswaranS-06)
+date: '2026-10-08'
+evidence: >-
+  A scratch copy of the live self database (127.0.0.1:53510) after migration 0021 and the
+  knowledge-base step: release 1.10.0 published with the ten RoPA lists and defaults on all 136
+  catalogue processes. The three departments' old processing records had become PA-001 to PA-003.
+  Client MMA0011111: the catalogue page ticked 23 processes for its three departments and added
+  them in one step with their defaults; an activity was edited and saved, and a new one typed in
+  ("Employee", RBAC) saved as the next number. The RoPA export had Read me, RoPA and Lists sheets
+  with one dropdown range per answer column (17 columns, strict on department, catalogue process,
+  deletion, transfer, consent status and Remove). Edited as an assessor would (a retention changed,
+  a row marked Remove, a row typed as "Name, PAN, bank details", "Payroll outsourcer", "Banks;
+  statutory authorities"), the import check listed 1 add, 1 change, 1 remove and 26 unchanged, and
+  importing saved exactly those. The data element workbook exported and checked back unchanged.
+  The department page listed its activities. No page errors; no horizontal overflow at 390 px.
+  Fixed during review: overlapping dropdown ranges written by ExcelJS (Excel would offer to repair
+  the file), warnings for unchanged rows, a picker that opened with 59 elements, long personal data
+  cells in the RoPA table.
+notes: >-
+  Live (53500) is migrated and runs this build, but its knowledge base still publishes 1.9.0:
+  ComplyX has a draft 1.10.0 open with its own reviews, which the setup never publishes. The RoPA
+  lists reach live when that draft is published with the RoPA content added, or as the next
+  release after it. The scratch copy was deleted.

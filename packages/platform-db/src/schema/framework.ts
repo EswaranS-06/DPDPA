@@ -214,6 +214,19 @@ export const processTemplate = pgTable(
     contextTags: textList('context_tags'),
     obligationCodes: textList('obligation_codes'),
     assessorNote: text('assessor_note'),
+    // What a processing activity started from this process is given (ADR-0008). Answers come
+    // from the ropa-* vocabularies; elements are data element codes.
+    ropaPurpose: text('ropa_purpose'),
+    ropaElements: textList('ropa_elements'),
+    ropaPrincipals: textList('ropa_principals'),
+    ropaSources: textList('ropa_sources'),
+    /** Kinds of department that receive the data, e.g. Finance. */
+    ropaInternal: textList('ropa_internal'),
+    ropaProcessors: textList('ropa_processors'),
+    ropaRecipients: textList('ropa_recipients'),
+    ropaRetention: text('ropa_retention'),
+    ropaDeletion: text('ropa_deletion'),
+    ropaSecurity: textList('ropa_security'),
     bodyMd: text('body_md').notNull(),
   },
   (table) => [primaryKey({ name: 'process_template_pk', columns: [table.releaseId, table.code] })],

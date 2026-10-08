@@ -10,18 +10,21 @@ import {
 } from '@duatf/core-ui'
 import {
   dataMap,
+  listActivities,
   NotFoundError,
   RECORD_OF_PROCESSING_NOTE,
   transferLabel,
+  type ActivityList,
   type DataMapRecord,
 } from '@duatf/feature-compliance-api'
-import { ArrowRight, Download, Globe, ShieldAlert } from 'lucide-react'
+import { ArrowRight, Download, Globe, ListPlus, Plus, ShieldAlert, Upload } from 'lucide-react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { DataFlowDiagram } from '@/components/data/DataFlowDiagram'
 import styles from '@/components/data/DataMap.module.css'
 import { LevelChip } from '@/components/data/LevelChip'
+import ropa from '@/components/data/Ropa.module.css'
 import { FilterTabs } from '@/components/FilterTabs'
 import { loadClient } from '@/server/clients'
 import { firstValue, type SearchParams } from '@/server/searchParams'
@@ -33,7 +36,7 @@ export const metadata: Metadata = { title: 'Data mapping' }
 
 type Props = { params: Promise<{ code: string }>; searchParams: SearchParams }
 
-const VIEWS = ['flow', 'departments', 'ropa'] as const
+const VIEWS = ['flow', 'departments', 'ropa', 'elements'] as const
 type View = (typeof VIEWS)[number]
 
 const list = (items: readonly string[]) =>
@@ -54,17 +57,18 @@ const sentence = (record: DataMapRecord) => {
   const from = [...record.principals.map((item) => item.toLowerCase()), ...record.otherSources]
   parts.push(from.length ? `from ${list(from)}` : 'from sources not yet recorded')
   let text = `${parts.join(' ')}.`
+  if (record.activities.length) {
+    text += ` It uses it in ${record.activities.length} processing activit${record.activities.length === 1 ? 'y' : 'ies'}: ${list(record.activities.map((item) => item.name))}.`
+  }
   if (record.systems.length) text += ` It keeps it in ${list(record.systems)}.`
   if (record.sharedWith.length) text += ` It shares it with ${list(record.sharedWith)}.`
-  if (record.profile?.recipients.length) {
-    text += ` It discloses it to ${list(record.profile.recipients)}.`
-  }
-  if (record.profile?.transfersAbroad === 'yes') {
-    text += ` It transfers it outside India${record.profile.countries ? `, to ${record.profile.countries}` : ''}.`
-  } else if (record.profile?.transfersAbroad === 'no') {
+  if (record.recipients.length) text += ` It discloses it to ${list(record.recipients)}.`
+  if (record.transfersAbroad === 'yes') {
+    text += ` It transfers it outside India${record.countries ? `, to ${record.countries}` : ''}.`
+  } else if (record.transfersAbroad === 'no') {
     text += ' It keeps it in India.'
   }
-  if (record.profile?.retention) text += ` Retention: ${record.profile.retention}`
+  if (record.retention.length) text += ` Retention: ${record.retention.join('; ')}.`
   return text
 }
 
@@ -81,45 +85,134 @@ const Tags = ({ items, empty }: { items: string[]; empty: string }) =>
     <p className={styles.empty}>{empty}</p>
   )
 
+/** At most eight items, then how many more. */
+const shortList = (items: readonly string[]) =>
+  items.length > 8 ? [...items.slice(0, 8), `and ${items.length - 8} more`] : [...items]
+
+const Cell = ({ items, empty = 'Not recorded' }: { items: readonly string[]; empty?: string }) =>
+  items.length ? <>{items.join('; ')}</> : <span className={ropa.none}>{empty}</span>
+
+/** The record of processing as a table: one row per activity. */
+const RopaTable = ({ data, base }: { data: ActivityList; base: string }) => {
+  const names = new Map(data.kb.elements.map((row) => [row.code, row.name]))
+  const bases = new Map(data.kb.bases.map((row) => [row.code, row.label]))
+  const departments = new Map(data.departments.map((row) => [row.code, row.name]))
+  return (
+    <div className={ropa.tableWrap}>
+      <table className={ropa.table}>
+        <thead>
+          <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Processing activity</th>
+            <th scope="col">Department</th>
+            <th scope="col">Purpose</th>
+            <th scope="col">Lawful basis</th>
+            <th scope="col">Data principals</th>
+            <th scope="col">Personal data</th>
+            <th scope="col">Recipients</th>
+            <th scope="col">Retention</th>
+            <th scope="col">Outside India</th>
+            <th scope="col">Security</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.activities.map((row) => (
+            <tr key={row.ref}>
+              <td className="code">{row.refLabel}</td>
+              <th scope="row">
+                <Link href={`${base}/activities/${row.refLabel}`}>{row.name}</Link>
+              </th>
+              <td>{row.departmentName}</td>
+              <td>{row.purpose ?? <span className={ropa.none}>Not recorded</span>}</td>
+              <td>
+                <Cell items={row.lawfulBases.map((code) => bases.get(code) ?? code)} />
+                {row.lawReference ? `; ${row.lawReference}` : ''}
+              </td>
+              <td>
+                <Cell items={row.principals} />
+              </td>
+              <td>
+                <Cell
+                  items={shortList(
+                    row.elements.map(
+                      (item) => (item.code ? names.get(item.code) : null) ?? item.title,
+                    ),
+                  )}
+                />
+              </td>
+              <td>
+                <Cell
+                  items={[
+                    ...row.internalRecipients.map((code) => departments.get(code) ?? code),
+                    ...row.processors.map((name) => `${name} (processor)`),
+                    ...row.recipients,
+                  ]}
+                  empty="None recorded"
+                />
+              </td>
+              <td>
+                {row.retention ?? <span className={ropa.none}>Not recorded</span>}
+                {row.deletion ? `; ${row.deletion.toLowerCase()}` : ''}
+              </td>
+              <td>
+                {transferLabel(row.transfersAbroad)}
+                {row.countries ? `: ${row.countries}` : ''}
+              </td>
+              <td>
+                <Cell items={row.security} />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 export default async function Page({ params, searchParams }: Props) {
   const client = await loadClient((await params).code)
   const ctx = await serviceContext()
+  const query = await searchParams
   const map = await dataMap(ctx, client.id).catch((error: unknown) => {
     if (error instanceof NotFoundError || error instanceof AccessDeniedError) notFound()
     throw error
   })
-  const requested = firstValue((await searchParams).view)
+  const requested = firstValue(query.view)
   const view: View = VIEWS.includes(requested as View) ? (requested as View) : 'flow'
+  const activities = view === 'ropa' ? await listActivities(ctx, client.id) : null
   const base = `/clients/${client.code}`
+  const mapping = `${base}/data-mapping`
   const canExport = can(ctx.principal, 'report.export', { clientId: client.id })
   const canEdit = can(ctx.principal, 'department.manage', { clientId: client.id })
   const mapped = map.records.filter((record) => record.mapped)
+  const elementRows = map.records.flatMap((record) =>
+    record.elements.map((item) => ({ ...item, department: record.department })),
+  )
   const { summary } = map
+  const added = firstValue(query.added)
+  const skipped = Number(firstValue(query.skipped) ?? 0)
+  const removed = firstValue(query.removed)
 
   return (
     <>
       <PageHeader
         title="Data mapping"
-        lede="What personal data each department handles, where it comes from and where it goes, built from every department’s answer to the personal data question. It is the basis of the record of processing (RoPA)."
+        lede="What personal data each department handles, the processing activities it uses it for, where it comes from and where it goes. The activities make the record of processing (RoPA)."
         actions={
-          canExport ? (
-            <a
-              href={`${base}/data-mapping/ropa`}
-              className={buttonClass('secondary')}
-              rel="nofollow"
-            >
-              <Download size={16} aria-hidden="true" />
-              RoPA workbook
-            </a>
+          canEdit ? (
+            <Link href={`${mapping}/catalogue`} className={buttonClass('primary')}>
+              <ListPlus size={16} aria-hidden="true" />
+              Add from the catalogue
+            </Link>
           ) : null
         }
       />
 
       <StatGrid label="Data map figures">
         <Stat
-          label="Departments mapped"
-          value={`${summary.mapped} of ${summary.departments}`}
-          note="have listed their personal data"
+          label="Processing activities"
+          value={summary.activities}
+          note={`in ${summary.mapped} of ${summary.departments} departments`}
           tone={summary.unmapped.length ? 'warning' : 'default'}
         />
         <Stat
@@ -137,15 +230,15 @@ export default async function Page({ params, searchParams }: Props) {
         <Stat
           label="Recipients outside"
           value={summary.recipients}
-          note="vendors, processors and others"
+          note="processors and other recipients"
         />
         <Stat
           label="Transfers outside India"
           value={summary.abroad}
           note={
             summary.transfersUnknown
-              ? `${summary.transfersUnknown} departments not yet known`
-              : 'departments'
+              ? `${summary.transfersUnknown} activities not yet known`
+              : 'activities'
           }
           icon={summary.abroad ? Globe : undefined}
           tone={summary.abroad ? 'warning' : 'default'}
@@ -153,10 +246,7 @@ export default async function Page({ params, searchParams }: Props) {
       </StatGrid>
 
       {summary.unmapped.length > 0 ? (
-        <Callout
-          tone="neutral"
-          title="Departments that have not answered the personal data question"
-        >
+        <Callout tone="neutral" title="Departments with no personal data or activities yet">
           <p>
             {summary.unmapped.map((item, index) => (
               <span key={item.code}>
@@ -172,33 +262,42 @@ export default async function Page({ params, searchParams }: Props) {
       <FilterTabs
         label="Data map views"
         tabs={[
-          { href: `${base}/data-mapping`, label: 'Flow', current: view === 'flow' },
+          { href: mapping, label: 'Flow', current: view === 'flow' },
           {
-            href: `${base}/data-mapping?view=departments`,
+            href: `${mapping}?view=departments`,
             label: 'By department',
             count: mapped.length,
             current: view === 'departments',
           },
           {
-            href: `${base}/data-mapping?view=ropa`,
+            href: `${mapping}?view=ropa`,
             label: 'Record of processing',
+            count: summary.activities,
             current: view === 'ropa',
+          },
+          {
+            href: `${mapping}?view=elements`,
+            label: 'Data elements',
+            count: elementRows.length,
+            current: view === 'elements',
           },
         ]}
       />
 
-      {mapped.length === 0 ? (
+      {mapped.length === 0 && (view === 'flow' || view === 'departments') ? (
         <EmptyState
           title="No personal data mapped yet"
           action={
-            <Link href={`${base}/departments`} className={buttonClass('primary')}>
-              Go to departments
-            </Link>
+            canEdit ? (
+              <Link href={`${mapping}/catalogue`} className={buttonClass('primary')}>
+                Add from the catalogue
+              </Link>
+            ) : null
           }
         >
           <p>
-            Open a department and answer “What personal data does this department handle?”. Its data
-            elements, sources and recipients appear here.
+            Add each department’s processing activities from the process catalogue, or answer “What
+            personal data does this department handle?” on its page. The flows appear here.
           </p>
         </EmptyState>
       ) : null}
@@ -280,7 +379,7 @@ export default async function Page({ params, searchParams }: Props) {
                   <ul className={styles.tags}>
                     {record.categories.map((item) => (
                       <li key={item.code} className={styles.tag}>
-                        {item.title} · {item.count} · {item.level}
+                        {item.title}, {item.count}, {item.level}
                       </li>
                     ))}
                   </ul>
@@ -292,11 +391,9 @@ export default async function Page({ params, searchParams }: Props) {
                   <Tags
                     items={[
                       ...record.sharedWith,
-                      ...(record.profile?.recipients ?? []),
-                      ...(record.profile?.transfersAbroad === 'yes'
-                        ? [
-                            `Outside India${record.profile.countries ? `: ${record.profile.countries}` : ''}`,
-                          ]
+                      ...record.recipients,
+                      ...(record.transfersAbroad === 'yes'
+                        ? [`Outside India${record.countries ? `: ${record.countries}` : ''}`]
                         : []),
                     ]}
                     empty="Nobody recorded"
@@ -308,87 +405,157 @@ export default async function Page({ params, searchParams }: Props) {
         </div>
       ) : null}
 
-      {mapped.length > 0 && view === 'ropa' ? (
+      {view === 'ropa' && activities ? (
         <section className={page.section} aria-labelledby="ropa-heading">
-          <SectionHeader id="ropa-heading" title="Record of processing" />
-          <p className={styles.sentence}>{RECORD_OF_PROCESSING_NOTE}</p>
-          <div className={styles.matrixWrap}>
-            <table className={styles.matrix}>
-              <thead>
-                <tr>
-                  <th scope="col">Department</th>
-                  <th scope="col">Purposes</th>
-                  <th scope="col">Lawful basis</th>
-                  <th scope="col">Data principals</th>
-                  <th scope="col">Personal data</th>
-                  <th scope="col">Recipients</th>
-                  <th scope="col">Outside India</th>
-                  <th scope="col">Retention</th>
-                  <th scope="col">Security</th>
-                </tr>
-              </thead>
-              <tbody>
-                {map.records
-                  .filter((record) => record.mapped || record.profile)
-                  .map((record) => (
-                    <tr key={record.department.code}>
-                      <th scope="row">
-                        <Link href={`${base}/departments/${record.department.code}/data`}>
-                          {record.department.name}
-                        </Link>
-                      </th>
-                      <td>
-                        {record.profile?.purposes ?? (
-                          <span className={styles.cellNone}>Not recorded</span>
-                        )}
-                      </td>
-                      <td>
-                        {record.lawfulBases.join('; ') || (
-                          <span className={styles.cellNone}>Not recorded</span>
-                        )}
-                      </td>
-                      <td>
-                        {record.principals.join('; ') || (
-                          <span className={styles.cellNone}>Not recorded</span>
-                        )}
-                      </td>
-                      <td>
-                        {record.categories
-                          .map((item) => `${item.title} (${item.level})`)
-                          .join('; ')}
-                      </td>
-                      <td>
-                        {[
-                          ...record.sharedWith.map((name) => `${name} (internal)`),
-                          ...(record.profile?.recipients ?? []),
-                        ].join('; ') || <span className={styles.cellNone}>None recorded</span>}
-                      </td>
-                      <td>
-                        {transferLabel(record.profile?.transfersAbroad)}
-                        {record.profile?.countries ? `: ${record.profile.countries}` : ''}
-                      </td>
-                      <td>
-                        {record.profile?.retention ?? (
-                          <span className={styles.cellNone}>Not recorded</span>
-                        )}
-                      </td>
-                      <td>
-                        {record.profile?.security ?? (
-                          <span className={styles.cellNone}>Not recorded</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-          </div>
+          <SectionHeader
+            id="ropa-heading"
+            title="Record of processing"
+            count={activities.activities.length}
+            description={RECORD_OF_PROCESSING_NOTE}
+            actions={
+              <>
+                {canEdit ? (
+                  <Link href={`${mapping}/activities/new`} className={buttonClass('ghost', 'sm')}>
+                    <Plus size={16} aria-hidden="true" />
+                    Add activity
+                  </Link>
+                ) : null}
+                {canExport ? (
+                  <a
+                    href={`${mapping}/ropa`}
+                    className={buttonClass('secondary', 'sm')}
+                    rel="nofollow"
+                  >
+                    <Download size={16} aria-hidden="true" />
+                    Export RoPA
+                  </a>
+                ) : null}
+                {canEdit ? (
+                  <Link
+                    href={`${mapping}/import?kind=ropa`}
+                    className={buttonClass('secondary', 'sm')}
+                  >
+                    <Upload size={16} aria-hidden="true" />
+                    Import RoPA
+                  </Link>
+                ) : null}
+              </>
+            }
+          />
+          {added ? (
+            <Callout
+              tone="success"
+              title={`${added} processing ${added === '1' ? 'activity' : 'activities'} added`}
+            >
+              <p>
+                Each started with the catalogue’s defaults.
+                {skipped
+                  ? ` ${skipped} already recorded ${skipped === 1 ? 'was' : 'were'} left as ${skipped === 1 ? 'it was' : 'they were'}.`
+                  : ''}{' '}
+                Open each to confirm its answers, or export the RoPA and review them all in Excel.
+              </p>
+            </Callout>
+          ) : null}
+          {removed ? <Callout tone="success" title={`${removed} deleted`} /> : null}
+          {activities.activities.length ? (
+            <RopaTable data={activities} base={mapping} />
+          ) : (
+            <EmptyState
+              title="No processing activities yet"
+              action={
+                canEdit ? (
+                  <Link href={`${mapping}/catalogue`} className={buttonClass('primary')}>
+                    Add from the catalogue
+                  </Link>
+                ) : null
+              }
+            >
+              <p>
+                Start from the process catalogue: each department’s usual processes are suggested,
+                with their purpose, data, recipients, retention and safeguards filled in.
+              </p>
+            </EmptyState>
+          )}
         </section>
       ) : null}
 
-      {canEdit && mapped.length > 0 ? (
-        <p className={styles.empty}>
-          Change a department’s answers on its personal data page; this map updates at once.
-        </p>
+      {view === 'elements' ? (
+        <section className={page.section} aria-labelledby="elements-heading">
+          <SectionHeader
+            id="elements-heading"
+            title="Data elements by department"
+            count={elementRows.length}
+            description="The data element listing: every department’s data elements with their category, level, source, storage, security and access."
+            actions={
+              <>
+                {canExport ? (
+                  <a
+                    href={`${mapping}/elements`}
+                    className={buttonClass('secondary', 'sm')}
+                    rel="nofollow"
+                  >
+                    <Download size={16} aria-hidden="true" />
+                    Export data elements
+                  </a>
+                ) : null}
+                {canEdit ? (
+                  <Link
+                    href={`${mapping}/import?kind=elements`}
+                    className={buttonClass('secondary', 'sm')}
+                  >
+                    <Upload size={16} aria-hidden="true" />
+                    Import data elements
+                  </Link>
+                ) : null}
+              </>
+            }
+          />
+          {elementRows.length ? (
+            <div className={ropa.tableWrap}>
+              <table className={ropa.table}>
+                <thead>
+                  <tr>
+                    <th scope="col">Department</th>
+                    <th scope="col">Data element</th>
+                    <th scope="col">Category</th>
+                    <th scope="col">Level</th>
+                    <th scope="col">Comes from</th>
+                    <th scope="col">Stored in</th>
+                    <th scope="col">Security</th>
+                    <th scope="col">Access</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {elementRows.map((row) => (
+                    <tr key={`${row.department.code}:${row.title}`}>
+                      <td>
+                        <Link href={`${base}/departments/${row.department.code}/data`}>
+                          {row.department.name}
+                        </Link>
+                      </td>
+                      <th scope="row">
+                        {row.title} <span className="code">{row.code ?? 'own'}</span>
+                      </th>
+                      <td>{row.categoryTitle}</td>
+                      <td>
+                        <LevelChip level={row.level} />
+                      </td>
+                      <td>{row.sourceLabel}</td>
+                      <td>{row.storage ?? <span className={ropa.none}>—</span>}</td>
+                      <td>{row.security ?? <span className={ropa.none}>—</span>}</td>
+                      <td>{row.access ?? <span className={ropa.none}>—</span>}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className={ropa.muted}>
+              No data elements yet. Add them on each department’s personal data page, or import the
+              data element workbook.
+            </p>
+          )}
+        </section>
       ) : null}
     </>
   )

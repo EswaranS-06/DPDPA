@@ -535,7 +535,11 @@ export const departmentDataElement = pgTable(
   ],
 )
 
-/** What a department does with its personal data: the processing record behind its RoPA row. */
+/**
+ * What a department did with its personal data, from when the RoPA had one row per department.
+ * Retired by process-focused RoPAs (ADR-0008): migration 0021 moved every profile into a
+ * processing activity. Nothing writes to it any more.
+ */
 export const departmentDataProfile = pgTable('department_data_profile', {
   departmentId: uuid('department_id')
     .primaryKey()
@@ -557,3 +561,81 @@ export const departmentDataProfile = pgTable('department_data_profile', {
   updatedBy: uuid('updated_by'),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })
+
+/**
+ * One row of the client's record of processing (RoPA): a processing activity owned by a
+ * department, usually started from a catalogue process (ADR-0008). Answers from the knowledge
+ * base's RoPA lists are stored as their exact answer text; anything else is kept as typed.
+ */
+export const processingActivity = pgTable(
+  'processing_activity',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenant.id, { onDelete: 'cascade' }),
+    departmentId: uuid('department_id')
+      .notNull()
+      .references(() => department.id, { onDelete: 'cascade' }),
+    /** PA-001 within the client. */
+    ref: integer('ref').notNull(),
+    /** The catalogue process it was started from. */
+    templateCode: text('template_code'),
+    name: text('name').notNull(),
+    purpose: text('purpose'),
+    lawfulBases: textList('lawful_bases'),
+    /** Another law that requires or permits the processing, e.g. "PML Act". */
+    lawReference: text('law_reference'),
+    principals: textList('principals'),
+    sources: textList('sources'),
+    systems: textList('systems'),
+    /** Codes of the departments that receive the data. */
+    internalRecipients: textList('internal_recipients'),
+    processors: textList('processors'),
+    recipients: textList('recipients'),
+    retention: text('retention'),
+    deletion: text('deletion'),
+    security: textList('security'),
+    transfersAbroad: text('transfers_abroad').notNull().default('unknown'),
+    countries: text('countries'),
+    consentStatus: text('consent_status'),
+    owner: text('owner'),
+    notes: text('notes'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedBy: uuid('updated_by'),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    unique('processing_activity_ref').on(table.tenantId, table.ref),
+    unique('processing_activity_name').on(table.departmentId, table.name),
+    index('processing_activity_department').on(table.departmentId),
+    check(
+      'processing_activity_transfers',
+      sql`${table.transfersAbroad} in ('no', 'yes', 'unknown')`,
+    ),
+  ],
+)
+
+/** The personal data of a processing activity. */
+export const processingActivityElement = pgTable(
+  'processing_activity_element',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenant.id, { onDelete: 'cascade' }),
+    activityId: uuid('activity_id')
+      .notNull()
+      .references(() => processingActivity.id, { onDelete: 'cascade' }),
+    elementCode: text('element_code'),
+    title: text('title').notNull(),
+    category: text('category').notNull(),
+    level: text('level').notNull(),
+    seq: integer('seq').notNull().default(0),
+  },
+  (table) => [
+    unique('processing_activity_element_title').on(table.activityId, table.title),
+    index('processing_activity_element_activity').on(table.activityId),
+    check('processing_activity_element_level', sql`${table.level} in ('L1', 'L2', 'L3', 'L4')`),
+  ],
+)

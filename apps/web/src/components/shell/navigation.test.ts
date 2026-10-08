@@ -72,6 +72,26 @@ describe('navigation', () => {
       'Personal data',
     ])
     expect(labels('/clients/AMMA/data-mapping')).toEqual(['Clients', 'AMMA', 'Data mapping'])
+    expect(labels('/clients/AMMA/data-mapping/activities/PA-004')).toEqual([
+      'Clients',
+      'AMMA',
+      'Data mapping',
+      'Record of processing',
+      'PA-004',
+    ])
+    expect(labels('/clients/AMMA/data-mapping/activities/new')).toEqual([
+      'Clients',
+      'AMMA',
+      'Data mapping',
+      'Record of processing',
+      'Add activity',
+    ])
+    expect(labels('/clients/AMMA/data-mapping/catalogue')).toEqual([
+      'Clients',
+      'AMMA',
+      'Data mapping',
+      'Process catalogue',
+    ])
     expect(labels('/clients/AMMA/departments/new')).toEqual([
       'Clients',
       'AMMA',

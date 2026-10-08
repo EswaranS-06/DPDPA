@@ -794,7 +794,38 @@ const processSchema = z.object({
   contextTags: picks(),
   obligationCodes: picks(),
   assessorNote: optionalText(2000),
+  ropaPurpose: optionalText(300),
+  ropaElements: picks(),
+  ropaPrincipals: picks(),
+  ropaSources: picks(),
+  ropaInternal: lines(20, 80),
+  ropaProcessors: lines(30, 120),
+  ropaRecipients: lines(30, 120),
+  ropaRetention: optionalText(200),
+  ropaDeletion: optionalText(120),
+  ropaSecurity: picks(),
 })
+
+/** Answers of a RoPA list in the knowledge base (the ropa-* vocabularies). */
+const answerOptions = async (tx: Transaction, releaseId: string, code: string) =>
+  (await vocabularyTerms(tx, releaseId, code)).map((row) =>
+    option(row.term, row.meaning ? `${row.term}: ${row.meaning}` : row.term),
+  )
+
+/** Data elements, grouped by their knowledge-base category. */
+const elementOptions = async (tx: Transaction, releaseId: string): Promise<FieldOption[]> =>
+  (
+    await tx
+      .select({ code: dataElement.code, title: dataElement.title, category: dataElement.category })
+      .from(dataElement)
+      .where(eq(dataElement.releaseId, releaseId))
+      .orderBy(asc(dataElement.category), asc(dataElement.code))
+  ).map((row) => option(row.code, `${row.code} ${row.title}`, SENTENCE(row.category)))
+
+/** A pick outside its list, when the list exists in this release. */
+const unknownAnswers = (field: string, chosen: string[], allowed: FieldOption[]) => {
+  if (allowed.length) unknownPicks(field, chosen, allowed)
+}
 
 const sectorOptions = async (tx: Transaction, releaseId: string): Promise<FieldOption[]> => [
   option(COMMON, COMMON_NAME),
@@ -826,6 +857,12 @@ const processOptions = async (tx: Transaction, releaseId: string) => ({
   flags: await flagOptions(tx, releaseId),
   tags: await tagOptions(tx, releaseId),
   obligations: await obligationOptions(tx, releaseId),
+  elements: await elementOptions(tx, releaseId),
+  principals: await answerOptions(tx, releaseId, 'ropa-data-principals'),
+  sources: await answerOptions(tx, releaseId, 'ropa-sources'),
+  retention: await answerOptions(tx, releaseId, 'ropa-retention'),
+  deletion: await answerOptions(tx, releaseId, 'ropa-deletion'),
+  security: await answerOptions(tx, releaseId, 'ropa-security'),
 })
 
 const processes: Definition = {
@@ -938,6 +975,83 @@ const processes: Definition = {
           },
         ],
       },
+      {
+        legend: 'RoPA defaults',
+        note: 'What a processing activity started from this process is given in a client’s record of processing. Answers come from the RoPA lists (vocabularies starting ropa-); the assessor confirms them at the client.',
+        fields: [
+          {
+            name: 'ropaPurpose',
+            label: 'Purpose',
+            kind: 'text',
+            maxLength: 300,
+            wide: true,
+            hint: 'In plain words, e.g. Salary processing.',
+          },
+          {
+            name: 'ropaPrincipals',
+            label: 'Data principals',
+            kind: 'checkboxes',
+            wide: true,
+            options: options.principals,
+          },
+          {
+            name: 'ropaElements',
+            label: 'Personal data',
+            kind: 'checkboxes',
+            wide: true,
+            options: options.elements,
+          },
+          {
+            name: 'ropaSources',
+            label: 'Source of data',
+            kind: 'checkboxes',
+            wide: true,
+            options: options.sources,
+          },
+          {
+            name: 'ropaInternal',
+            label: 'Internal recipients',
+            kind: 'lines',
+            rows: 3,
+            hint: 'Kinds of department, one per line, e.g. Finance. Matched to the client’s departments by name.',
+          },
+          {
+            name: 'ropaProcessors',
+            label: 'Processors',
+            kind: 'lines',
+            rows: 3,
+            hint: 'One per line, from the RoPA processors and recipients list where it fits.',
+          },
+          {
+            name: 'ropaRecipients',
+            label: 'Other recipients',
+            kind: 'lines',
+            rows: 3,
+            hint: 'One per line: organisations and authorities using the data for their own purposes.',
+          },
+          {
+            name: 'ropaRetention',
+            label: 'Retention period',
+            kind: 'select',
+            options: options.retention,
+            placeholder: 'Not set',
+          },
+          {
+            name: 'ropaDeletion',
+            label: 'Deletion',
+            kind: 'select',
+            options: options.deletion,
+            placeholder: 'Not set',
+          },
+          {
+            name: 'ropaSecurity',
+            label: 'Security measures',
+            kind: 'checkboxes',
+            wide: true,
+            options: options.security,
+          },
+        ],
+      },
     ]
   },
   blank: async (tx, releaseId, prefix) => {
@@ -977,6 +1091,16 @@ const processes: Definition = {
         contextTags: row.contextTags,
         obligationCodes: row.obligationCodes,
         assessorNote: row.assessorNote ?? '',
+        ropaPurpose: row.ropaPurpose ?? '',
+        ropaElements: row.ropaElements,
+        ropaPrincipals: row.ropaPrincipals,
+        ropaSources: row.ropaSources,
+        ropaInternal: joinLines(row.ropaInternal),
+        ropaProcessors: joinLines(row.ropaProcessors),
+        ropaRecipients: joinLines(row.ropaRecipients),
+        ropaRetention: row.ropaRetention ?? '',
+        ropaDeletion: row.ropaDeletion ?? '',
+        ropaSecurity: row.ropaSecurity,
       },
     }
   },
@@ -1008,6 +1132,16 @@ const processes: Definition = {
     unknownPicks('flags', input.flags, options.flags)
     unknownPicks('contextTags', input.contextTags, options.tags)
     unknownPicks('obligationCodes', input.obligationCodes, options.obligations)
+    unknownPicks('ropaElements', input.ropaElements, options.elements)
+    unknownAnswers('ropaPrincipals', input.ropaPrincipals, options.principals)
+    unknownAnswers('ropaSources', input.ropaSources, options.sources)
+    unknownAnswers('ropaSecurity', input.ropaSecurity, options.security)
+    unknownAnswers(
+      'ropaRetention',
+      input.ropaRetention ? [input.ropaRetention] : [],
+      options.retention,
+    )
+    unknownAnswers('ropaDeletion', input.ropaDeletion ? [input.ropaDeletion] : [], options.deletion)
     const sectorName =
       options.sectors.find((row) => row.value === input.sectorCode)?.label ?? input.sectorCode
     const obligationTitles = new Map(
@@ -1033,6 +1167,16 @@ const processes: Definition = {
       contextTags: sorted(input.contextTags),
       obligationCodes: sorted(input.obligationCodes),
       assessorNote: input.assessorNote ?? null,
+      ropaPurpose: input.ropaPurpose ?? null,
+      ropaElements: input.ropaElements,
+      ropaPrincipals: input.ropaPrincipals,
+      ropaSources: input.ropaSources,
+      ropaInternal: input.ropaInternal,
+      ropaProcessors: input.ropaProcessors,
+      ropaRecipients: input.ropaRecipients,
+      ropaRetention: input.ropaRetention ?? null,
+      ropaDeletion: input.ropaDeletion ?? null,
+      ropaSecurity: input.ropaSecurity,
     }
     const row = {
       ...fields,
@@ -1070,6 +1214,16 @@ const processes: Definition = {
         contextTags: fields.contextTags,
         obligationCodes: fields.obligationCodes,
         assessorNote: input.assessorNote ?? '',
+        ropaPurpose: input.ropaPurpose ?? '',
+        ropaElements: input.ropaElements,
+        ropaPrincipals: input.ropaPrincipals,
+        ropaSources: input.ropaSources,
+        ropaInternal: joinLines(input.ropaInternal),
+        ropaProcessors: joinLines(input.ropaProcessors),
+        ropaRecipients: joinLines(input.ropaRecipients),
+        ropaRetention: input.ropaRetention ?? '',
+        ropaDeletion: input.ropaDeletion ?? '',
+        ropaSecurity: input.ropaSecurity,
       },
     }
   },

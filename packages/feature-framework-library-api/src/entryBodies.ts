@@ -35,9 +35,47 @@ type ProcessFields = {
   contextTags: string[]
   obligationCodes: string[]
   assessorNote: string | null
+  ropaPurpose: string | null
+  ropaElements: string[]
+  ropaPrincipals: string[]
+  ropaSources: string[]
+  ropaInternal: string[]
+  ropaProcessors: string[]
+  ropaRecipients: string[]
+  ropaRetention: string | null
+  ropaDeletion: string | null
+  ropaSecurity: string[]
 }
 
 const listOrDash = (items: readonly string[]) => (items.length ? items.join(', ') : '-')
+
+/** The record-of-processing defaults, when the process has any. */
+const ropaSection = (fields: ProcessFields): string[] => {
+  const rows: [string, string][] = [
+    ['Purpose', fields.ropaPurpose ?? ''],
+    ['Data principals', fields.ropaPrincipals.join(', ')],
+    [
+      'Personal data',
+      fields.ropaElements.map((code) => `[${code}](ref:data-element/${code})`).join(', '),
+    ],
+    ['Source of data', fields.ropaSources.join(', ')],
+    ['Internal recipients', fields.ropaInternal.join(', ')],
+    ['Processors', fields.ropaProcessors.join(', ')],
+    ['Other recipients', fields.ropaRecipients.join(', ')],
+    ['Retention period', fields.ropaRetention ?? ''],
+    ['Deletion', fields.ropaDeletion ?? ''],
+    ['Security measures', fields.ropaSecurity.join(', ')],
+  ]
+  if (rows.every(([, value]) => value === '')) return []
+  return [
+    '## RoPA defaults',
+    [
+      '| Field | Default |',
+      '|---|---|',
+      ...rows.map(([field, value]) => `| ${field} | ${value || '-'} |`),
+    ].join('\n'),
+  ]
+}
 
 export const processBody = (
   code: string,
@@ -68,6 +106,7 @@ export const processBody = (
         `- [${obligation}](ref:obligation/${obligation}) ${obligationTitle(obligation)}`.trimEnd(),
       )
       .join('\n') || '- None beyond the baseline.',
+    ...ropaSection(fields),
     '## Discovery prompts',
     [
       '- Which of the activities above exist here, and are there others?',

@@ -89,6 +89,8 @@ const SEGMENT_LABEL: Record<string, string> = {
   reports: 'Reports',
   departments: 'Departments',
   'data-mapping': 'Data mapping',
+  catalogue: 'Process catalogue',
+  import: 'Import',
   data: 'Personal data',
   people: 'People',
   controls: 'Control owners',
@@ -152,6 +154,18 @@ export const crumbsFor = (pathname: string, navigation: Navigation): Crumb[] => 
     }
     if (part === 'new' && previous === 'departments') {
       crumbs.push({ label: 'Add department', href })
+      return
+    }
+    // Activities have no list page of their own: the crumb opens the RoPA tab.
+    if (part === 'activities' && previous === 'data-mapping') {
+      crumbs.push({
+        label: 'Record of processing',
+        href: `${href.slice(0, href.lastIndexOf('/'))}?view=ropa`,
+      })
+      return
+    }
+    if (part === 'new' && previous === 'activities') {
+      crumbs.push({ label: 'Add activity', href })
       return
     }
     crumbs.push({ label: SEGMENT_LABEL[part] ?? part, href })

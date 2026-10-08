@@ -25,6 +25,7 @@ Gate: **passing**
 | C18 | Playbook: guided tours of every task (multi-view edition) | R2 | TESTS PASSING | firm_admin pending |
 | C19 | Self-audit edition: ComplyX question bank, departments, self-check, people and reconciliation | R2 | IN PROGRESS | lead_auditor pending, security pending |
 | C20 | Personal data inventory, data mapping and record of processing (self-audit edition) | R2 | TESTS PASSING | lead_auditor pending, legal_sme pending |
+| C21 | Process-focused record of processing with Excel export and import (self-audit edition) | R2 | TESTS PASSING | lead_auditor pending, legal_sme pending |
 | C12 | Hardening | R3 | PLANNED | security pending |
 | C13 | Pilots and production | R3 | PLANNED | leadership pending |
 | C14 | ROPA, data inventory and DIA (V2) | R3 | PLANNED | legal_sme pending |
@@ -144,10 +145,10 @@ Gate: **passing**
 | TC-C20.1-01 | C20.1 | Every data element falls into a data map category, and every element a department preset suggests exists | none left in Other; no missing preset element | oracle | PASS |
 | TC-C20.1-02 | C20.1 | Each knowledge-base category maps to one category, the classification corrections hold and names suggest the right department kind | equal to the worked cases | literal | PASS |
 | TC-C20.2-01 | C20.2 | A new department keeps the personal data chosen when it was added, in its category and level | category and level = the knowledge base row | oracle | PASS |
-| TC-C20.2-02 | C20.2 | The personal data page can be changed at any time and refuses unknown elements, sources, departments and bases | saved; refused without change | literal | PASS |
+| TC-C20.2-02 | C20.2 | The personal data page can be changed at any time and refuses unknown elements, sources and departments | saved; refused without change | literal | PASS |
 | TC-C20.2-03 | C20.2 | Only the audit team changes personal data, and each client sees only its own | denied; 0 rows across clients | literal | PASS |
-| TC-C20.3-01 | C20.3 | The flows are the ones the departments’ answers describe | equal to the hand-worked flows | oracle | PASS |
-| TC-C20.4-01 | C20.4 | The RoPA workbook holds a row per mapped department, every element and every flow | rows = departments, elements, flows | literal | PASS |
+| TC-C20.3-01 | C20.3 | The flows are the ones the departments’ activities and data elements describe | equal to the hand-worked flows | oracle | PASS |
+| TC-C20.4-01 | C20.4 | The RoPA workbook holds one row per processing activity, with its personal data | one row per activity; its elements and answers | literal | PASS |
 | TC-C20.5-01 | C20.5 | An unchanged question bank builds no new release | null | literal | PASS |
 | TC-C20.5-02 | C20.5 | Updating the self instance adds the drafted entries and the Track B questions as new releases | releases 1.3.0 and 1.4.0; 187 questions | manual | PASS |
 | TC-C20.6-01 | C20.6 | Add department with personal data, the personal data page and the data mapping views render at 1440 and 390 px | no overlap, no console errors; saves and exports | manual | PASS |
@@ -155,5 +156,13 @@ Gate: **passing**
 | TC-C20.8-01 | C20.8 | Items follow their question across renumbering, keep fitting answers and findings, and nothing answered is lost | kept, renumbered, removed and cleared as worked out; refused when answers would be lost | literal | PASS |
 | TC-C20.10-01 | C20.10 | B12 asks educational institutions about students' data, tied to the children's obligations, with evidence | 13 questions; B12.1, .3, .4, .5, .7, .8, .13 link OBL-CHD; evidence for every one | literal | PASS |
 | TC-C20.9-01 | C20.9 | An administrator makes an auditor a senior auditor, who can then add people at a client | only an administrator; role changed; can add people | literal | PASS |
+| TC-C21.1-01 | C21.1 | Every catalogue process has RoPA defaults drawn from the RoPA lists, and every data element one short name | no default outside its list; one name per element, no shared spelling | literal | PASS |
+| TC-C21.2-01 | C21.2 | Simple answers, other spellings and lists typed in one cell become the knowledge base’s answers | equal to the worked payroll example; closed lists refuse, open lists keep and warn | literal | PASS |
+| TC-C21.2-02 | C21.2 | A department adopts its catalogue processes in one step, with the knowledge base’s RoPA defaults | two activities with payroll’s defaults; repeats skipped; elements on the department page | literal | PASS |
+| TC-C21.2-03 | C21.2 | Activities are edited and removed by the audit team only, and refuse unknown answers | saved; refused; denied to the client | literal | PASS |
+| TC-C21.3-01 | C21.3 | The exported RoPA has a dropdown from the knowledge base on every answer column | strict on closed answers, typed lists allowed on multi-answer columns, blank rows included | literal | PASS |
+| TC-C21.3-02 | C21.3 | An edited RoPA imports only after its changes are checked, and a bad file saves nothing | unchanged file 0 changes; edited file 1 add, 1 change, 1 remove; stale, wrong or erroneous files refused | literal | PASS |
+| TC-C21.3-03 | C21.3 | The data element workbook adds, changes and removes a department’s data elements | 2 added, 1 changed, 1 removed; unknown department refused | literal | PASS |
+| TC-C21.4-01 | C21.4 | On a copy of the self instance, the release with the RoPA lists publishes and the catalogue, activity form, RoPA tab, export and import work at 1440 and 390 px | release published; no overlap or console errors; an exported, edited workbook imports | manual | PASS |
 
 10 further tests are planned in later sub-phases.
