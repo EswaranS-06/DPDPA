@@ -326,29 +326,13 @@ export const departmentData = async (ctx: ServiceContext, clientId: string, code
 }
 export type DepartmentData = Awaited<ReturnType<typeof departmentData>>
 
-export type FlowKind = 'collected' | 'internal' | 'external' | 'abroad'
-export type FlowNode = {
-  id: string
-  label: string
-  kind: 'source' | 'department' | 'recipient' | 'abroad'
-}
-export type FlowEdge = {
-  from: string
-  to: string
-  kind: FlowKind
-  elements: string[]
-  level: Level
-  note: string | null
-}
-
-const UNKNOWN_SOURCE = 'src:unknown'
-const ABROAD = 'abroad'
 const levelOf = (levels: readonly Level[]): Level =>
   levels.reduce<Level>((top, level) => higherLevel(top, level), 'L1')
 
 /**
- * The client's data map: per department what it holds, from whom, and its processing activities;
- * the flows between people, departments, recipients and other countries, from those activities.
+ * The client's data map: per department what it holds, from whom, and its processing activities,
+ * with the figures of the whole map. The data flow diagram is drawn from the activities
+ * (dataFlow.ts).
  */
 export const dataMap = async (ctx: ServiceContext, clientId: string) => {
   authorize(ctx.principal, 'client.view', { clientId })
@@ -390,11 +374,6 @@ export const dataMap = async (ctx: ServiceContext, clientId: string) => {
       DATA_SOURCES.filter((row) => row.group === 'principal').map((row) => row.code),
     )
     const unique = (items: readonly string[]) => [...new Set(items.filter(Boolean))]
-    const itemsOf = (activityId: string) =>
-      activityElements
-        .filter((item) => item.activityId === activityId)
-        .map((item) => ({ title: item.title, level: item.level as Level }))
-
     const records = departments.map((row) => {
       const own = elements
         .filter((item) => item.departmentId === row.id)
@@ -465,83 +444,6 @@ export const dataMap = async (ctx: ServiceContext, clientId: string) => {
       }
     })
 
-    const nodes = new Map<string, FlowNode>()
-    const edges = new Map<string, FlowEdge>()
-    const addEdge = (
-      from: FlowNode,
-      to: FlowNode,
-      kind: FlowKind,
-      items: { title: string; level: Level }[],
-      note: string | null = null,
-    ) => {
-      nodes.set(from.id, from)
-      nodes.set(to.id, to)
-      const key = `${from.id}>${to.id}`
-      const edge = edges.get(key)
-      const titles = [...new Set([...(edge?.elements ?? []), ...items.map((item) => item.title)])]
-      const level = levelOf([...(edge ? [edge.level] : []), ...items.map((item) => item.level)])
-      edges.set(key, {
-        from: from.id,
-        to: to.id,
-        kind,
-        elements: titles,
-        level,
-        note: edge?.note ?? note,
-      })
-    }
-    const departmentNode = (code: string): FlowNode => ({
-      id: `${DEPARTMENT_SOURCE}${code}`,
-      label: nameOf(code) ?? code,
-      kind: 'department',
-    })
-    for (const record of records.filter((item) => item.mapped)) {
-      const self = departmentNode(record.department.code)
-      const mine = activities.filter((item) => item.departmentId === record.department.id)
-      // Where a department records its activities, they say whose data it collects; otherwise
-      // its data elements' sources do.
-      for (const item of record.elements) {
-        if (mine.length && item.source && principal.has(item.source)) continue
-        const from: FlowNode = !item.source
-          ? { id: UNKNOWN_SOURCE, label: 'Source not recorded', kind: 'source' }
-          : item.source.startsWith(DEPARTMENT_SOURCE)
-            ? departmentNode(item.source.slice(DEPARTMENT_SOURCE.length))
-            : { id: `src:${item.source}`, label: item.sourceLabel, kind: 'source' }
-        if (mine.length && from.id === UNKNOWN_SOURCE) continue
-        addEdge(from, self, from.kind === 'department' ? 'internal' : 'collected', [item])
-      }
-      for (const activity of mine) {
-        const items = itemsOf(activity.id)
-        for (const person of activity.principals) {
-          addEdge(
-            { id: `pr:${person.toLowerCase()}`, label: person, kind: 'source' },
-            self,
-            'collected',
-            items,
-          )
-        }
-        for (const code of activity.internalRecipients) {
-          addEdge(self, departmentNode(code), 'internal', items)
-        }
-        for (const name of [...activity.processors, ...activity.recipients]) {
-          addEdge(
-            self,
-            { id: `ext:${name.toLowerCase()}`, label: name, kind: 'recipient' },
-            'external',
-            items,
-          )
-        }
-        if (activity.transfersAbroad === 'yes') {
-          addEdge(
-            self,
-            { id: ABROAD, label: 'Outside India', kind: 'abroad' },
-            'abroad',
-            items,
-            activity.countries,
-          )
-        }
-      }
-    }
-
     const mapped = records.filter((item) => item.mapped)
     const titles = new Map<string, Level>()
     for (const item of [
@@ -554,8 +456,6 @@ export const dataMap = async (ctx: ServiceContext, clientId: string) => {
       client,
       releaseVersion: catalogue.releaseVersion,
       records,
-      nodes: [...nodes.values()],
-      edges: [...edges.values()],
       summary: {
         departments: departments.length,
         mapped: mapped.length,

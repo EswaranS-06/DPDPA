@@ -22,6 +22,7 @@ import {
 } from '@duatf/platform-db'
 import { z } from 'zod'
 import { audit, inClient, type ServiceContext } from './context'
+import { dataFlowGraph, type DataFlowGraph, type FlowActivity } from './dataFlow'
 import { isUniqueViolation, NotFoundError, parseInput, RuleError, ValidationError } from './errors'
 import { listClientPeople } from './people'
 import {
@@ -737,3 +738,30 @@ export const adoptProcesses = async (ctx: ServiceContext, clientId: string, raw:
     return { created, skipped }
   })
 }
+
+/** The record of processing as the data flow diagram takes it, elements by their RoPA names. */
+export const flowActivitiesOf = (list: Pick<ActivityList, 'activities' | 'kb'>): FlowActivity[] => {
+  const names = new Map(list.kb.elements.map((row) => [row.code, row.name]))
+  return list.activities.map((row) => ({
+    refLabel: row.refLabel,
+    name: row.name,
+    departmentCode: row.departmentCode,
+    principals: row.principals,
+    sources: row.sources,
+    elements: row.elements.map((item) => ({
+      name: (item.code ? names.get(item.code) : undefined) ?? item.title,
+      level: item.level,
+    })),
+    systems: row.systems,
+    internalRecipients: row.internalRecipients,
+    processors: row.processors,
+    recipients: row.recipients,
+    transfersAbroad: row.transfersAbroad,
+    countries: row.countries,
+  }))
+}
+
+/** The data flow diagram of the client's record of processing. */
+export const dataFlowOf = (
+  list: Pick<ActivityList, 'activities' | 'departments' | 'kb'>,
+): DataFlowGraph => dataFlowGraph(flowActivitiesOf(list), list.departments)

@@ -555,7 +555,24 @@ describe('RoPA and data element workbooks', () => {
       const file = await buildRopaWorkbook(ctx, client.id)
       const workbook = new ExcelJS.Workbook()
       await workbook.xlsx.load(file.content as unknown as ArrayBuffer)
-      expect(workbook.worksheets.map((sheet) => sheet.name)).toEqual(['Read me', 'RoPA', 'Lists'])
+      expect(workbook.worksheets.map((sheet) => sheet.name)).toEqual([
+        'Read me',
+        'RoPA',
+        'Data flows',
+        'Lists',
+      ])
+      // The data flows sheet: payroll collected from employees, kept in its systems, and passed
+      // to its processor and recipients.
+      const flows = sheetRows(workbook, 'Data flows').rows.map(
+        (row) => `${row.From} > ${row.To} (${row.Flow})`,
+      )
+      expect(flows).toEqual(
+        expect.arrayContaining([
+          'Employee > Payroll, tax & statutory compliance (Collected from)',
+          'Payroll, tax & statutory compliance > Payroll provider (Processed by a processor)',
+          'Payroll, tax & statutory compliance > Statutory authorities (Disclosed to a recipient)',
+        ]),
+      )
       const { sheet, headers, rows } = sheetRows(workbook, 'RoPA')
       expect(rows).toHaveLength(1)
       expect(rows[0]).toMatchObject({

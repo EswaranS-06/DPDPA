@@ -904,8 +904,8 @@ phases:
         state: active
         tests:
           - id: TC-C20.3-01
-            title: 'The flows are the ones the departments’ activities and data elements describe'
-            expected: 'equal to the hand-worked flows'
+            title: 'The data flow diagram is the one the RoPA’s activities describe, laid out without overlaps'
+            expected: 'equal to the hand-worked flows; boxes apart'
             source: oracle
       - id: C20.4
         title: 'Record of processing (RoPA) on screen and as a workbook'
@@ -1022,6 +1022,15 @@ phases:
           - id: TC-C21.4-01
             title: 'On a copy of the self instance, the release with the RoPA lists publishes and the catalogue, activity form, RoPA tab, export and import work at 1440 and 390 px'
             expected: 'release published; no overlap or console errors; an exported, edited workbook imports'
+            source: manual
+            kind: manual
+      - id: C21.5
+        title: 'Data flow diagram drawn from the RoPA (React Flow)'
+        state: active
+        tests:
+          - id: TC-C21.5-01
+            title: 'The data flow diagram renders from the RoPA, narrows to a department, hides data stores, shows a picked flow and downloads as PNG, at 1440 and 390 px and in dark mode'
+            expected: 'boxes and lines as the RoPA says; no console errors; PNG of the whole diagram'
             source: manual
             kind: manual
 

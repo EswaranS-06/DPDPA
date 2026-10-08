@@ -1,0 +1,18 @@
+id: TC-C21.5-01
+result: pass
+by: claude (for EswaranS-06)
+date: '2026-10-09'
+evidence: >-
+  Scratch copy of the live self database (127.0.0.1:53510, release 1.10.0 with the RoPA lists),
+  client MMA0011111 with 26 processing activities from the catalogue: the Data flow tab drew 100
+  boxes and 139 lines from the RoPA (principals and sources, activities in three department
+  boxes, data stores, processors, recipients), opening readable at its top left. Picking
+  "Payroll, tax & statutory compliance" lit its flows and listed each with its personal data and
+  level, with a link to PA-010; picking a line showed that flow. The department filter laid out
+  IT alone; hiding data stores left 17 boxes. Download PNG saved the whole diagram (the IT view as
+  a clean picture). The flows table listed 139 flows. Dark mode followed the design tokens. At 390
+  px the frame kept its height, with no horizontal overflow. No page errors. Fixed during review:
+  a tiny opening zoom, a cut-off PNG (bounds of boxes inside a department), gaps when filtering
+  (now laid out per view), clipped two-line names, a frame that collapsed on phones, and a
+  mini-map covering it.
+notes: The scratch copy was deleted. Live gets the RoPA lists when ComplyX's open KB draft is settled.

@@ -15,7 +15,7 @@ import { dataMap, departmentData, saveDepartmentData } from './dataMapping'
 import { createDepartment } from './departments'
 import { ValidationError } from './errors'
 import { defaultLevel, normaliseCategory } from './personalData'
-import { saveActivity } from './ropa'
+import { dataFlowOf, listActivities, saveActivity } from './ropa'
 import { buildRopaWorkbook } from './ropaWorkbook'
 import { as, closeWorld, newClient, newPerson, openWorld, type World } from './testing'
 
@@ -174,7 +174,7 @@ describe('Personal data of departments', () => {
 })
 
 describe('Data map and record of processing', () => {
-  it('TC-C20.3-01 the flows are the ones the departments’ activities and data elements describe', async () => {
+  it('TC-C20.3-01 the data flow diagram is the one the RoPA’s activities describe', async () => {
     const client = await newClient(world, 'Flows')
     const hr = await createDepartment(world.ctx, client.id, {
       code: 'HR',
@@ -219,33 +219,40 @@ describe('Data map and record of processing', () => {
       recipients: 'Bank',
       transfersAbroad: 'No',
     })
-    const map = await dataMap(world.ctx, client.id)
-    const flows = map.edges
+    // The diagram is drawn from the RoPA alone, worked out by hand from the two activities.
+    const graph = dataFlowOf(await listActivities(world.ctx, client.id))
+    const flows = graph.edges
       .map(
         (edge) =>
-          `${edge.kind} ${edge.from} > ${edge.to} [${[...edge.elements].sort().join(', ')}] ${edge.level}${edge.note ? ` ${edge.note}` : ''}`,
+          `${edge.kind} ${edge.source} > ${edge.target} [${[...edge.elements].sort().join(', ')}] ${edge.level}${edge.note ? ` ${edge.note}` : ''}`,
       )
       .sort()
-    // Worked out by hand from the answers above. A department with activities takes its data
-    // principals from them; data from another department still flows from that department.
     const all = 'Bank account number & IFSC, Diagnosis / medical condition, Full name, PAN'
+    const vendor = 'Bank account number & IFSC, PAN'
     expect(flows).toEqual(
       [
-        `collected pr:employee > dept:HR [${all}] L4`,
-        `internal dept:HR > dept:FIN [${all}] L4`,
-        `external dept:HR > ext:payroll co [${all}] L4`,
-        `abroad dept:HR > abroad [${all}] L4 Singapore`,
-        'collected pr:individual vendor > dept:FIN [Bank account number & IFSC, PAN] L4',
-        'external dept:FIN > ext:bank [Bank account number & IFSC, PAN] L4',
-      ]
-        .map((line) =>
-          line.replace(
-            /\[([^\]]*)\]/,
-            (_, items: string) => `[${items.split(', ').sort().join(', ')}]`,
-          ),
-        )
-        .sort(),
+        `collect pr:employee > act:PA-001 [${all}] L4`,
+        `share act:PA-001 > int:FIN [${all}] L4`,
+        `process act:PA-001 > proc:payroll co [${all}] L4`,
+        `transfer act:PA-001 > abroad [${all}] L4 Singapore`,
+        `collect pr:individual vendor > act:PA-002 [${vendor}] L4`,
+        `disclose act:PA-002 > rec:bank [${vendor}] L4`,
+      ].sort(),
     )
+    // Each activity sits in its department's box; no two boxes of a column overlap.
+    const node = (id: string) => graph.nodes.find((item) => item.id === id)
+    expect(node('act:PA-001')?.parentId).toBe('dept:HR')
+    expect(node('act:PA-002')?.parentId).toBe('dept:FIN')
+    expect(node('act:PA-001')?.level).toBe('L4')
+    const outer = graph.nodes.filter((item) => item.parentId === null)
+    for (const a of outer) {
+      for (const b of outer) {
+        if (a === b || a.x !== b.x) continue
+        expect(a.y + a.height <= b.y || b.y + b.height <= a.y).toBe(true)
+      }
+    }
+    expect(new Set(outer.map((item) => item.x)).size).toBe(3)
+    const map = await dataMap(world.ctx, client.id)
     expect(map.summary).toMatchObject({
       departments: 3,
       mapped: 2,
@@ -281,7 +288,12 @@ describe('Data map and record of processing', () => {
     const file = await buildRopaWorkbook(world.ctx, client.id)
     await workbook.xlsx.load(file.content as unknown as ArrayBuffer)
     expect(file.fileName).toMatch(/-RoPA-\d{4}-\d{2}-\d{2}\.xlsx$/)
-    expect(workbook.worksheets.map((sheet) => sheet.name)).toEqual(['Read me', 'RoPA', 'Lists'])
+    expect(workbook.worksheets.map((sheet) => sheet.name)).toEqual([
+      'Read me',
+      'RoPA',
+      'Data flows',
+      'Lists',
+    ])
     const sheet = workbook.getWorksheet('RoPA')
     const header = (name: string) => {
       let at = 0

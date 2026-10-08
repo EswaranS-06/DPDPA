@@ -22,6 +22,8 @@
     "@duatf/platform-storage": "workspace:*",
     "@duatf/platform-trpc": "workspace:*",
     "@trpc/server": "catalog:",
+    "@xyflow/react": "catalog:",
+    "html-to-image": "catalog:",
     "lucide-react": "catalog:",
     "next": "catalog:",
     "react": "catalog:",

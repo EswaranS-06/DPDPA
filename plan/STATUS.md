@@ -147,7 +147,7 @@ Gate: **passing**
 | TC-C20.2-01 | C20.2 | A new department keeps the personal data chosen when it was added, in its category and level | category and level = the knowledge base row | oracle | PASS |
 | TC-C20.2-02 | C20.2 | The personal data page can be changed at any time and refuses unknown elements, sources and departments | saved; refused without change | literal | PASS |
 | TC-C20.2-03 | C20.2 | Only the audit team changes personal data, and each client sees only its own | denied; 0 rows across clients | literal | PASS |
-| TC-C20.3-01 | C20.3 | The flows are the ones the departments’ activities and data elements describe | equal to the hand-worked flows | oracle | PASS |
+| TC-C20.3-01 | C20.3 | The data flow diagram is the one the RoPA’s activities describe, laid out without overlaps | equal to the hand-worked flows; boxes apart | oracle | PASS |
 | TC-C20.4-01 | C20.4 | The RoPA workbook holds one row per processing activity, with its personal data | one row per activity; its elements and answers | literal | PASS |
 | TC-C20.5-01 | C20.5 | An unchanged question bank builds no new release | null | literal | PASS |
 | TC-C20.5-02 | C20.5 | Updating the self instance adds the drafted entries and the Track B questions as new releases | releases 1.3.0 and 1.4.0; 187 questions | manual | PASS |
@@ -164,5 +164,6 @@ Gate: **passing**
 | TC-C21.3-02 | C21.3 | An edited RoPA imports only after its changes are checked, and a bad file saves nothing | unchanged file 0 changes; edited file 1 add, 1 change, 1 remove; stale, wrong or erroneous files refused | literal | PASS |
 | TC-C21.3-03 | C21.3 | The data element workbook adds, changes and removes a department’s data elements | 2 added, 1 changed, 1 removed; unknown department refused | literal | PASS |
 | TC-C21.4-01 | C21.4 | On a copy of the self instance, the release with the RoPA lists publishes and the catalogue, activity form, RoPA tab, export and import work at 1440 and 390 px | release published; no overlap or console errors; an exported, edited workbook imports | manual | PASS |
+| TC-C21.5-01 | C21.5 | The data flow diagram renders from the RoPA, narrows to a department, hides data stores, shows a picked flow and downloads as PNG, at 1440 and 390 px and in dark mode | boxes and lines as the RoPA says; no console errors; PNG of the whole diagram | manual | PASS |
 
 10 further tests are planned in later sub-phases.

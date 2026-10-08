@@ -12,6 +12,8 @@ import {
 } from '@duatf/platform-db'
 import ExcelJS from 'exceljs'
 import { audit, inClient, type ServiceContext } from './context'
+import { FLOW_KIND_LABEL } from './dataFlow'
+import { addTableSheet } from './excel'
 import { XL } from './excel'
 import { RuleError } from './errors'
 import {
@@ -25,6 +27,7 @@ import {
 } from './personalData'
 import {
   activityRows,
+  dataFlowOf,
   ownerOptions,
   parseRef,
   refLabel,
@@ -417,6 +420,30 @@ const ropaLists = (scope: RopaScope, owners: string[]): ListColumn[] => {
   ]
 }
 
+/**
+ * The data flow diagram as a table: one row per flow between a party, an activity, a system or a
+ * recipient. Read only; the import reads the RoPA sheet.
+ */
+const flowsSheet = (workbook: ExcelJS.Workbook, rows: ActivityRow[], scope: RopaScope) => {
+  const graph = dataFlowOf({ activities: rows, departments: scope.departmentRows, kb: scope.kb })
+  const label = new Map(graph.nodes.map((node) => [node.id, node.label]))
+  addTableSheet(
+    workbook,
+    'Data flows',
+    ['From', 'To', 'Flow', 'Highest level', 'Personal data', 'Activities', 'Countries'],
+    graph.edges.map((edge) => [
+      label.get(edge.source) ?? edge.source,
+      label.get(edge.target) ?? edge.target,
+      FLOW_KIND_LABEL[edge.kind],
+      `${edge.level} ${LEVEL_INFO[edge.level].label}`,
+      edge.elements.join('; '),
+      edge.activities.join('; '),
+      edge.note,
+    ]),
+    [30, 30, 26, 18, 60, 24, 24],
+  )
+}
+
 const ROPA_STEPS = [
   'One row per processing activity. Keep the Activity ID of an existing row; leave it blank on a new row and DUATF numbers it.',
   'Cells with a dropdown take their answers from DUATF’s knowledge base. Where a field takes several answers (lawful basis, data principals, personal data, sources, systems, recipients, security), pick one or type several separated by semicolons (;).',
@@ -458,6 +485,7 @@ export const buildRopaWorkbook = async (
     rows.map((row) => ropaCells(row, scope)),
     listRanges(lists),
   )
+  flowsSheet(workbook, rows, scope)
   listsSheet(workbook, lists)
   workbook.views = [
     { x: 0, y: 0, width: 20000, height: 12000, firstSheet: 0, activeTab: 1, visibility: 'visible' },

@@ -216,15 +216,15 @@ export {
   type DepartmentData,
   type DepartmentDataInput,
   type DataElementInput,
-  type FlowEdge,
-  type FlowNode,
-  type FlowKind,
 } from './dataMapping'
 export * from './personalData'
 export * from './ropaKb'
+export * from './dataFlow'
 export {
   activityForm,
   adoptProcesses,
+  dataFlowOf,
+  flowActivitiesOf,
   deleteActivity,
   listActivities,
   parseRef,

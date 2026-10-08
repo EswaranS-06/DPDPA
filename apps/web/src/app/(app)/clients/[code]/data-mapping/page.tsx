@@ -9,19 +9,24 @@ import {
   StatGrid,
 } from '@duatf/core-ui'
 import {
+  dataFlowOf,
   dataMap,
+  flowActivitiesOf,
+  FLOW_KIND_LABEL,
+  LEVEL_INFO,
   listActivities,
   NotFoundError,
   RECORD_OF_PROCESSING_NOTE,
   transferLabel,
   type ActivityList,
+  type DataFlowGraph,
   type DataMapRecord,
 } from '@duatf/feature-compliance-api'
 import { ArrowRight, Download, Globe, ListPlus, Plus, ShieldAlert, Upload } from 'lucide-react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { DataFlowDiagram } from '@/components/data/DataFlowDiagram'
+import { DataFlowCanvas } from '@/components/data/DataFlowCanvas'
 import styles from '@/components/data/DataMap.module.css'
 import { LevelChip } from '@/components/data/LevelChip'
 import ropa from '@/components/data/Ropa.module.css'
@@ -91,6 +96,46 @@ const shortList = (items: readonly string[]) =>
 
 const Cell = ({ items, empty = 'Not recorded' }: { items: readonly string[]; empty?: string }) =>
   items.length ? <>{items.join('; ')}</> : <span className={ropa.none}>{empty}</span>
+
+/** The diagram's flows as a table, for reading and for screen readers. */
+const FlowTable = ({ graph }: { graph: DataFlowGraph }) => {
+  const label = new Map(graph.nodes.map((node) => [node.id, node.label]))
+  return (
+    <div className={ropa.tableWrap}>
+      <table className={ropa.table}>
+        <thead>
+          <tr>
+            <th scope="col">From</th>
+            <th scope="col">To</th>
+            <th scope="col">Flow</th>
+            <th scope="col">Highest level</th>
+            <th scope="col">Personal data</th>
+            <th scope="col">Activities</th>
+          </tr>
+        </thead>
+        <tbody>
+          {graph.edges.map((edge) => (
+            <tr key={edge.id}>
+              <td>{label.get(edge.source) ?? edge.source}</td>
+              <td>
+                {label.get(edge.target) ?? edge.target}
+                {edge.note ? `: ${edge.note}` : ''}
+              </td>
+              <td>{FLOW_KIND_LABEL[edge.kind]}</td>
+              <td>
+                {edge.level} {LEVEL_INFO[edge.level].label}
+              </td>
+              <td>
+                <Cell items={shortList(edge.elements)} empty="None recorded" />
+              </td>
+              <td>{edge.activities.join(', ')}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
 
 /** The record of processing as a table: one row per activity. */
 const RopaTable = ({ data, base }: { data: ActivityList; base: string }) => {
@@ -179,7 +224,9 @@ export default async function Page({ params, searchParams }: Props) {
   })
   const requested = firstValue(query.view)
   const view: View = VIEWS.includes(requested as View) ? (requested as View) : 'flow'
-  const activities = view === 'ropa' ? await listActivities(ctx, client.id) : null
+  const activities =
+    view === 'ropa' || view === 'flow' ? await listActivities(ctx, client.id) : null
+  const graph = activities && view === 'flow' ? dataFlowOf(activities) : null
   const base = `/clients/${client.code}`
   const mapping = `${base}/data-mapping`
   const canExport = can(ctx.principal, 'report.export', { clientId: client.id })
@@ -262,7 +309,7 @@ export default async function Page({ params, searchParams }: Props) {
       <FilterTabs
         label="Data map views"
         tabs={[
-          { href: mapping, label: 'Flow', current: view === 'flow' },
+          { href: mapping, label: 'Data flow', current: view === 'flow' },
           {
             href: `${mapping}?view=departments`,
             label: 'By department',
@@ -284,7 +331,7 @@ export default async function Page({ params, searchParams }: Props) {
         ]}
       />
 
-      {mapped.length === 0 && (view === 'flow' || view === 'departments') ? (
+      {mapped.length === 0 && view === 'departments' ? (
         <EmptyState
           title="No personal data mapped yet"
           action={
@@ -302,12 +349,51 @@ export default async function Page({ params, searchParams }: Props) {
         </EmptyState>
       ) : null}
 
-      {mapped.length > 0 && view === 'flow' ? (
+      {view === 'flow' && graph && activities ? (
         <>
           <section className={page.section} aria-labelledby="flow-heading">
-            <SectionHeader id="flow-heading" title="How personal data flows" />
-            <DataFlowDiagram nodes={map.nodes} edges={map.edges} />
+            <SectionHeader
+              id="flow-heading"
+              title="Data flow diagram"
+              description="Drawn from the record of processing: whose data each processing activity collects, where it is kept, and which departments, processors, recipients and countries it goes to. Change an activity and the diagram follows. The colour of a line is the most sensitive data it carries."
+            />
+            {graph.edges.length ? (
+              <>
+                <DataFlowCanvas
+                  activities={flowActivitiesOf(activities)}
+                  departments={activities.departments.map(({ code, name }) => ({ code, name }))}
+                  activityHref={`${mapping}/activities`}
+                  fileName={`${client.code}-data-flow-diagram.png`}
+                />
+                <details className={ropa.flowTable}>
+                  <summary>The flows as a table ({graph.edges.length})</summary>
+                  <FlowTable graph={graph} />
+                </details>
+              </>
+            ) : (
+              <EmptyState
+                title="No processing activities to draw yet"
+                action={
+                  canEdit ? (
+                    <Link href={`${mapping}/catalogue`} className={buttonClass('primary')}>
+                      Add from the catalogue
+                    </Link>
+                  ) : null
+                }
+              >
+                <p>
+                  The diagram is drawn from the record of processing. Add each department’s
+                  processing activities, with their data principals and recipients, and it appears
+                  here.
+                </p>
+              </EmptyState>
+            )}
           </section>
+        </>
+      ) : null}
+
+      {mapped.length > 0 && view === 'flow' ? (
+        <>
           <section className={page.section} aria-labelledby="matrix-heading">
             <SectionHeader id="matrix-heading" title="Categories by department" />
             <div className={styles.matrixWrap}>
