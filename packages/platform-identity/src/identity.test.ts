@@ -15,7 +15,14 @@ import {
   type DatabaseHandle,
 } from '@duatf/platform-db'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { generateOneTimePassword, hashPassword, passwordProblem, verifyPassword } from './password'
+import {
+  agreedKey,
+  generateOneTimePassword,
+  hashPassword,
+  matchesKey,
+  passwordProblem,
+  verifyPassword,
+} from './password'
 import { loadPrincipal, tenantScope } from './principal'
 import { safeReturnTo } from './returnTo'
 import { createSession, findSessionUser, hashToken, revokeSession } from './sessions'
@@ -247,6 +254,42 @@ describe('sign-in, sessions and passwords', () => {
     const seen = new Set(Array.from({ length: 50 }, () => generateOneTimePassword()))
     expect(seen.size).toBe(50)
     for (const password of seen) expect(password).toMatch(/^[A-HJ-NP-Za-km-np-z2-9]{20}$/)
+  })
+
+  it('stores a key only when two runs agree, and checks a mismatch again before refusing', async () => {
+    const good = Buffer.from('the right key')
+    const bad = (n: number) => Buffer.from(`miscomputed ${n}`)
+    const runs = (keys: Buffer[]) => {
+      let calls = 0
+      return {
+        derive: () => Promise.resolve(keys[Math.min(calls++, keys.length - 1)] ?? good),
+        count: () => calls,
+      }
+    }
+    // One miscomputed key, at any point, is never the one kept.
+    for (const sequence of [
+      [good, good],
+      [bad(1), good, good],
+      [good, bad(1), good],
+      [bad(1), good, bad(2), good],
+    ]) {
+      const machine = runs(sequence)
+      expect((await agreedKey(machine.derive, 0)).equals(good)).toBe(true)
+      expect(machine.count()).toBe(sequence.length)
+    }
+    await expect(
+      agreedKey(runs([bad(1), bad(2), bad(3), bad(4), bad(5), bad(6), bad(7), bad(8)]).derive, 0),
+    ).rejects.toThrow(/inconsistent/)
+
+    const once = runs([good])
+    expect(await matchesKey(once.derive, good, [0, 0])).toBe(true)
+    expect(once.count()).toBe(1)
+    const flaky = runs([bad(1), good])
+    expect(await matchesKey(flaky.derive, good, [0, 0])).toBe(true)
+    expect(flaky.count()).toBe(2)
+    const wrong = runs([bad(1), bad(1), bad(1)])
+    expect(await matchesKey(wrong.derive, good, [0, 0])).toBe(false)
+    expect(wrong.count()).toBe(3)
   })
 
   it('keeps return paths on this site', () => {

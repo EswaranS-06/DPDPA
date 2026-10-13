@@ -21,10 +21,63 @@ const MAX_MEMORY = 64 * 1024 * 1024
 
 export const MIN_PASSWORD_LENGTH = 12
 
+// The hash walks 32 MB of memory, so it is the first thing to go wrong on a machine with faulty
+// memory or an unstable processor: the same password then gives a different key now and again.
+// A wrong key stored at a password change would lock the person out, and a wrong key at sign-in
+// refuses the right password. So a key is stored only once two runs agree, and a mismatch at
+// sign-in is checked again, after a pause, before it counts. Wrong results come in short bursts,
+// which is why the checks are spaced out.
+const AGREE_ATTEMPTS = 8
+const AGREE_PAUSE_MS = 150
+/** Pauses before the second and third check of a mismatch, in milliseconds. */
+const VERIFY_PAUSES = [200, 600] as const
+
+const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
+const sameKey = (a: Buffer, b: Buffer) => a.length === b.length && timingSafeEqual(a, b)
+
+/**
+ * Runs the derivation until two runs give the same key, and returns that key. After a
+ * disagreement the next run waits a little longer each time, to let a burst of faults pass.
+ */
+export const agreedKey = async (
+  derive: () => Promise<Buffer>,
+  pauseMs: number = AGREE_PAUSE_MS,
+): Promise<Buffer> => {
+  const seen: Buffer[] = []
+  for (let attempt = 0; attempt < AGREE_ATTEMPTS; attempt += 1) {
+    if (attempt > 1) await pause(pauseMs * (attempt - 1))
+    const next = await derive()
+    if (seen.some((earlier) => sameKey(earlier, next))) return next
+    seen.push(next)
+  }
+  throw new Error('Password hashing gave inconsistent results on this machine.')
+}
+
+/**
+ * True when a derivation gives the expected key. A mismatch is derived again, twice at most, so
+ * a miscomputed key does not refuse the right password; a wrong password always costs the same
+ * three derivations and pauses.
+ */
+export const matchesKey = async (
+  derive: () => Promise<Buffer>,
+  expected: Buffer,
+  pauses: readonly number[] = VERIFY_PAUSES,
+): Promise<boolean> => {
+  if (sameKey(await derive(), expected)) return true
+  for (const ms of pauses) {
+    await pause(ms)
+    if (sameKey(await derive(), expected)) return true
+  }
+  return false
+}
+
 /** Hashes a password with a fresh random salt. */
 export const hashPassword = async (password: string): Promise<string> => {
   const salt = randomBytes(16)
-  const key = await scrypt(password, salt, KEY_LENGTH, { ...COST, maxmem: MAX_MEMORY })
+  const key = await agreedKey(() =>
+    scrypt(password, salt, KEY_LENGTH, { ...COST, maxmem: MAX_MEMORY }),
+  )
   return ['scrypt', COST.N, COST.r, COST.p, salt.toString('base64url'), key.toString('base64url')]
     .map(String)
     .join('$')
@@ -35,13 +88,17 @@ export const verifyPassword = async (password: string, stored: string): Promise<
   const [scheme, n, r, p, salt, hash] = stored.split('$')
   if (scheme !== 'scrypt' || !n || !r || !p || !salt || !hash) return false
   const expected = Buffer.from(hash, 'base64url')
-  const key = await scrypt(password, Buffer.from(salt, 'base64url'), expected.length, {
-    N: Number(n),
-    r: Number(r),
-    p: Number(p),
-    maxmem: MAX_MEMORY,
-  })
-  return key.length === expected.length && timingSafeEqual(key, expected)
+  const saltBytes = Buffer.from(salt, 'base64url')
+  return matchesKey(
+    () =>
+      scrypt(password, saltBytes, expected.length, {
+        N: Number(n),
+        r: Number(r),
+        p: Number(p),
+        maxmem: MAX_MEMORY,
+      }),
+    expected,
+  )
 }
 
 let decoy: Promise<string> | undefined
