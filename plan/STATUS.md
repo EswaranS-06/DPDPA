@@ -26,6 +26,12 @@ Gate: **passing**
 | C19 | Self-audit edition: ComplyX question bank, departments, self-check, people and reconciliation | R2 | IN PROGRESS | lead_auditor pending, security pending |
 | C20 | Personal data inventory, data mapping and record of processing (self-audit edition) | R2 | TESTS PASSING | lead_auditor pending, legal_sme pending |
 | C21 | Process-focused record of processing with Excel export and import (self-audit edition) | R2 | TESTS PASSING | lead_auditor pending, legal_sme pending |
+| C22 | Assurance: quality check, expiry and sign-off | R3 | TESTS PASSING | lead_auditor pending |
+| C23 | Registers: processors, breaches, rights requests and DPIAs | R3 | PLANNED | legal_sme pending |
+| C24 | Maturity targets and visuals | R3 | PLANNED | lead_auditor pending |
+| C25 | Reports and outputs | R3 | PLANNED | lead_auditor pending |
+| C26 | Document pack | R3 | PLANNED | legal_sme pending |
+| C27 | Management: reminders, board, calendar, import and the public request page | R3 | PLANNED | lead_auditor pending |
 | C12 | Hardening | R3 | PLANNED | security pending |
 | C13 | Pilots and production | R3 | PLANNED | leadership pending |
 | C14 | ROPA, data inventory and DIA (V2) | R3 | PLANNED | legal_sme pending |
@@ -165,5 +171,12 @@ Gate: **passing**
 | TC-C21.3-03 | C21.3 | The data element workbook adds, changes and removes a department’s data elements | 2 added, 1 changed, 1 removed; unknown department refused | literal | PASS |
 | TC-C21.4-01 | C21.4 | On a copy of the self instance, the release with the RoPA lists publishes and the catalogue, activity form, RoPA tab, export and import work at 1440 and 390 px | release published; no overlap or console errors; an exported, edited workbook imports | manual | PASS |
 | TC-C21.5-01 | C21.5 | The data flow diagram renders from the RoPA, narrows to a department, hides data stores, shows a picked flow and downloads as PNG, at 1440 and 390 px and in dark mode | boxes and lines as the RoPA says; no console errors; PNG of the whole diagram | manual | PASS |
+| TC-C22.1-01 | C22.1 | Each quality rule fires on its worked case and stays silent on a sound one | one issue per worked case, with its severity; none on the sound cycle | literal | PASS |
+| TC-C22.1-02 | C22.1 | On a real cycle the check lists the flagged answers, evidence, findings, actions and risks | the issues of the worked cycle, errors first; a client sees none of another client | literal | PASS |
+| TC-C22.2-01 | C22.2 | Evidence past or near its valid-until date is reported as expired or expiring | expired after the date, expiring within 30 days, neither otherwise; counted in attention | literal | PASS |
+| TC-C22.2-02 | C22.2 | A risk is accepted until a date; after it the acceptance has lapsed and is renewed or reopened | date required and in the future; lapsed after it; renewed with a new date; reopened to open | literal | PASS |
+| TC-C22.3-01 | C22.3 | A cycle goes to a named approver with a deadline, locks its answers and completes only on that approver’s decision | in review and locked; another person refused; approved completes; changes asked reopens | literal | PASS |
+| TC-C22.3-02 | C22.3 | Signing off with open errors needs an acknowledgement, and the sign-off keeps the issue counts and posture of that moment | refused without the acknowledgement; counts and posture stored | literal | PASS |
+| TC-C22.4-01 | C22.4 | The quality check, sign-off and expiry screens work on a copy of the live data at 1440 and 390 px, light and dark | no overlap or console errors; a cycle is submitted, sent back and approved | manual | PASS |
 
-10 further tests are planned in later sub-phases.
+49 further tests are planned in later sub-phases.

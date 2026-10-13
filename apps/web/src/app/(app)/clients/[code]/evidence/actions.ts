@@ -3,6 +3,7 @@
 import {
   linkEvidence,
   reviewEvidence,
+  setEvidenceValidity,
   unlinkEvidence,
   uploadEvidence,
 } from '@duatf/feature-compliance-api'
@@ -49,6 +50,25 @@ export const uploadEvidenceAction = async (
     }
   } catch (error) {
     return failure(error, values)
+  }
+}
+
+/** Sets or clears the date the file is valid until. */
+export const setEvidenceValidityAction = async (
+  target: Target & { evidenceId: string },
+  _: FormState,
+  formData: FormData,
+): Promise<FormState> => {
+  const values = formValues(formData)
+  try {
+    await setEvidenceValidity(await serviceContext(), target.clientId, target.evidenceId, values)
+  } catch (error) {
+    return failure(error, values)
+  }
+  refresh(target)
+  return {
+    status: 'success',
+    message: values.validUntil ? 'Valid-until date saved.' : 'Valid-until date cleared.',
   }
 }
 

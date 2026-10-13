@@ -136,6 +136,7 @@ describe('risk scoring', () => {
     expect(shortNote).toBeInstanceOf(ValidationError)
     await acceptRisk(as(world, dpo), client.id, rated?.id ?? '', {
       note: 'Legacy system retires in March; compensating monitoring in place.',
+      until: '2099-03-31',
     })
     const accepted = (await listRisks(world.ctx, client.id)).find((row) => row.id === first?.id)
     expect([accepted?.status, accepted?.treatment]).toEqual(['accepted', 'accept'])

@@ -146,6 +146,37 @@ export const LinkEvidenceForm = ({
   )
 }
 
+/** The date a file is valid until: a certificate's or contract's end date. */
+export const EvidenceValidityForm = ({
+  action,
+  validUntil,
+}: {
+  action: Action
+  validUntil: string | null
+}) => {
+  const [state, formAction] = useActionState(action, IDLE)
+  return (
+    <form action={formAction} className={styles.form} noValidate>
+      <Feedback state={state} />
+      <div className={styles.inline}>
+        <TextField
+          label="Valid until"
+          name="validUntil"
+          type="date"
+          defaultValue={state.values?.validUntil ?? validUntil ?? ''}
+          error={state.fieldErrors?.validUntil}
+          hint="Leave empty for a file that does not run out. DUATF flags it 30 days before this date and after it."
+        />
+      </div>
+      <FormActions>
+        <SubmitButton variant="secondary" pendingText="Saving…">
+          Save date
+        </SubmitButton>
+      </FormActions>
+    </form>
+  )
+}
+
 export const EvidenceReviewForm = ({ action }: { action: Action }) => {
   const [state, formAction] = useActionState(action, IDLE)
   return (

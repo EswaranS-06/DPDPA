@@ -469,6 +469,124 @@ Built after C18, at ComplyX's request. The auditor runs the whole assessment alo
 
 In this edition, the tests of C3.1 (Keycloak realm), C4.2-02 (one question per control), C5.3 (invitations), C6 (the earlier assessment model), C10.4 (demo clients) and C18 (playbook) are marked `deferredTo: multi-view`. TC-C3.2-01 and TC-C3.2-02 now test the password sign-in.
 
+### C22 to C27: Assurance, registers, visuals, outputs and management (R3, branch `self-audit`)
+Built after C21, at ComplyX's request, from a comparison of DUATF with three other compliance tools (13 Oct 2026). Twenty-three additions in six phases, in the order they are built. Each phase ends with `pnpm verify`, a check on a copy of the live data and its review. Decisions are in ADR-0009. Nothing here changes the knowledge base, so the open draft release is not touched.
+
+#### C22: Assurance: quality check, expiry and sign-off
+| Sub | Build |
+|---|---|
+| C22.1 | A quality check of an assessment: rules that flag a compliant or partial answer with no evidence, a gap with no note, rejected, expired or unreviewed evidence, a finding with no action, an overdue or unowned action and a lapsed risk acceptance, each as an error, a warning or a note, with a link to the record |
+| C22.2 | Expiry: evidence past or within 30 days of its valid-until date is reported; a risk is accepted until a date, and a lapsed acceptance is renewed or the risk reopened |
+| C22.3 | Sign-off: the cycle is sent to a named approver (Senior auditor or Administrator) with a deadline, its answers lock, and it completes when that person approves or reopens when they ask for changes. The sign-off keeps the quality-check counts and the posture of that moment |
+| C22.4 | Screens: the quality check and sign-off on the assessment page, expiry on the evidence and risk pages, new kinds in "Needs your attention" |
+
+| Test | Expected | Source |
+|---|---|---|
+| TC-C22.1-01 | Each quality rule fires on its worked case and stays silent on a sound one | literal |
+| TC-C22.1-02 | On a real cycle the check lists the flagged records, errors first, for that client only | literal |
+| TC-C22.2-01 | Evidence past or near its valid-until date is reported as expired or expiring | literal |
+| TC-C22.2-02 | A risk is accepted until a date; after it the acceptance has lapsed and is renewed or reopened | literal |
+| TC-C22.3-01 | A cycle goes to a named approver with a deadline, locks its answers and completes only on that approver's decision | literal |
+| TC-C22.3-02 | Signing off with open errors needs an acknowledgement; the sign-off keeps the counts and posture | literal |
+| TC-C22.4-01 | The screens work on a copy of the live data at 1440 and 390 px, light and dark | manual |
+
+#### C23: Registers: processors, breaches, rights requests and DPIAs
+| Sub | Build |
+|---|---|
+| C23.1 | Processor register: each vendor with its service, country, contract state and dates (s.8(2)), the DPDP terms its contract covers, when it was last assessed, and the RoPA activities and personal data it receives. Built from the processors the RoPA names |
+| C23.2 | Breach register: when the organisation became aware, what happened, who is affected, the clocks (R7(2)(b) 72 hours to the Board, CERT-In 6 hours for a cyber incident), each intimation with its time, a timeline and draft notices with Rule 7's contents |
+| C23.3 | Rights and grievance register: access, correction, erasure, grievance, nomination and withdrawal of consent, with received and due dates (grievances within the period the client publishes, at most 90 days, R14(3)), status and the action taken |
+| C23.4 | DPIA record on a RoPA activity: the rights affected and the purpose, necessity and proportionality, the risks to Data Principals rated before and after the measures, the outcome and the next review. Required of a Significant Data Fiduciary every 12 months (s.10(2)(c)(i), R13(1)); good practice for others |
+| C23.5 | Screens for the four registers, their place in the navigation and in "Needs your attention" |
+
+| Test | Expected | Source |
+|---|---|---|
+| TC-C23.1-01 | Processors named in the RoPA become register entries once, each with its activities and personal data | literal |
+| TC-C23.1-02 | The contract state follows its dates: none, in force, ending soon, ended | literal |
+| TC-C23.1-03 | Only the audit team changes the register; each client sees only its own | literal |
+| TC-C23.2-01 | The clocks run from awareness: 72 hours to the Board (or the longer period allowed), 6 hours to CERT-In | literal |
+| TC-C23.2-02 | Each intimation writes the timeline; a breach closes only with its intimations or a recorded reason | literal |
+| TC-C23.2-03 | The draft notices carry every item Rule 7 lists | literal |
+| TC-C23.3-01 | A request's due date comes from the client's response period, a grievance never beyond 90 days | literal |
+| TC-C23.3-02 | A request moves to fulfilled, refused with a reason or withdrawn, and then stays closed | literal |
+| TC-C23.4-01 | A DPIA belongs to one activity, starts from its RoPA answers and rates risk before and after its measures | literal |
+| TC-C23.4-02 | Sensitive activities are suggested for a DPIA; due reviews are reported | literal |
+| TC-C23.5-01 | The screens work on a copy of the live data at 1440 and 390 px, light and dark | manual |
+
+#### C24: Maturity targets and visuals
+| Sub | Build |
+|---|---|
+| C24.1 | A target maturity level (0 to 4) per domain for each client. The level reached is the mean of the domain's maturity answers; where a domain has only Yes, Partial and No questions they count as 3, 2 and 0. Gaps to target are ranked by their size and the domain's highest penalty item |
+| C24.2 | Chart geometry as pure functions shared by the pages and the Word report: radar, ring, bars and treemap |
+| C24.3 | The figures: penalty exposure by Schedule item (each item's maximum and its open gaps, never a total, because the Board sets the amount under s.33), evidence and action coverage, the personal data map of the RoPA with its counters, and the commencement timeline of the phased Rules |
+| C24.4 | The visuals on the client overview, assessment and data mapping pages, each with a table view |
+
+| Test | Expected | Source |
+|---|---|---|
+| TC-C24.1-01 | A domain's level is the mean of its maturity answers, or the stated equivalent of Yes, Partial and No | literal |
+| TC-C24.1-02 | The gap to target is ranked by its size and the domain's highest penalty item | literal |
+| TC-C24.2-01 | Radar points, ring arcs and bar lengths equal the worked figures | literal |
+| TC-C24.2-02 | Treemap rectangles fill the frame in proportion without overlapping, for any values | oracle |
+| TC-C24.3-01 | Penalty exposure lists each Schedule item with its open gaps and maximum, and never a total | literal |
+| TC-C24.3-02 | Coverage counts scored answers with accepted evidence and open findings with an action | literal |
+| TC-C24.3-03 | The personal data map figures come from the RoPA | literal |
+| TC-C24.3-04 | The commencement timeline gives the days to each phase date and its obligations | oracle |
+| TC-C24.4-01 | Every chart renders with a table view at 1440 and 390 px, light and dark; colours pass the palette check | manual |
+
+#### C25: Reports and outputs
+| Sub | Build |
+|---|---|
+| C25.1 | Remediation actions get a phase (now, next, later) and an effort in days; the phase is suggested from the risk rating |
+| C25.2 | Word documents built by DUATF: the gap-assessment report with charts, a two-page board memo and a one-page assessment statement (scope, period, release, result, sign-off). None calls the result a certificate or a verdict of compliance |
+| C25.3 | Crosswalk of the open gaps to ISO/IEC 27001, ISO/IEC 27701 and NIST CSF, from the references on the knowledge base controls |
+| C25.4 | The roadmap as a sheet of the compliance workbook and as a printable page |
+| C25.5 | The reports page lists every output with its format |
+
+| Test | Expected | Source |
+|---|---|---|
+| TC-C25.1-01 | An action's suggested phase follows its risk rating; phase and effort are saved | literal |
+| TC-C25.2-01 | The gap-assessment report is a valid Word file with its sections, figures and chart pictures | literal |
+| TC-C25.2-02 | The memo and the statement hold what they promise and never call the result a certificate | literal |
+| TC-C25.3-01 | Every open gap appears under each standard reference of its controls | oracle |
+| TC-C25.4-01 | The roadmap lists the open actions by phase with owner, due date, effort and rating | literal |
+| TC-C25.5-01 | Each new report downloads on a copy of the live data and opens in Word or Excel | manual |
+
+#### C26: Document pack
+| Sub | Build |
+|---|---|
+| C26.1 | Seven templates with merge fields: privacy notice (s.5, R3), consent request (s.6), grievance and rights procedure (s.8(10), s.13, R14), retention schedule (s.8(7), R8), breach notices to the Board and to Data Principals (s.8(6), R7), parental consent (s.9, R10) and a processor contract checklist (s.8(2)). Filled from the client profile, the RoPA, the processor register and the breach record |
+| C26.2 | Each document as Word, or the whole pack as a ZIP |
+| C26.3 | Every template is labelled "awaiting legal review", in the app and on its documents, until an Administrator marks that wording reviewed. The wording was drafted by the build and needs ComplyX's legal review before a client sees it |
+| C26.4 | The document pack page |
+
+| Test | Expected | Source |
+|---|---|---|
+| TC-C26.1-01 | Every merge field is known; no document leaves one unfilled or printed raw | literal |
+| TC-C26.1-02 | The notice itemises the RoPA's data and purposes and the three means; the breach notices list Rule 7's contents | literal |
+| TC-C26.2-01 | Each document downloads as Word and all as one ZIP; parental consent only where children's data is processed | literal |
+| TC-C26.3-01 | A template is labelled as awaiting review until an Administrator marks that wording reviewed | literal |
+| TC-C26.4-01 | The document pack page works and its downloads open in Word | manual |
+
+#### C27: Management
+| Sub | Build |
+|---|---|
+| C27.1 | Email reminders: one message a day per person listing their due and overdue actions, evidence requests and sign-offs, sent through the SMTP server named in the settings (off until one is set) |
+| C27.2 | A remediation board (actions by stage, moved along the action workflow) and a calendar of every due date: actions, evidence requests, sign-offs, breach clocks, rights requests, evidence and contract expiry, DPIA reviews and risk acceptances |
+| C27.3 | `pnpm duatf import`: a client with departments, answers, evidence and checks from one spec file, safe to run again, with a dry run. `pnpm duatf backup` repaired |
+| C27.4 | A public page per client that takes a rights request into the register, behind an unguessable link the client can switch off, with a limit on repeated posts |
+| C27.5 | Screens for the board, the calendar, the reminder settings and the public page |
+
+| Test | Expected | Source |
+|---|---|---|
+| TC-C27.1-01 | A person's reminder lists exactly their due and overdue work; a second run the same day sends nothing | literal |
+| TC-C27.1-02 | A reminder reaches the mail catcher on the server | manual |
+| TC-C27.2-01 | The board groups actions by stage; a move follows the action workflow or is refused | literal |
+| TC-C27.2-02 | The calendar lists every dated item of a month once, on its date | literal |
+| TC-C27.3-01 | A spec file imports a client; a rerun changes nothing, a dry run saves nothing, a bad spec is refused first | literal |
+| TC-C27.3-02 | `pnpm duatf backup` writes a dump of the instance's database | manual |
+| TC-C27.4-01 | A request sent through a client's link lands in its register; unknown links are not found; repeated posts are limited | literal |
+| TC-C27.5-01 | The screens work at 1440 and 390 px, light and dark | manual |
+
 ### C12: Hardening (R3) and C13: Pilots and production (R3)
 Unchanged in intent: isolation tests for every route, load test, restore drill, ClamAV, accessibility, self-assessment; then pilots and 1.0.
 

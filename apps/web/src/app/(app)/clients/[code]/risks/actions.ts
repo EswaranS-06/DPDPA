@@ -1,6 +1,12 @@
 'use server'
 
-import { acceptRisk, updateBands, updateRisk, type Band } from '@duatf/feature-compliance-api'
+import {
+  acceptRisk,
+  reopenRisk,
+  updateBands,
+  updateRisk,
+  type Band,
+} from '@duatf/feature-compliance-api'
 import { revalidatePath } from 'next/cache'
 import { failure, formValues, serviceContext, type FormState } from '@/server/services'
 
@@ -37,6 +43,21 @@ export const acceptRiskAction = async (
   }
   refresh(target.clientCode)
   return { status: 'success', message: 'Risk accepted and recorded.' }
+}
+
+export const reopenRiskAction = async (
+  target: Target,
+  _: FormState,
+  formData: FormData,
+): Promise<FormState> => {
+  const values = formValues(formData)
+  try {
+    await reopenRisk(await serviceContext(), target.clientId, target.riskId, values)
+  } catch (error) {
+    return failure(error, values)
+  }
+  refresh(target.clientCode)
+  return { status: 'success', message: 'Risk reopened.' }
 }
 
 /** Rows band_0 … band_5 of the settings form; empty rows are ignored. */

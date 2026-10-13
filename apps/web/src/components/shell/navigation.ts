@@ -90,6 +90,7 @@ const SEGMENT_LABEL: Record<string, string> = {
   departments: 'Departments',
   'data-mapping': 'Data mapping',
   catalogue: 'Process catalogue',
+  quality: 'Quality check',
   import: 'Import',
   data: 'Personal data',
   people: 'People',

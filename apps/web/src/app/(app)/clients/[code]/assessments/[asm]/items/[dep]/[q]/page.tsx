@@ -127,9 +127,12 @@ export default async function Page({ params }: Props) {
     itemId: item.id,
   }
   const completed = assessment.status === 'completed'
+  const waiting = assessment.status === 'in_review'
   const locked = completed
     ? 'This assessment is completed, so its answers are locked. Reopen it, or start the next cycle.'
-    : undefined
+    : waiting
+      ? 'This assessment is waiting for sign-off, so its answers are locked until that is decided or the request is withdrawn.'
+      : undefined
   const scope = { clientId: client.id, departmentId: item.departmentId }
   const [attached, repository, requests] = await Promise.all([
     listItemEvidence(ctx, client.id, item.id),
@@ -279,12 +282,12 @@ export default async function Page({ params }: Props) {
             </Panel>
           ) : null}
 
-          {answered && !completed && canCheck ? (
+          {answered && !completed && !waiting && canCheck ? (
             <Panel title="Self-check" titleId="check-title">
               <p className={`${styles.flush} ${styles.muted}`}>
                 {item.reviewState === 'accepted'
                   ? 'You ticked this answer as checked. Changing the answer removes the tick.'
-                  : 'Tick the answer once you have looked at its evidence. A cycle completes when every answer is ticked.'}
+                  : 'Tick the answer once you have looked at its evidence. A cycle can be signed off when every answer is ticked.'}
               </p>
               <CheckForm
                 action={checkItemAction.bind(null, target)}

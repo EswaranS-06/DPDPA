@@ -1,0 +1,23 @@
+id: TC-C22.4-01
+result: pass
+by: claude (for EswaranS-06)
+date: '2026-10-13'
+evidence: >-
+  Preview build of the working tree (apps/web/.next-preview, 127.0.0.1:53510) on a migrated copy
+  of the live self database, client MALLARD, cycle ASM-MALLARD-001 (141 answers, all checked).
+  The assessment page showed the quality check (1 error, 61 warnings, 0 notes: one Yes with no
+  evidence on a question that asks for it, four Partial answers with no evidence, 57 open findings
+  with no action) and the sign-off panel; the quality page listed each issue under its rule and an
+  issue opened its question. A scratch-only Auditor saw only "Send for sign-off", named the QA
+  senior auditor with a deadline, and the cycle went to "in review": the question page said the
+  answers were locked, the approver's home page showed "1 assessment is waiting for your
+  sign-off", "Ask for changes" reopened the cycle with the note, and after a second request the
+  approval was refused until the open error was acknowledged, then completed the cycle with
+  "1 error (read and recorded), 61 warnings, 0 notes, posture 31.3%" kept and a two-entry
+  history. A valid-until date in the past showed the file as expired on its page, under the
+  Expired tab and in "Needs your attention". A risk was refused acceptance without a date,
+  accepted until a date (shown on the finding and in the register) and reopened. Checked at 1440
+  and 390 px and in the dark theme; no horizontal overflow and no console or page errors.
+notes: >-
+  On live, jr is now a Senior auditor, so the Auditor path was checked with an account that
+  exists only in the scratch copy. The scratch copy is replaced before each later phase.

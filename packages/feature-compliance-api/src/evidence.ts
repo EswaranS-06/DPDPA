@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { authorize, can } from '@duatf/core-access'
-import { isoDate, sequenceScope } from '@duatf/core-utils'
+import { addCalendarDays, isoDate, sequenceScope } from '@duatf/core-utils'
 import {
   and,
   appUser,
@@ -17,6 +17,8 @@ import {
   EVIDENCE_STATUSES,
   ilike,
   inArray,
+  isNotNull,
+  ne,
   nextCode,
   or,
   sql,
@@ -384,10 +386,34 @@ const evidenceColumns = {
   linkCount: sql<number>`(select count(*)::int from evidence_link l where l.evidence_id = "evidence"."id")`,
 }
 
-const withExpiry = <Row extends { validUntil: string | null }>(rows: Row[], today: string) =>
-  rows.map((row) => ({ ...row, expired: row.validUntil !== null && row.validUntil < today }))
+/** Evidence is "expiring" this many days before its valid-until date. */
+export const EXPIRING_DAYS = 30
 
-export type EvidenceFilters = { status?: EvidenceStatus; text?: string; departmentId?: string }
+export type Freshness = 'expired' | 'expiring' | 'valid'
+
+/** How a valid-until date stands on a day; null when the file has no such date. */
+export const freshnessOf = (validUntil: string | null, today: string): Freshness | null =>
+  validUntil === null
+    ? null
+    : validUntil < today
+      ? 'expired'
+      : validUntil <= addCalendarDays(today, EXPIRING_DAYS)
+        ? 'expiring'
+        : 'valid'
+
+const withExpiry = <Row extends { validUntil: string | null }>(rows: Row[], today: string) =>
+  rows.map((row) => {
+    const freshness = freshnessOf(row.validUntil, today)
+    return { ...row, freshness, expired: freshness === 'expired' }
+  })
+
+export type EvidenceFilters = {
+  status?: EvidenceStatus
+  text?: string
+  departmentId?: string
+  /** Files past their valid-until date, or within 30 days of it. */
+  freshness?: 'expired' | 'expiring'
+}
 
 /** The client's evidence repository, newest first. */
 export const listEvidence = async (
@@ -418,9 +444,63 @@ export const listEvidence = async (
       )
       .orderBy(desc(evidence.uploadedAt)),
   )
-  return withExpiry(rows, isoDate(new Date()))
+  return withExpiry(rows, isoDate(new Date())).filter(
+    (row) => !filters.freshness || row.freshness === filters.freshness,
+  )
 }
 export type EvidenceRow = Awaited<ReturnType<typeof listEvidence>>[number]
+
+/** How many of the client's files (rejected ones aside) have expired or expire within 30 days. */
+export const evidenceFreshnessCounts = async (ctx: ServiceContext, clientId: string) => {
+  authorize(ctx.principal, 'evidence.view', { clientId })
+  const today = isoDate(new Date())
+  const rows = await inClient(ctx, clientId, (tx) =>
+    tx
+      .select({ validUntil: evidence.validUntil })
+      .from(evidence)
+      .where(
+        and(
+          eq(evidence.tenantId, clientId),
+          ne(evidence.status, 'rejected'),
+          isNotNull(evidence.validUntil),
+        ),
+      ),
+  )
+  const states = rows.map((row) => freshnessOf(row.validUntil, today))
+  return {
+    expired: states.filter((state) => state === 'expired').length,
+    expiring: states.filter((state) => state === 'expiring').length,
+  }
+}
+
+/** Sets or clears the date a file is valid until, such as a certificate's or contract's end date. */
+export const setEvidenceValidity = async (
+  ctx: ServiceContext,
+  clientId: string,
+  evidenceId: string,
+  raw: unknown,
+): Promise<void> => {
+  authorize(ctx.principal, 'evidence.review', { clientId })
+  const input = parseInput(z.object({ validUntil: optionalDate() }), raw)
+  await inClient(ctx, clientId, async (tx) => {
+    const [found] = await tx
+      .select({ code: evidence.code, validUntil: evidence.validUntil })
+      .from(evidence)
+      .where(and(eq(evidence.id, evidenceId), eq(evidence.tenantId, clientId)))
+    if (!found) throw new NotFoundError('Evidence')
+    await tx
+      .update(evidence)
+      .set({ validUntil: input.validUntil ?? null })
+      .where(eq(evidence.id, evidenceId))
+    await audit(tx, ctx, {
+      tenantId: clientId,
+      action: 'evidence.validity',
+      entity: 'evidence',
+      entityId: found.code,
+      detail: { from: found.validUntil, to: input.validUntil ?? null },
+    })
+  })
+}
 
 /** Evidence attached to one assessment item. */
 export const listItemEvidence = async (ctx: ServiceContext, clientId: string, itemId: string) => {

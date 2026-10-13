@@ -1034,6 +1034,342 @@ phases:
             source: manual
             kind: manual
 
+  - id: C22
+    title: 'Assurance: quality check, expiry and sign-off'
+    release: R3
+    reviews: [lead_auditor]
+    subphases:
+      - id: C22.1
+        title: 'Quality check of an assessment before sign-off'
+        state: active
+        tests:
+          - id: TC-C22.1-01
+            title: 'Each quality rule fires on its worked case and stays silent on a sound one'
+            expected: 'one issue per worked case, with its severity; none on the sound cycle'
+            source: literal
+          - id: TC-C22.1-02
+            title: 'On a real cycle the check lists the flagged answers, evidence, findings, actions and risks'
+            expected: 'the issues of the worked cycle, errors first; a client sees none of another client'
+            source: literal
+      - id: C22.2
+        title: 'Expiry: evidence valid-until dates and an end date on accepted risks'
+        state: active
+        tests:
+          - id: TC-C22.2-01
+            title: 'Evidence past or near its valid-until date is reported as expired or expiring'
+            expected: 'expired after the date, expiring within 30 days, neither otherwise; counted in attention'
+            source: literal
+          - id: TC-C22.2-02
+            title: 'A risk is accepted until a date; after it the acceptance has lapsed and is renewed or reopened'
+            expected: 'date required and in the future; lapsed after it; renewed with a new date; reopened to open'
+            source: literal
+      - id: C22.3
+        title: 'Sign-off by a named approver with a deadline'
+        state: active
+        tests:
+          - id: TC-C22.3-01
+            title: 'A cycle goes to a named approver with a deadline, locks its answers and completes only on that approver’s decision'
+            expected: 'in review and locked; another person refused; approved completes; changes asked reopens'
+            source: literal
+          - id: TC-C22.3-02
+            title: 'Signing off with open errors needs an acknowledgement, and the sign-off keeps the issue counts and posture of that moment'
+            expected: 'refused without the acknowledgement; counts and posture stored'
+            source: literal
+      - id: C22.4
+        title: 'Screens: quality check, expiry and sign-off'
+        state: active
+        tests:
+          - id: TC-C22.4-01
+            title: 'The quality check, sign-off and expiry screens work on a copy of the live data at 1440 and 390 px, light and dark'
+            expected: 'no overlap or console errors; a cycle is submitted, sent back and approved'
+            source: manual
+            kind: manual
+
+  - id: C23
+    title: 'Registers: processors, breaches, rights requests and DPIAs'
+    release: R3
+    reviews: [legal_sme]
+    subphases:
+      - id: C23.1
+        title: 'Processor register built from the RoPA, with contract dates'
+        state: planned
+        tests:
+          - id: TC-C23.1-01
+            title: 'Processors named in the RoPA become register entries once, and each shows the activities and personal data it receives'
+            expected: 'one entry per processor, other spellings matched; activities, data and highest level as worked'
+            source: literal
+          - id: TC-C23.1-02
+            title: 'The contract state follows its dates: none, in force, ending soon, ended'
+            expected: 'equal to the worked cases; no contract and ended contracts counted in attention'
+            source: literal
+          - id: TC-C23.1-03
+            title: 'Only the audit team changes the register, and each client sees only its own'
+            expected: 'denied to client roles; 0 rows across clients'
+            source: literal
+      - id: C23.2
+        title: 'Breach register with the intimation clocks'
+        state: planned
+        tests:
+          - id: TC-C23.2-01
+            title: 'The clocks run from awareness: 72 hours for the detailed report to the Board (or the longer period allowed) and 6 hours for CERT-In on a cyber incident'
+            expected: 'deadlines, time left and overdue equal to the worked cases'
+            source: literal
+          - id: TC-C23.2-02
+            title: 'Recording each intimation writes the timeline, and a breach closes only with its intimations or a recorded reason'
+            expected: 'timeline in order; closing refused, then allowed'
+            source: literal
+          - id: TC-C23.2-03
+            title: 'The draft notices carry every item Rule 7 lists, filled from the record'
+            expected: 'all R7(1) items for Data Principals; all R7(2)(a) and R7(2)(b) items for the Board'
+            source: literal
+      - id: C23.3
+        title: 'Rights and grievance register'
+        state: planned
+        tests:
+          - id: TC-C23.3-01
+            title: 'A request’s due date comes from the client’s response period, a grievance never beyond 90 days, and it is overdue after that date'
+            expected: 'equal to the worked dates; overdue counted in attention'
+            source: literal
+          - id: TC-C23.3-02
+            title: 'A request moves from received to fulfilled, refused with a reason or withdrawn, and a closed request stays closed'
+            expected: 'allowed moves saved; a refusal without a reason and a move after closing refused'
+            source: literal
+      - id: C23.4
+        title: 'DPIA record on a RoPA activity'
+        state: planned
+        tests:
+          - id: TC-C23.4-01
+            title: 'A DPIA belongs to one activity, starts from its RoPA answers and rates risk before and after its measures'
+            expected: 'one per activity; prefilled; ratings = likelihood x impact in the firm’s bands'
+            source: literal
+          - id: TC-C23.4-02
+            title: 'Activities with the most sensitive data, children’s data or transfers abroad are suggested for a DPIA, and a review date is reported when due'
+            expected: 'suggested as worked; due reviews counted in attention'
+            source: literal
+      - id: C23.5
+        title: 'Screens: the four registers'
+        state: planned
+        tests:
+          - id: TC-C23.5-01
+            title: 'The processor, breach, rights and DPIA screens work on a copy of the live data at 1440 and 390 px, light and dark'
+            expected: 'no overlap or console errors; each record is added, changed and closed'
+            source: manual
+            kind: manual
+
+  - id: C24
+    title: 'Maturity targets and visuals'
+    release: R3
+    reviews: [lead_auditor]
+    subphases:
+      - id: C24.1
+        title: 'Target maturity per domain and ranked gaps'
+        state: planned
+        tests:
+          - id: TC-C24.1-01
+            title: 'A domain’s level is the mean of its maturity answers, or the stated equivalent of its Yes, Partial and No answers'
+            expected: 'equal to the worked levels'
+            source: literal
+          - id: TC-C24.1-02
+            title: 'The gap to target is ranked by its size and the domain’s highest penalty item'
+            expected: 'order and scores equal to the worked case; no negative gap'
+            source: literal
+      - id: C24.2
+        title: 'Chart geometry: radar, ring, bars and treemap'
+        state: planned
+        tests:
+          - id: TC-C24.2-01
+            title: 'Radar points, ring arcs and bar lengths equal the worked figures'
+            expected: 'equal to the worked coordinates'
+            source: literal
+          - id: TC-C24.2-02
+            title: 'Treemap rectangles fill the frame in proportion to their values without overlapping'
+            expected: 'areas in proportion; no overlap; inside the frame, for any values'
+            source: oracle
+      - id: C24.3
+        title: 'Figures behind the visuals'
+        state: planned
+        tests:
+          - id: TC-C24.3-01
+            title: 'Penalty exposure lists each Schedule item with its open gaps and its maximum, and never adds the maximums up'
+            expected: 'items and counts as worked; no total'
+            source: literal
+          - id: TC-C24.3-02
+            title: 'Coverage counts scored answers with accepted evidence and open findings with an action'
+            expected: 'equal to the worked counts'
+            source: literal
+          - id: TC-C24.3-03
+            title: 'The personal data map figures come from the RoPA: categories, elements, activities, highest level and the counters'
+            expected: 'equal to the worked RoPA'
+            source: literal
+          - id: TC-C24.3-04
+            title: 'The commencement timeline gives the days to each phase date and the obligations each phase brings'
+            expected: 'dates and counts equal to the knowledge base'
+            source: oracle
+      - id: C24.4
+        title: 'Screens: the visuals on the client overview, assessment and data mapping pages'
+        state: planned
+        tests:
+          - id: TC-C24.4-01
+            title: 'Every chart renders with a table view and hover details at 1440 and 390 px, light and dark, and its colours pass the palette check'
+            expected: 'no overlap or console errors; palette check passes on both surfaces'
+            source: manual
+            kind: manual
+
+  - id: C25
+    title: 'Reports and outputs'
+    release: R3
+    reviews: [lead_auditor]
+    subphases:
+      - id: C25.1
+        title: 'Roadmap: phase and effort on remediation actions'
+        state: planned
+        tests:
+          - id: TC-C25.1-01
+            title: 'An action’s suggested phase follows its risk rating, and its phase and effort are saved'
+            expected: 'suggestions as worked; saved values returned; out-of-range values refused'
+            source: literal
+      - id: C25.2
+        title: 'Word documents: gap-assessment report, board memo and assessment statement'
+        state: planned
+        tests:
+          - id: TC-C25.2-01
+            title: 'The gap-assessment report is a valid Word file with its sections, the assessment’s figures and its charts as pictures'
+            expected: 'opens as a .docx; every section heading; figures equal to the assessment; chart images present'
+            source: literal
+          - id: TC-C25.2-02
+            title: 'The board memo and the assessment statement hold what they promise and never call the result a certificate or a verdict of compliance'
+            expected: 'memo: posture with its working, key findings, penalty items, decisions; statement: scope, period, release, result, sign-off'
+            source: literal
+      - id: C25.3
+        title: 'ISO 27001, ISO 27701 and NIST CSF crosswalk of the gaps'
+        state: planned
+        tests:
+          - id: TC-C25.3-01
+            title: 'Every open gap appears under each standard reference of its controls'
+            expected: 'equal to the references of the knowledge base controls'
+            source: oracle
+      - id: C25.4
+        title: 'Roadmap as an Excel sheet and a printable page'
+        state: planned
+        tests:
+          - id: TC-C25.4-01
+            title: 'The roadmap lists the open actions by phase with owner, due date, effort and rating'
+            expected: 'rows and phase totals equal to the worked actions'
+            source: literal
+      - id: C25.5
+        title: 'Screens: the reports page and the downloads'
+        state: planned
+        tests:
+          - id: TC-C25.5-01
+            title: 'Each new report downloads from the reports page on a copy of the live data and opens in Word or Excel'
+            expected: 'files open without repair prompts; pictures and tables in place'
+            source: manual
+            kind: manual
+
+  - id: C26
+    title: 'Document pack'
+    release: R3
+    reviews: [legal_sme]
+    subphases:
+      - id: C26.1
+        title: 'Templates and their merge fields'
+        state: planned
+        tests:
+          - id: TC-C26.1-01
+            title: 'Every merge field of every template is known, and no document leaves one unfilled or printed raw'
+            expected: 'no unknown field; no raw field in any output'
+            source: literal
+          - id: TC-C26.1-02
+            title: 'The privacy notice itemises the RoPA’s personal data and purposes and the means to withdraw, use rights and complain; the breach notices list Rule 7’s contents'
+            expected: 'every activity’s data and purpose; the three means; every R7 item'
+            source: literal
+      - id: C26.2
+        title: 'Downloading one document or the whole pack'
+        state: planned
+        tests:
+          - id: TC-C26.2-01
+            title: 'Each document downloads as Word and all as one ZIP, with the parental consent form only where children’s data is processed'
+            expected: 'valid .docx files; ZIP holds the applicable ones; the download is recorded'
+            source: literal
+      - id: C26.3
+        title: 'Legal review status of each template'
+        state: planned
+        tests:
+          - id: TC-C26.3-01
+            title: 'A template is labelled as awaiting legal review, in the app and on its documents, until an administrator marks that wording reviewed'
+            expected: 'label shown; cleared by an administrator only; back after the wording changes'
+            source: literal
+      - id: C26.4
+        title: 'Screens: the document pack'
+        state: planned
+        tests:
+          - id: TC-C26.4-01
+            title: 'The document pack page lists the documents with their status, and the downloads open in Word'
+            expected: 'no overlap or console errors; files open without repair prompts'
+            source: manual
+            kind: manual
+
+  - id: C27
+    title: 'Management: reminders, board, calendar, import and the public request page'
+    release: R3
+    reviews: [lead_auditor]
+    subphases:
+      - id: C27.1
+        title: 'Email reminders'
+        state: planned
+        tests:
+          - id: TC-C27.1-01
+            title: 'A person’s reminder lists exactly their due and overdue work, and a second run the same day sends nothing'
+            expected: 'one message per person with work and an address; none otherwise; none on the second run'
+            source: literal
+          - id: TC-C27.1-02
+            title: 'A reminder reaches the mail catcher on the server'
+            expected: 'message received with the right subject and links'
+            source: manual
+            kind: manual
+      - id: C27.2
+        title: 'Remediation board and calendar of due dates'
+        state: planned
+        tests:
+          - id: TC-C27.2-01
+            title: 'The board groups actions by stage, and a move follows the action workflow or is refused'
+            expected: 'columns as worked; allowed moves saved; others refused'
+            source: literal
+          - id: TC-C27.2-02
+            title: 'The calendar lists every dated item of a month once, on its date'
+            expected: 'equal to the worked month'
+            source: literal
+      - id: C27.3
+        title: 'Supported import command and the backup fix'
+        state: planned
+        tests:
+          - id: TC-C27.3-01
+            title: 'A spec file imports a client with departments, answers, evidence and checks; a second run changes nothing, a dry run saves nothing and a bad spec is refused first'
+            expected: 'counts as in the spec; 0 changes on the rerun; nothing saved on a dry run or a bad spec'
+            source: literal
+          - id: TC-C27.3-02
+            title: 'pnpm duatf backup writes a dump of the instance’s database'
+            expected: 'a dump file that pg_restore lists'
+            source: manual
+            kind: manual
+      - id: C27.4
+        title: 'Public page that takes rights requests for a client'
+        state: planned
+        tests:
+          - id: TC-C27.4-01
+            title: 'A request sent through a client’s link lands in that client’s register; an unknown or switched-off link is not found; repeated posts are limited'
+            expected: 'one request, received, with its due date; not found; refused after the limit'
+            source: literal
+      - id: C27.5
+        title: 'Screens: reminders, board, calendar and the public page'
+        state: planned
+        tests:
+          - id: TC-C27.5-01
+            title: 'The board, calendar, reminder settings and public request page work at 1440 and 390 px, light and dark'
+            expected: 'no overlap or console errors; a card moves; a request arrives'
+            source: manual
+            kind: manual
+
   - id: C12
     title: 'Hardening'
     release: R3

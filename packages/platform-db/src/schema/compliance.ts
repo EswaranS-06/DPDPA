@@ -124,6 +124,52 @@ export const assessment = pgTable(
   (table) => [unique('assessment_tenant_code').on(table.tenantId, table.code)],
 )
 
+export const SIGNOFF_STATUSES = ['requested', 'approved', 'changes_requested', 'withdrawn'] as const
+export type SignoffStatus = (typeof SIGNOFF_STATUSES)[number]
+
+/** What the cycle looked like when it was signed off: the quality check and the posture. */
+export type SignoffSnapshot = {
+  errors: number
+  warnings: number
+  notes: number
+  answered: number
+  total: number
+  compliancePct: number | null
+}
+
+/**
+ * A request to sign a cycle off, and its decision. The cycle is "in review" while a request is
+ * open; the named approver approves it (the cycle completes) or asks for changes (it reopens).
+ * A senior auditor completing their own cycle is recorded as a request they approved at once.
+ */
+export const assessmentSignoff = pgTable(
+  'assessment_signoff',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenant.id, { onDelete: 'cascade' }),
+    assessmentId: uuid('assessment_id')
+      .notNull()
+      .references(() => assessment.id, { onDelete: 'cascade' }),
+    requestedBy: uuid('requested_by').notNull(),
+    requestedAt: timestamp('requested_at', { withTimezone: true }).notNull().defaultNow(),
+    approverUserId: uuid('approver_user_id').notNull(),
+    dueDate: date('due_date', { mode: 'string' }),
+    note: text('note'),
+    status: text('status').$type<SignoffStatus>().notNull().default('requested'),
+    decidedAt: timestamp('decided_at', { withTimezone: true }),
+    decisionNote: text('decision_note'),
+    /** The approver confirmed they had read the open errors of the quality check. */
+    acknowledged: boolean('acknowledged').notNull().default(false),
+    snapshot: jsonb('snapshot').$type<SignoffSnapshot>(),
+  },
+  (table) => [
+    index('assessment_signoff_assessment').on(table.assessmentId),
+    index('assessment_signoff_approver').on(table.approverUserId),
+  ],
+)
+
 /**
  * The scored meaning of an answer. A question's options say which one each choice stands for:
  * Yes, maturity level 3 or 4 and most choices mean "yes"; "recorded" is an informational answer.
@@ -420,6 +466,8 @@ export const risk = pgTable(
     acceptedBy: uuid('accepted_by'),
     acceptedAt: timestamp('accepted_at', { withTimezone: true }),
     acceptanceNote: text('acceptance_note'),
+    /** The acceptance holds until this date; after it the client renews it or the risk reopens. */
+    acceptedUntil: date('accepted_until', { mode: 'string' }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },

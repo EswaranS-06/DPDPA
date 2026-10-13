@@ -1,7 +1,16 @@
-import { buttonClass, DataTable, EmptyState, PageHeader, Panel, SelectField } from '@duatf/core-ui'
+import {
+  buttonClass,
+  Chip,
+  DataTable,
+  EmptyState,
+  PageHeader,
+  Panel,
+  SelectField,
+} from '@duatf/core-ui'
 import { heatmap, listBands, listRisks, type RiskFilters } from '@duatf/feature-compliance-api'
 import { RISK_STATUSES } from '@duatf/platform-db'
-import { TriangleAlert } from 'lucide-react'
+import { formatDay } from '@duatf/core-utils'
+import { CalendarX, TriangleAlert } from 'lucide-react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import dash from '@/components/dashboard/DashboardBits.module.css'
@@ -151,7 +160,21 @@ export default async function Page({ params, searchParams }: Props) {
               {
                 key: 'status',
                 header: 'Status',
-                render: (row) => <RiskStatusChip status={row.status} />,
+                render: (row) => (
+                  <span className={styles.personCell}>
+                    <span className={styles.roles}>
+                      <RiskStatusChip status={row.status} />
+                      {row.acceptanceLapsed ? (
+                        <Chip tone="danger" icon={CalendarX}>
+                          Acceptance lapsed
+                        </Chip>
+                      ) : null}
+                    </span>
+                    {row.status === 'accepted' && row.acceptedUntil ? (
+                      <span className={styles.muted}>until {formatDay(row.acceptedUntil)}</span>
+                    ) : null}
+                  </span>
+                ),
               },
             ]}
           />

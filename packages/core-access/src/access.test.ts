@@ -18,6 +18,7 @@ const GOLDEN: Record<Capability, string> = {
   'assessment.assign': 'YYY...',
   'assessment.answer': '.YY...',
   'assessment.review': '.YY...',
+  'assessment.signoff': 'YY....',
   'evidence.view': 'YYYYYY',
   'evidence.upload': '.YYYY.',
   'evidence.review': '.YY...',

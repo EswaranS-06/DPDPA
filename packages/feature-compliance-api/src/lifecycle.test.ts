@@ -153,6 +153,7 @@ describe('finding closure', () => {
     const r82 = risks.find((row) => row.findingCode === f82?.code)
     await acceptRisk(world.ctx, client.id, r82?.id ?? '', {
       note: 'Accepted until the new system goes live.',
+      until: '2099-03-31',
     })
 
     const cycleId = hr.cycle?.id ?? ''

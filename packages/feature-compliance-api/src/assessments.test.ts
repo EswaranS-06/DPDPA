@@ -13,7 +13,6 @@ import {
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import {
   answerItem,
-  changeAssessmentStatus,
   checkAnswered,
   checkItem,
   createAssessment,
@@ -23,6 +22,7 @@ import {
   setDepartmentQuestions,
 } from './assessments'
 import { createReassessment } from './actions'
+import { signOffCycle } from './signoff'
 import { RuleError, type ValidationError } from './errors'
 import { COMPLIANCE_OF } from './progress'
 import { bankCodes, closeWorld, newClient, newDepartment, openWorld, type World } from './testing'
@@ -250,18 +250,18 @@ describe('self-check and cycles', () => {
       checkItem(world.ctx, client.id, hr.item('B0.3').id, { checked: 'true' }),
     ).rejects.toBeInstanceOf(RuleError)
     await expect(
-      changeAssessmentStatus(world.ctx, client.id, cycleId, 'completed'),
+      signOffCycle(world.ctx, client.id, cycleId, { acknowledge: true }),
     ).rejects.toThrow('1 questions are not answered yet.')
 
     await answerItem(world.ctx, client.id, hr.item('B0.3').id, { text: 'Darwinbox HRMS' })
     await checkItem(world.ctx, client.id, hr.item('A1.1').id, { checked: 'true' })
     await expect(
-      changeAssessmentStatus(world.ctx, client.id, cycleId, 'completed'),
+      signOffCycle(world.ctx, client.id, cycleId, { acknowledge: true }),
     ).rejects.toThrow('1 answers are not checked yet.')
     // Changing an answer takes its tick away.
     await answerItem(world.ctx, client.id, hr.item('A1.1').id, { answer: 'partial' })
     expect(await checkAnswered(world.ctx, client.id, cycleId)).toBe(2)
-    await changeAssessmentStatus(world.ctx, client.id, cycleId, 'completed')
+    await signOffCycle(world.ctx, client.id, cycleId, { acknowledge: true })
     await expect(
       answerItem(world.ctx, client.id, hr.item('A1.1').id, { answer: 'yes' }),
     ).rejects.toBeInstanceOf(RuleError)
@@ -274,7 +274,7 @@ describe('self-check and cycles', () => {
     await answerItem(world.ctx, client.id, hr.item('A1.1').id, { answer: 'yes' })
     await answerItem(world.ctx, client.id, hr.item('B0.10').id, { answer: 'no' })
     await checkAnswered(world.ctx, client.id, cycleId)
-    await changeAssessmentStatus(world.ctx, client.id, cycleId, 'completed')
+    await signOffCycle(world.ctx, client.id, cycleId, { acknowledge: true })
 
     await expect(
       setDepartmentQuestions(world.ctx, client.id, hr.id, { questions: ['A1.1'] }),
@@ -298,7 +298,7 @@ describe('self-check and cycles', () => {
       })
     }
     await checkAnswered(world.ctx, client.id, cycleId)
-    await changeAssessmentStatus(world.ctx, client.id, cycleId, 'completed')
+    await signOffCycle(world.ctx, client.id, cycleId, { acknowledge: true })
     const next = await createReassessment(world.ctx, client.id, cycleId, { title: 'Cycle 2' })
     expect(next.copied).toBe(3)
     const rows = await listItems(world.ctx, client.id, next.id)

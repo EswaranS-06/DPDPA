@@ -1,16 +1,20 @@
 import { can, type Capability, type Principal } from '@duatf/core-access'
-import { isoDate } from '@duatf/core-utils'
+import { addCalendarDays, isoDate } from '@duatf/core-utils'
 import {
   and,
   assessment,
   assessmentItem,
+  assessmentSignoff,
   count,
   eq,
   evidence,
   evidenceRequest,
   finding,
+  gte,
   inArray,
+  isNotNull,
   lt,
+  lte,
   min,
   ne,
   notExists,
@@ -27,6 +31,7 @@ import {
 } from '@duatf/platform-db'
 import { listClients } from './clients'
 import { inUserScope, type ServiceContext } from './context'
+import { EXPIRING_DAYS } from './evidence'
 import { listBands } from './risks'
 
 /**
@@ -34,7 +39,10 @@ import { listBands } from './risks'
  * hold the capability to do it, and department owners see only their own departments.
  */
 export const ATTENTION_KINDS = [
+  'signoffs_to_decide',
   'overdue_actions',
+  'acceptances_lapsed',
+  'evidence_expired',
   'answers_to_check',
   'evidence_to_review',
   'evidence_requested',
@@ -43,6 +51,7 @@ export const ATTENTION_KINDS = [
   'findings_without_actions',
   'unanswered',
   'actions_under_way',
+  'evidence_expiring',
   'my_actions',
   'my_requests',
 ] as const
@@ -137,9 +146,19 @@ export const attentionFor = async (
       if (can(principal, 'assessment.review', { clientId: client.id })) {
         add('answers_to_check', await itemsByCycle(tx, client.id, 'all', 'to_check'))
       }
+      if (can(principal, 'assessment.signoff', { clientId: client.id })) {
+        add('signoffs_to_decide', await signoffsToDecide(tx, client.id, principal.userId))
+      }
+      if (can(principal, 'risk.manage', { clientId: client.id })) {
+        add('acceptances_lapsed', [await acceptancesLapsed(tx, client.id, today)])
+      }
       if (can(principal, 'evidence.review', { clientId: client.id })) {
         add('evidence_to_review', [await evidenceToReview(tx, client.id)])
         add('evidence_requested', [await evidenceRequested(tx, client.id)])
+        add('evidence_expired', [await evidenceDue(tx, client.id, null, today)])
+        add('evidence_expiring', [
+          await evidenceDue(tx, client.id, today, addCalendarDays(today, EXPIRING_DAYS)),
+        ])
       }
       if (can(principal, 'action.verify', { clientId: client.id })) {
         add('actions_to_verify', [await actionsToVerify(tx, client.id)])
@@ -224,6 +243,57 @@ const evidenceToReview = async (tx: Transaction, clientId: string) => {
     .from(evidence)
     .where(and(eq(evidence.tenantId, clientId), eq(evidence.status, 'pending_review')))
   return { n: row?.n ?? 0 }
+}
+
+/** Cycles sent to this person for sign-off and not decided yet. */
+const signoffsToDecide = (tx: Transaction, clientId: string, userId: string) =>
+  tx
+    .select({
+      n: count(),
+      due: min(assessmentSignoff.dueDate),
+      assessmentCode: assessment.code,
+    })
+    .from(assessmentSignoff)
+    .innerJoin(assessment, eq(assessment.id, assessmentSignoff.assessmentId))
+    .where(
+      and(
+        eq(assessmentSignoff.tenantId, clientId),
+        eq(assessmentSignoff.status, 'requested'),
+        eq(assessmentSignoff.approverUserId, userId),
+      ),
+    )
+    .groupBy(assessment.code)
+
+/** Accepted risks whose acceptance ran out before today. */
+const acceptancesLapsed = async (tx: Transaction, clientId: string, today: string) => {
+  const [row] = await tx
+    .select({ n: count(), due: min(risk.acceptedUntil) })
+    .from(risk)
+    .where(
+      and(eq(risk.tenantId, clientId), eq(risk.status, 'accepted'), lt(risk.acceptedUntil, today)),
+    )
+  return { n: row?.n ?? 0, due: row?.due ?? null }
+}
+
+/**
+ * Files (rejected ones aside) whose valid-until date is before `to`: already past when `from`
+ * is null, otherwise from that day up to and including `to`.
+ */
+const evidenceDue = async (tx: Transaction, clientId: string, from: string | null, to: string) => {
+  const [row] = await tx
+    .select({ n: count(), due: min(evidence.validUntil) })
+    .from(evidence)
+    .where(
+      and(
+        eq(evidence.tenantId, clientId),
+        ne(evidence.status, 'rejected'),
+        isNotNull(evidence.validUntil),
+        from === null
+          ? lt(evidence.validUntil, to)
+          : and(gte(evidence.validUntil, from), lte(evidence.validUntil, to)),
+      ),
+    )
+  return { n: row?.n ?? 0, due: row?.due ?? null }
 }
 
 /** Evidence asked for and not yet received. */

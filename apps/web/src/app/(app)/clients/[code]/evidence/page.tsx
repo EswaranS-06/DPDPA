@@ -8,6 +8,7 @@ import {
   TextField,
 } from '@duatf/core-ui'
 import {
+  evidenceFreshnessCounts,
   evidenceStatusCounts,
   listDepartments,
   listEvidence,
@@ -34,6 +35,8 @@ export const metadata: Metadata = { title: 'Evidence' }
 
 type Props = { params: Promise<{ code: string }>; searchParams: SearchParams }
 
+const FRESHNESS = ['expired', 'expiring'] as const
+
 export default async function Page({ params, searchParams }: Props) {
   const client = await loadClient((await params).code)
   const ctx = await serviceContext()
@@ -41,10 +44,12 @@ export default async function Page({ params, searchParams }: Props) {
   const filters: EvidenceFilters = {
     status: EVIDENCE_STATUSES.find((status) => status === firstValue(query.status)),
     text: firstValue(query.q)?.trim().slice(0, 100) || undefined,
+    freshness: FRESHNESS.find((value) => value === firstValue(query.freshness)),
   }
-  const [rows, counts, requests] = await Promise.all([
+  const [rows, counts, fresh, requests] = await Promise.all([
     listEvidence(ctx, client.id, filters),
     evidenceStatusCounts(ctx, client.id),
+    evidenceFreshnessCounts(ctx, client.id),
     listEvidenceRequests(ctx, client.id, { open: true }),
   ])
   const firmUploader = can(ctx.principal, 'evidence.upload', {
@@ -75,17 +80,37 @@ export default async function Page({ params, searchParams }: Props) {
         <FilterTabs
           label="Evidence by status"
           tabs={[
-            { href: withText(base), label: 'All', count: total, current: !filters.status },
+            {
+              href: withText(base),
+              label: 'All',
+              count: total,
+              current: !filters.status && !filters.freshness,
+            },
             ...EVIDENCE_STATUSES.map((status) => ({
               href: withText(`${base}?status=${status}`),
               label: STATUS.evidence[status].label,
               count: counts[status],
               current: filters.status === status,
             })),
+            {
+              href: withText(`${base}?freshness=expired`),
+              label: 'Expired',
+              count: fresh.expired,
+              current: filters.freshness === 'expired',
+            },
+            {
+              href: withText(`${base}?freshness=expiring`),
+              label: 'Expiring in 30 days',
+              count: fresh.expiring,
+              current: filters.freshness === 'expiring',
+            },
           ]}
         />
         <form method="get" action={base} className={styles.filters} role="search">
           {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
+          {filters.freshness ? (
+            <input type="hidden" name="freshness" value={filters.freshness} />
+          ) : null}
           <TextField
             label="Search evidence"
             name="q"
@@ -108,7 +133,11 @@ export default async function Page({ params, searchParams }: Props) {
         {rows.length === 0 ? (
           <EmptyState
             icon={FileCheck}
-            title={filters.status || filters.text ? 'No evidence matches' : 'No evidence yet'}
+            title={
+              filters.status || filters.text || filters.freshness
+                ? 'No evidence matches'
+                : 'No evidence yet'
+            }
           >
             Evidence is usually uploaded from a question or a remediation action, so it is linked to
             it straight away and reviewed by an auditor.

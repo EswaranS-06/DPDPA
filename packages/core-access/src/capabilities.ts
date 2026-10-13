@@ -36,6 +36,8 @@ export const CAPABILITIES = {
   // Self-audit: the audit team fills the answers; people at the client review and upload.
   'assessment.answer': define('department', ['lead_auditor', 'auditor']),
   'assessment.review': define('client', ['lead_auditor', 'auditor']),
+  // The decision that completes a cycle, by a named approver (ADR-0009).
+  'assessment.signoff': define('client', ['firm_admin', 'lead_auditor']),
   'evidence.view': define('client', [
     'firm_admin',
     'lead_auditor',

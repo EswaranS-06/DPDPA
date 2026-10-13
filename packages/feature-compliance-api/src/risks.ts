@@ -1,4 +1,5 @@
 import { authorize } from '@duatf/core-access'
+import { isoDate } from '@duatf/core-utils'
 import {
   and,
   appUser,
@@ -13,9 +14,16 @@ import {
   type RiskStatus,
 } from '@duatf/platform-db'
 import { z } from 'zod'
-import { acceptActionsForFinding } from './actions'
+import { acceptActionsForFinding, reopenActionsForFinding } from './actions'
 import { audit, inClient, type ServiceContext } from './context'
-import { NotFoundError, optionalText, parseInput, RuleError, ValidationError } from './errors'
+import {
+  NotFoundError,
+  optionalDate,
+  optionalText,
+  parseInput,
+  RuleError,
+  ValidationError,
+} from './errors'
 
 export type Band = { name: string; minScore: number; maxScore: number; tone: string }
 
@@ -106,6 +114,7 @@ export const listRisks = async (
       )
       .orderBy(desc(risk.score), asc(risk.code)),
   )
+  const today = isoDate(new Date())
   return rows
     .map((row) => ({
       ...row.risk,
@@ -113,10 +122,17 @@ export const listRisks = async (
       findingStatus: row.findingStatus,
       questionCode: row.questionCode,
       band: ratingFor(row.risk.score, bands),
+      acceptanceLapsed: acceptanceLapsed(row.risk, today),
     }))
     .filter((row) => !filters.band || row.band.name === filters.band)
 }
 export type RiskRow = Awaited<ReturnType<typeof listRisks>>[number]
+
+/** True when the risk is accepted and the date it was accepted until has passed. */
+export const acceptanceLapsed = (
+  row: { status: RiskStatus; acceptedUntil: string | null },
+  today: string,
+): boolean => row.status === 'accepted' && row.acceptedUntil !== null && row.acceptedUntil < today
 
 /** Counts of open (not closed, not accepted) risks for each likelihood and impact. */
 export const heatmap = (rows: readonly Pick<RiskRow, 'likelihood' | 'impact' | 'status'>[]) => {
@@ -145,6 +161,7 @@ export const getRisk = async (ctx: ServiceContext, clientId: string, code: strin
       findingCode: row.findingCode,
       acceptedByName: row.acceptedByName,
       band: ratingFor(row.risk.score, bands),
+      acceptanceLapsed: acceptanceLapsed(row.risk, isoDate(new Date())),
     }
   })
 }
@@ -215,7 +232,31 @@ export const updateRisk = async (
   })
 }
 
-/** Records that the client accepted a risk, with who decided and why in the note. */
+const acceptanceSchema = z
+  .object({
+    note: z
+      .string({ error: 'Say why the risk is accepted.' })
+      .trim()
+      .min(10, 'Say why the risk is accepted (at least 10 characters).')
+      .max(2000),
+    until: optionalDate(),
+  })
+  .superRefine((value, issues) => {
+    if (!value.until) {
+      issues.addIssue({
+        code: 'custom',
+        path: ['until'],
+        message: 'Say until when the risk is accepted.',
+      })
+    } else if (value.until <= isoDate(new Date())) {
+      issues.addIssue({ code: 'custom', path: ['until'], message: 'Choose a date after today.' })
+    }
+  })
+
+/**
+ * Records that the client accepted a risk until a date, with who decided and why in the note.
+ * The same call renews an acceptance that is still in place or has lapsed.
+ */
 export const acceptRisk = async (
   ctx: ServiceContext,
   clientId: string,
@@ -223,16 +264,7 @@ export const acceptRisk = async (
   raw: unknown,
 ): Promise<void> => {
   authorize(ctx.principal, 'risk.accept', { clientId })
-  const input = parseInput(
-    z.object({
-      note: z
-        .string({ error: 'Say why the risk is accepted.' })
-        .trim()
-        .min(10, 'Say why the risk is accepted (at least 10 characters).')
-        .max(2000),
-    }),
-    raw,
-  )
+  const input = parseInput(acceptanceSchema, raw)
   await inClient(ctx, clientId, async (tx) => {
     const [current] = await tx
       .select({ code: risk.code, status: risk.status, findingId: risk.findingId })
@@ -251,15 +283,69 @@ export const acceptRisk = async (
         acceptedBy: ctx.principal.userId,
         acceptedAt: new Date(),
         acceptanceNote: input.note,
+        acceptedUntil: input.until ?? null,
         updatedAt: new Date(),
       })
       .where(eq(risk.id, riskId))
     await audit(tx, ctx, {
       tenantId: clientId,
-      action: 'risk.accept',
+      action: current.status === 'accepted' ? 'risk.accept_renew' : 'risk.accept',
       entity: 'risk',
       entityId: current.code,
-      detail: { note: input.note },
+      detail: { note: input.note, until: input.until ?? null },
+    })
+  })
+}
+
+/**
+ * Reopens an accepted risk, for example when its acceptance has lapsed and the client does not
+ * renew it. The risk is open again and the actions the acceptance set aside are open too.
+ */
+export const reopenRisk = async (
+  ctx: ServiceContext,
+  clientId: string,
+  riskId: string,
+  raw: unknown,
+): Promise<void> => {
+  authorize(ctx.principal, 'risk.manage', { clientId })
+  const input = parseInput(
+    z.object({
+      note: z
+        .string({ error: 'Say why the risk is reopened.' })
+        .trim()
+        .min(10, 'Say why the risk is reopened (at least 10 characters).')
+        .max(2000),
+    }),
+    raw,
+  )
+  await inClient(ctx, clientId, async (tx) => {
+    const [current] = await tx
+      .select({ code: risk.code, status: risk.status, findingId: risk.findingId })
+      .from(risk)
+      .where(and(eq(risk.id, riskId), eq(risk.tenantId, clientId)))
+    if (!current) throw new NotFoundError('Risk')
+    if (current.status !== 'accepted') throw new RuleError('Only an accepted risk is reopened.')
+    const actions = current.findingId
+      ? await reopenActionsForFinding(tx, ctx, clientId, current.findingId, input.note)
+      : 0
+    await tx
+      .update(risk)
+      .set({
+        status: 'open',
+        treatment: 'mitigate',
+        acceptedBy: null,
+        acceptedAt: null,
+        acceptanceNote: null,
+        acceptedUntil: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(risk.id, riskId))
+    await audit(tx, ctx, {
+      tenantId: clientId,
+      action: 'risk.reopen',
+      entity: 'risk',
+      entityId: current.code,
+      detail: { note: input.note, actionsReopened: actions },
     })
   })
 }

@@ -16,6 +16,7 @@ export const CAPABILITY_LABEL: Record<Capability, string> = {
   'assessment.assign': 'assign questions to departments',
   'assessment.answer': 'answer assessment questions',
   'assessment.review': 'review answers',
+  'assessment.signoff': 'sign assessments off',
   'evidence.view': 'view evidence',
   'evidence.upload': 'upload evidence',
   'evidence.review': 'review evidence',

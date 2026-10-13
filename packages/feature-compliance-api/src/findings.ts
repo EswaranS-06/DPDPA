@@ -218,6 +218,7 @@ const startingRisk = async (
     acceptedBy: accepted ? previous.acceptedBy : null,
     acceptedAt: accepted ? previous.acceptedAt : null,
     acceptanceNote: accepted ? previous.acceptanceNote : null,
+    acceptedUntil: accepted ? previous.acceptedUntil : null,
   }
 }
 

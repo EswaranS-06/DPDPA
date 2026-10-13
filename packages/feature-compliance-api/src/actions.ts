@@ -353,6 +353,39 @@ export const acceptActionsForFinding = async (
   }
 }
 
+/** When an accepted risk is reopened, the actions its acceptance set aside are open again. */
+export const reopenActionsForFinding = async (
+  tx: Transaction,
+  ctx: ServiceContext,
+  clientId: string,
+  findingId: string,
+  note: string,
+): Promise<number> => {
+  const set = await tx
+    .select({ id: remediationAction.id })
+    .from(remediationAction)
+    .where(
+      and(
+        eq(remediationAction.findingId, findingId),
+        eq(remediationAction.status, 'accepted_risk'),
+      ),
+    )
+  for (const row of set) {
+    await tx
+      .update(remediationAction)
+      .set({ status: 'open', updatedAt: new Date() })
+      .where(eq(remediationAction.id, row.id))
+    await recordEvent(tx, ctx, {
+      clientId,
+      actionId: row.id,
+      from: 'accepted_risk',
+      to: 'open',
+      note,
+    })
+  }
+  return set.length
+}
+
 /** Links evidence to an action. Department owners may do this only for their department. */
 export const linkActionEvidence = async (
   ctx: ServiceContext,

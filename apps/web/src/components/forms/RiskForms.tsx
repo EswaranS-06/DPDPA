@@ -101,7 +101,16 @@ export const RiskRatingForm = ({ action, current }: RiskFormProps) => {
   )
 }
 
-export const AcceptRiskForm = ({ action }: { action: Action }) => {
+/** Records the client's acceptance of a risk until a date; the same form renews one. */
+export const AcceptRiskForm = ({
+  action,
+  renew = false,
+  note,
+}: {
+  action: Action
+  renew?: boolean
+  note?: string | null
+}) => {
   const [state, formAction] = useActionState(action, IDLE)
   return (
     <form action={formAction} className={styles.form} noValidate>
@@ -111,13 +120,48 @@ export const AcceptRiskForm = ({ action }: { action: Action }) => {
         name="note"
         required
         rows={3}
-        defaultValue={state.values?.note}
+        defaultValue={state.values?.note ?? note ?? ''}
         error={state.fieldErrors?.note}
         hint="Recorded with your name and the date. Accepted risks stay in the register and in reports."
       />
+      <div className={styles.inline}>
+        <TextField
+          label="Accepted until"
+          name="until"
+          type="date"
+          required
+          defaultValue={state.values?.until}
+          error={state.fieldErrors?.until}
+          hint="After this date the acceptance has lapsed: the client renews it, or the risk is reopened."
+        />
+      </div>
       <FormActions>
-        <SubmitButton variant="danger" pendingText="Recording…">
-          Accept the risk
+        <SubmitButton variant={renew ? 'primary' : 'danger'} pendingText="Recording…">
+          {renew ? 'Renew the acceptance' : 'Accept the risk'}
+        </SubmitButton>
+      </FormActions>
+    </form>
+  )
+}
+
+/** Reopens an accepted risk, with the reason. */
+export const ReopenRiskForm = ({ action }: { action: Action }) => {
+  const [state, formAction] = useActionState(action, IDLE)
+  return (
+    <form action={formAction} className={styles.form} noValidate>
+      <Feedback state={state} />
+      <TextAreaField
+        label="Why the risk is reopened"
+        name="note"
+        required
+        rows={2}
+        defaultValue={state.values?.note}
+        error={state.fieldErrors?.note}
+        hint="The risk becomes open again, and so do the actions the acceptance set aside."
+      />
+      <FormActions>
+        <SubmitButton variant="secondary" pendingText="Reopening…">
+          Reopen the risk
         </SubmitButton>
       </FormActions>
     </form>

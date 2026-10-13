@@ -14,11 +14,11 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { EvidenceStatusChip, fileSize, Freshness } from '@/components/evidence/EvidenceTable'
-import { EvidenceReviewForm } from '@/components/forms/EvidenceForms'
+import { EvidenceReviewForm, EvidenceValidityForm } from '@/components/forms/EvidenceForms'
 import { loadClient } from '@/server/clients'
 import { serviceContext } from '@/server/services'
 import styles from '../../../clients.module.css'
-import { reviewEvidenceAction } from '../actions'
+import { reviewEvidenceAction, setEvidenceValidityAction } from '../actions'
 
 export const dynamic = 'force-dynamic'
 
@@ -104,6 +104,19 @@ export default async function Page({ params }: Props) {
                   returnPath: `${base}/${item.code}`,
                   evidenceId: item.id,
                 })}
+              />
+            </Panel>
+          ) : null}
+          {reviewer ? (
+            <Panel title="How long it is valid" titleId="validity-title">
+              <EvidenceValidityForm
+                action={setEvidenceValidityAction.bind(null, {
+                  clientId: client.id,
+                  clientCode: client.code,
+                  returnPath: `${base}/${item.code}`,
+                  evidenceId: item.id,
+                })}
+                validUntil={item.validUntil}
               />
             </Panel>
           ) : null}

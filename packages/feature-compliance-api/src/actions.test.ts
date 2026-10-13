@@ -63,6 +63,7 @@ describe('remediation workflow', () => {
     const [linkedRisk] = await listRisks(world.ctx, client.id)
     await acceptRisk(world.ctx, client.id, linkedRisk?.id ?? '', {
       note: 'Accepted by the client DPO until the March migration.',
+      until: '2099-03-31',
     })
     const detail = await getAction(world.ctx, client.id, created.code)
     expect(detail.status).toBe('accepted_risk')

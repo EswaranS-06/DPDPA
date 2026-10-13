@@ -3,6 +3,8 @@ import { buttonClass, Disclosure, EmptyState } from '@duatf/core-ui'
 import type { AttentionItem, AttentionKind } from '@duatf/feature-compliance-api'
 import {
   BadgeCheck,
+  CalendarClock,
+  CalendarX,
   CircleCheck,
   CircleDashed,
   ClockAlert,
@@ -11,6 +13,8 @@ import {
   FileSearch,
   FileUp,
   ListTodo,
+  Scale,
+  Stamp,
   TriangleAlert,
   UserCheck,
   Wrench,
@@ -40,6 +44,37 @@ const assessmentHref = (item: AttentionItem, query: string) =>
 
 /** How each kind of work reads, what its button says and where it goes. */
 export const ATTENTION: Record<AttentionKind, Presentation> = {
+  signoffs_to_decide: {
+    icon: Stamp,
+    tone: 'pending',
+    says: (n) => `${n} ${plural(n, 'assessment is', 'assessments are')} waiting for your sign-off`,
+    cta: 'Open the assessment',
+    href: (item) =>
+      item.assessmentCode
+        ? `/clients/${item.clientCode}/assessments/${item.assessmentCode}#signoff-title`
+        : `/clients/${item.clientCode}/assessments`,
+  },
+  acceptances_lapsed: {
+    icon: Scale,
+    tone: 'danger',
+    says: (n) => `${n} risk ${plural(n, 'acceptance has', 'acceptances have')} lapsed`,
+    cta: 'Renew or reopen',
+    href: (item) => `/clients/${item.clientCode}/risks?status=accepted`,
+  },
+  evidence_expired: {
+    icon: CalendarX,
+    tone: 'danger',
+    says: (n) => `${n} evidence ${plural(n, 'file has', 'files have')} expired`,
+    cta: 'See expired evidence',
+    href: (item) => `/clients/${item.clientCode}/evidence?freshness=expired`,
+  },
+  evidence_expiring: {
+    icon: CalendarClock,
+    tone: 'warning',
+    says: (n) => `${n} evidence ${plural(n, 'file expires', 'files expire')} within 30 days`,
+    cta: 'See expiring evidence',
+    href: (item) => `/clients/${item.clientCode}/evidence?freshness=expiring`,
+  },
   overdue_actions: {
     icon: ClockAlert,
     tone: 'danger',
@@ -121,15 +156,22 @@ export const ATTENTION: Record<AttentionKind, Presentation> = {
 
 const SHOWN = 6
 
+/** How the earliest date of a kind reads, where "due" would be wrong. */
+const DUE_WORD: Partial<Record<AttentionKind, string>> = {
+  overdue_actions: 'oldest due',
+  acceptances_lapsed: 'earliest ended',
+  evidence_expired: 'earliest ended',
+  evidence_expiring: 'first on',
+  signoffs_to_decide: 'decide by',
+}
+
 const Row = ({ item, showClient }: { item: AttentionItem; showClient: boolean }) => {
   const look = ATTENTION[item.kind]
   const Icon = look.icon
   const context = [
     showClient ? item.clientName : null,
     item.assessmentCode,
-    item.earliestDue
-      ? `${item.kind === 'overdue_actions' ? 'oldest due' : 'due'} ${formatDay(item.earliestDue)}`
-      : null,
+    item.earliestDue ? `${DUE_WORD[item.kind] ?? 'due'} ${formatDay(item.earliestDue)}` : null,
   ].filter(Boolean)
   return (
     <li className={styles.row}>

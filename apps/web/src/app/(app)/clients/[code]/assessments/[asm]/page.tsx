@@ -16,7 +16,11 @@ import {
   describeResponse,
   getAssessment,
   listItems,
+  listSignoffs,
   NotFoundError,
+  qualityCheck,
+  signoffApprovers,
+  signoffOptions,
   TRANSITIONS,
   type ItemFilters,
 } from '@duatf/feature-compliance-api'
@@ -33,6 +37,7 @@ import {
   ProgressBar,
   ReviewChip,
 } from '@/components/assessment/AssessmentBits'
+import { QualitySummary, SignoffPanel } from '@/components/assessment/Assurance'
 import dash from '@/components/dashboard/DashboardBits.module.css'
 import { ReassessForm } from '@/components/forms/ActionForms'
 import { CheckAllForm, MoveReleaseForm, StatusButtons } from '@/components/forms/AssessmentForms'
@@ -42,6 +47,12 @@ import { serviceContext } from '@/server/services'
 import styles from '../../../clients.module.css'
 import { reassessAction } from '../../actions/actions'
 import { changeStatusAction, checkAllAction, moveCycleAction } from '../actions'
+import {
+  decideSignoffAction,
+  requestSignoffAction,
+  signOffNowAction,
+  withdrawSignoffAction,
+} from '../signoffActions'
 
 export const dynamic = 'force-dynamic'
 
@@ -96,6 +107,22 @@ export default async function Page({ params, searchParams }: Props) {
   const unchecked = detail.progress.answered - detail.progress.accepted
   const open = detail.status !== 'completed'
   const moved = firstValue(query.moved)
+  const [quality, signoffs] = await Promise.all([
+    qualityCheck(ctx, client.id, detail.code),
+    listSignoffs(ctx, client.id, detail.id),
+  ])
+  const signoffCan = signoffOptions(
+    ctx,
+    client.id,
+    detail,
+    signoffs.find((row) => row.status === 'requested') ?? null,
+  )
+  const approvers = signoffCan.request
+    ? (await signoffApprovers(ctx, client.id))
+        .filter((person) => person.userId !== ctx.principal.userId)
+        .map((person) => ({ value: person.userId, label: person.displayName }))
+    : []
+  const signoffTarget = { clientId: client.id, clientCode: client.code, assessmentId: detail.id }
 
   return (
     <>
@@ -258,14 +285,34 @@ export default async function Page({ params, searchParams }: Props) {
         </EmptyState>
       ) : null}
 
-      {open && unchecked > 0 ? (
+      {detail.status === 'in_progress' && unchecked > 0 ? (
         <Panel title={`${unchecked} answers not checked yet`} titleId="check-all">
           <p className={`${styles.flush} ${styles.sectionIntro}`}>
-            The cycle can be completed once every question is answered and every answer is ticked as
-            checked. Tick them one by one on each question, or all at once here.
+            The cycle can be signed off once every question is answered and every answer is ticked
+            as checked. Tick them one by one on each question, or all at once here.
           </p>
           <CheckAllForm action={checkAllAction.bind(null, target)} count={unchecked} />
         </Panel>
+      ) : null}
+
+      {detail.progress.total > 0 ? (
+        <div className={dash.twoUp}>
+          <QualitySummary report={quality} href={`${base}/quality`} />
+          <SignoffPanel
+            status={detail.status}
+            progress={detail.progress}
+            signoffs={signoffs}
+            counts={quality.counts}
+            approvers={approvers}
+            can={signoffCan}
+            actions={{
+              request: requestSignoffAction.bind(null, signoffTarget),
+              signOffNow: signOffNowAction.bind(null, signoffTarget),
+              decide: decideSignoffAction.bind(null, signoffTarget),
+              withdraw: withdrawSignoffAction.bind(null, signoffTarget),
+            }}
+          />
+        </div>
       ) : null}
 
       <section className={styles.section} aria-labelledby="questions">

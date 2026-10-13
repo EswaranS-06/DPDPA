@@ -69,6 +69,9 @@ export const moveCycleToLatestRelease = async (
     if (found.status === 'completed') {
       throw new RuleError(`${found.code} is completed. Start the next cycle to use new questions.`)
     }
+    if (found.status === 'in_review') {
+      throw new RuleError(`${found.code} is waiting for sign-off. Withdraw the request first.`)
+    }
     const latest = await publishedRelease(tx)
     if (latest.id === found.releaseId) {
       throw new RuleError(`${found.code} already uses release ${latest.version}.`)

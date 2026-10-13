@@ -39,7 +39,7 @@ import {
   ValidationError,
 } from './errors'
 import { syncFinding } from './findings'
-import { COMPLIANCE_OF, summariseProgress } from './progress'
+import { COMPLIANCE_OF, summariseProgress, type Progress } from './progress'
 import { dependentsOf, gateConflict, readGates, reconcileQuestions } from './reconcile'
 import { evaluateResponse } from './responses'
 
@@ -180,6 +180,14 @@ export const createAssessment = async (
     return insertCycle(tx, ctx, clientId, { ...input, ...options })
   })
 }
+
+/** Why a cycle's answers and questions cannot change now, or null while they can. */
+export const lockReason = (cycle: { code: string; status: AssessmentStatus }): string | null =>
+  cycle.status === 'completed'
+    ? `${cycle.code} is completed; its answers are locked.`
+    : cycle.status === 'in_review'
+      ? `${cycle.code} is waiting for sign-off; its answers are locked until that is decided or withdrawn.`
+      : null
 
 /** The client's cycle that is not completed yet, if any. */
 export const openCycle = async (tx: Transaction, clientId: string) => {
@@ -422,6 +430,10 @@ export const applyDepartmentQuestions = async (
   const adding = available.filter(
     (row) => wanted.includes(row.code) && !current.some((item) => item.questionCode === row.code),
   )
+  const dropping = current.filter((item) => !wanted.includes(item.questionCode))
+  // A cycle waiting for sign-off keeps the questions it was sent with.
+  const locked = lockReason(cycle)
+  if (locked && (adding.length || dropping.length)) throw new RuleError(locked)
   if (adding.length) {
     await tx.insert(assessmentItem).values(
       adding.map((row) => ({
@@ -441,7 +453,6 @@ export const applyDepartmentQuestions = async (
     releaseId: cycle.releaseId,
     codes: adding.map((row) => row.code),
   })
-  const dropping = current.filter((item) => !wanted.includes(item.questionCode))
   const locks = await lockReasons(
     tx,
     dropping.map((item) => item.id),
@@ -879,9 +890,8 @@ export const answerItem = async (
       itemId,
     )
     authorize(ctx.principal, 'assessment.answer', { clientId, departmentId: item.departmentId })
-    if (status === 'completed') {
-      throw new RuleError('This assessment is completed; answers are locked.')
-    }
+    const locked = lockReason({ code: assessmentCode, status })
+    if (locked) throw new RuleError(locked)
     const evaluated = evaluateResponse(
       { answerType, options },
       {
@@ -970,7 +980,8 @@ export const checkItem = async (
   const input = parseInput(checkSchema, raw)
   await inClient(ctx, clientId, async (tx) => {
     const { item, status, assessmentCode } = await loadItem(tx, clientId, itemId)
-    if (status === 'completed') throw new RuleError('This assessment is completed.')
+    const locked = lockReason({ code: assessmentCode, status })
+    if (locked) throw new RuleError(locked)
     if (item.answer === 'not_assessed') {
       throw new RuleError('Answer the question before checking it.')
     }
@@ -1007,7 +1018,8 @@ export const checkAnswered = async (
       .from(assessment)
       .where(and(eq(assessment.id, assessmentId), eq(assessment.tenantId, clientId)))
     if (!found) throw new NotFoundError('Assessment')
-    if (found.status === 'completed') throw new RuleError('This assessment is completed.')
+    const locked = lockReason(found)
+    if (locked) throw new RuleError(locked)
     const updated = await tx
       .update(assessmentItem)
       .set({ reviewState: 'accepted', reviewedBy: ctx.principal.userId, reviewedAt: new Date() })
@@ -1037,12 +1049,29 @@ export const checkAnswered = async (
 
 type Transition = { to: AssessmentStatus; capability: Capability; label: string }
 
-/** Allowed moves of an assessment cycle. There is no separate review stage: the self-check is per answer. */
+/**
+ * Moves of a cycle made with a plain button. Completing is not one of them: a cycle completes
+ * through its sign-off (signoff.ts), by the approver it was sent to.
+ */
 export const TRANSITIONS: Record<AssessmentStatus, Transition[]> = {
   draft: [{ to: 'in_progress', capability: 'assessment.assign', label: 'Start' }],
-  in_progress: [{ to: 'completed', capability: 'assessment.review', label: 'Complete' }],
-  in_review: [{ to: 'in_progress', capability: 'assessment.review', label: 'Reopen' }],
+  in_progress: [],
+  in_review: [],
   completed: [{ to: 'in_progress', capability: 'assessment.create', label: 'Reopen' }],
+}
+
+/** Progress of one cycle, from its items. */
+export const cycleProgress = async (tx: Transaction, assessmentId: string) =>
+  summariseProgress(await stateCounts(tx, eq(assessmentItem.assessmentId, assessmentId)))
+
+/** Refuses unless every question of the cycle is answered and every answer is checked. */
+export const assertReadyToComplete = (progress: Progress): void => {
+  if (progress.total === 0) throw new RuleError('This assessment has no questions yet.')
+  if (progress.pending > 0) {
+    throw new RuleError(`${progress.pending} questions are not answered yet.`)
+  }
+  const unchecked = progress.answered - progress.accepted
+  if (unchecked > 0) throw new RuleError(`${unchecked} answers are not checked yet.`)
 }
 
 export const changeAssessmentStatus = async (
@@ -1064,17 +1093,7 @@ export const changeAssessmentStatus = async (
         `An assessment that is ${found.status.replace('_', ' ')} cannot move to ${target.replace('_', ' ')}.`,
       )
     authorize(ctx.principal, transition.capability, { clientId })
-    const progress = summariseProgress(
-      await stateCounts(tx, eq(assessmentItem.assessmentId, assessmentId)),
-    )
-    if (transition.to === 'completed') {
-      if (progress.total === 0) throw new RuleError('This assessment has no questions yet.')
-      if (progress.pending > 0) {
-        throw new RuleError(`${progress.pending} questions are not answered yet.`)
-      }
-      const unchecked = progress.answered - progress.accepted
-      if (unchecked > 0) throw new RuleError(`${unchecked} answers are not checked yet.`)
-    }
+    const progress = await cycleProgress(tx, assessmentId)
     if (transition.to === 'in_progress' && found.status === 'completed') {
       const open = await openCycle(tx, clientId)
       if (open) {

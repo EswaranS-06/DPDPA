@@ -1,5 +1,5 @@
 import { can } from '@duatf/core-access'
-import { formatIst } from '@duatf/core-utils'
+import { formatDay, formatIst, isoDate } from '@duatf/core-utils'
 import {
   Callout,
   Citation,
@@ -20,13 +20,13 @@ import {
   listActions,
 } from '@duatf/feature-compliance-api'
 import { ANSWERS } from '@duatf/platform-db'
-import { ListPlus, Scale, Wrench } from 'lucide-react'
+import { ListPlus, RotateCcw, Scale, Wrench } from 'lucide-react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ActionTable, actionPlanOptions } from '@/components/actions/ActionBits'
 import { ActionPlanForm } from '@/components/forms/ActionForms'
-import { AcceptRiskForm, RiskRatingForm } from '@/components/forms/RiskForms'
+import { AcceptRiskForm, ReopenRiskForm, RiskRatingForm } from '@/components/forms/RiskForms'
 import { RemediationPath, remediationSteps } from '@/components/risk/RemediationPath'
 import { BandChip, FindingStatusChip, GapChip, RiskStatusChip } from '@/components/risk/RiskBits'
 import { Status } from '@/components/status'
@@ -34,7 +34,7 @@ import { loadClient } from '@/server/clients'
 import { serviceContext } from '@/server/services'
 import styles from '../../../clients.module.css'
 import { createActionAction } from '../../actions/actions'
-import { acceptRiskAction, updateRiskAction } from '../../risks/actions'
+import { acceptRiskAction, reopenRiskAction, updateRiskAction } from '../../risks/actions'
 import local from './finding.module.css'
 
 export const dynamic = 'force-dynamic'
@@ -73,6 +73,11 @@ export default async function Page({ params }: Props) {
     ? { clientId: client.id, clientCode: client.code, riskId: item.risk.id }
     : null
   const answer = item.answer
+  const today = isoDate(new Date())
+  const lapsed =
+    item.risk?.status === 'accepted' &&
+    item.risk.acceptedUntil !== null &&
+    item.risk.acceptedUntil < today
 
   return (
     <>
@@ -176,12 +181,39 @@ export default async function Page({ params }: Props) {
             </p>
             {item.risk.description ? <p className={styles.flush}>{item.risk.description}</p> : null}
             {item.risk.status === 'accepted' ? (
-              <Callout tone="neutral" icon={Scale} title="Accepted by the client">
+              <Callout
+                tone={lapsed ? 'danger' : 'neutral'}
+                icon={Scale}
+                title={
+                  lapsed
+                    ? `The acceptance lapsed on ${formatDay(item.risk.acceptedUntil ?? today)}`
+                    : item.risk.acceptedUntil
+                      ? `Accepted by the client until ${formatDay(item.risk.acceptedUntil)}`
+                      : 'Accepted by the client, with no end date'
+                }
+              >
                 <p>
                   {item.risk.acceptedAt ? `${formatIst(item.risk.acceptedAt)}. ` : ''}
                   {item.risk.acceptanceNote}
                 </p>
+                {lapsed ? (
+                  <p>Record the client’s renewed acceptance with a new date, or reopen the risk.</p>
+                ) : null}
               </Callout>
+            ) : null}
+            {item.risk.status === 'accepted' && can(ctx.principal, 'risk.accept', scope) ? (
+              <Disclosure summary="Renew the acceptance" icon={Scale} defaultOpen={lapsed}>
+                <AcceptRiskForm
+                  action={acceptRiskAction.bind(null, target)}
+                  renew
+                  note={item.risk.acceptanceNote}
+                />
+              </Disclosure>
+            ) : null}
+            {item.risk.status === 'accepted' && can(ctx.principal, 'risk.manage', scope) ? (
+              <Disclosure summary="Reopen the risk" icon={RotateCcw}>
+                <ReopenRiskForm action={reopenRiskAction.bind(null, target)} />
+              </Disclosure>
             ) : null}
             {can(ctx.principal, 'risk.manage', scope) && item.risk.status !== 'accepted' ? (
               <RiskRatingForm action={updateRiskAction.bind(null, target)} current={item.risk} />

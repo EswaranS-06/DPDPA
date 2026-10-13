@@ -81,6 +81,7 @@ export {
   checkItem,
   checkAnswered,
   changeAssessmentStatus,
+  lockReason,
   departmentQuestionPicker,
   setDepartmentQuestions,
   openCycle,
@@ -105,6 +106,31 @@ export {
   type ResponseInput,
 } from './responses'
 export {
+  qualityCheck,
+  checkQuality,
+  countIssues,
+  evidenceStanding,
+  QUALITY_RULES,
+  QUALITY_RULE_ORDER,
+  type QualityCounts,
+  type QualityInput,
+  type QualityIssue,
+  type QualityReport,
+  type QualityRule,
+  type QualitySeverity,
+  type QualitySubject,
+} from './quality'
+export {
+  signoffApprovers,
+  listSignoffs,
+  requestSignoff,
+  decideSignoff,
+  withdrawSignoff,
+  signOffCycle,
+  signoffOptions,
+  type SignoffRow,
+} from './signoff'
+export {
   summariseProgress,
   explainCompliance,
   COMPLIANCE_OF,
@@ -122,6 +148,10 @@ export {
   reviewEvidence,
   evidenceDownloadUrl,
   evidenceStatusCounts,
+  evidenceFreshnessCounts,
+  setEvidenceValidity,
+  freshnessOf,
+  EXPIRING_DAYS,
   checkEvidenceFile,
   canUploadFor,
   MAX_EVIDENCE_BYTES,
@@ -130,6 +160,7 @@ export {
   type EvidenceFilters,
   type EvidenceRow,
   type EvidenceDetail,
+  type Freshness,
 } from './evidence'
 export {
   listFindings,
@@ -145,6 +176,8 @@ export {
   getRisk,
   updateRisk,
   acceptRisk,
+  reopenRisk,
+  acceptanceLapsed,
   listBands,
   updateBands,
   ratingFor,
