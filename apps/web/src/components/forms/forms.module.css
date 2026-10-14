@@ -109,6 +109,36 @@
   border-radius: var(--radius-control);
 }
 
+/* One risk of a DPIA: the risk on its own line, then its ratings around the measures. */
+.riskRow {
+  display: grid;
+  grid-template-columns: 7rem 7rem minmax(0, 1fr) 8.5rem 8.5rem;
+  gap: var(--space-3);
+  align-items: end;
+  padding: var(--space-4) 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.riskRow > :first-child {
+  grid-column: 1 / -1;
+}
+
+.stacked {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+@media (max-width: 720px) {
+  .riskRow {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .riskRow > :nth-child(4) {
+    grid-column: 1 / -1;
+  }
+}
+
 .checkList {
   display: flex;
   flex-direction: column;

@@ -70,6 +70,8 @@ export const clientProfile = pgTable('client_profile', {
     .notNull()
     .default('under_review'),
   applicabilityNote: text('applicability_note'),
+  /** Days within which the client answers Data Principals' requests, as it publishes. */
+  rightsResponseDays: integer('rights_response_days'),
   status: text('status').$type<ClientStatus>().notNull().default('onboarding'),
   createdBy: uuid('created_by'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -685,5 +687,277 @@ export const processingActivityElement = pgTable(
     unique('processing_activity_element_title').on(table.activityId, table.title),
     index('processing_activity_element_activity').on(table.activityId),
     check('processing_activity_element_level', sql`${table.level} in ('L1', 'L2', 'L3', 'L4')`),
+  ],
+)
+
+// --- Registers (ADR-0009): processors, breaches, rights requests and DPIAs -----------------------
+
+export const PROCESSOR_KINDS = ['processor', 'sub_processor'] as const
+export type ProcessorKind = (typeof PROCESSOR_KINDS)[number]
+export const CONTRACT_ANSWERS = ['yes', 'no', 'unknown'] as const
+export type ContractAnswer = (typeof CONTRACT_ANSWERS)[number]
+export const PROCESSOR_LOCATIONS = ['india', 'outside', 'unknown'] as const
+export type ProcessorLocation = (typeof PROCESSOR_LOCATIONS)[number]
+export const PROCESSOR_RATINGS = ['low', 'medium', 'high'] as const
+export type ProcessorRating = (typeof PROCESSOR_RATINGS)[number]
+
+/**
+ * A Data Processor the client uses (s.8(2)): the vendor, its contract and when it was last
+ * assessed. It is matched to the RoPA by name: an activity that names it, or one of its other
+ * spellings, as a processor is one of its activities.
+ */
+export const processor = pgTable(
+  'processor',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenant.id, { onDelete: 'cascade' }),
+    code: text('code').notNull(),
+    name: text('name').notNull(),
+    /** Other spellings the RoPA uses for the same vendor. */
+    aliases: textList('aliases'),
+    kind: text('kind').$type<ProcessorKind>().notNull().default('processor'),
+    service: text('service'),
+    location: text('location').$type<ProcessorLocation>().notNull().default('unknown'),
+    countries: text('countries'),
+    contactName: text('contact_name'),
+    contactEmail: text('contact_email'),
+    contract: text('contract').$type<ContractAnswer>().notNull().default('unknown'),
+    contractStart: date('contract_start', { mode: 'string' }),
+    contractEnd: date('contract_end', { mode: 'string' }),
+    contractEvidenceId: uuid('contract_evidence_id').references(() => evidence.id, {
+      onDelete: 'set null',
+    }),
+    /** Codes of the DPDP terms the contract covers (CONTRACT_TERMS in the service). */
+    terms: textList('terms'),
+    rating: text('rating').$type<ProcessorRating>(),
+    lastAssessedOn: date('last_assessed_on', { mode: 'string' }),
+    nextReviewOn: date('next_review_on', { mode: 'string' }),
+    notes: text('notes'),
+    active: boolean('active').notNull().default(true),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedBy: uuid('updated_by'),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    unique('processor_tenant_code').on(table.tenantId, table.code),
+    uniqueIndex('processor_tenant_name').on(table.tenantId, sql`lower(${table.name})`),
+    check(
+      'processor_contract_dates',
+      sql`${table.contractStart} is null or ${table.contractEnd} is null or ${table.contractEnd} >= ${table.contractStart}`,
+    ),
+  ],
+)
+
+export const BREACH_STATUSES = ['open', 'contained', 'closed'] as const
+export type BreachStatus = (typeof BREACH_STATUSES)[number]
+export const BREACH_SEVERITIES = ['low', 'medium', 'high', 'critical'] as const
+export type BreachSeverity = (typeof BREACH_SEVERITIES)[number]
+
+/**
+ * A personal data breach (s.2(u)) and its intimations. The clocks run from aware_at, the time
+ * the organisation became aware (Rule 7). Severity is triage only: every breach is intimated.
+ */
+export const breach = pgTable(
+  'breach',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenant.id, { onDelete: 'cascade' }),
+    code: text('code').notNull(),
+    title: text('title').notNull(),
+    /** What happened: the nature and extent of the breach. */
+    description: text('description').notNull(),
+    awareAt: timestamp('aware_at', { withTimezone: true }).notNull(),
+    occurredAt: timestamp('occurred_at', { withTimezone: true }),
+    /** Where it happened: the system, site or processor. */
+    place: text('place'),
+    /** Words of s.2(u) that apply (BREACH_NATURES in the service). */
+    natures: textList('natures'),
+    severity: text('severity').$type<BreachSeverity>().notNull().default('medium'),
+    cyberIncident: boolean('cyber_incident').notNull().default(false),
+    affectedPrincipals: integer('affected_principals'),
+    dataAffected: text('data_affected'),
+    likelyImpact: text('likely_impact'),
+    measures: text('measures'),
+    safetySteps: text('safety_steps'),
+    contact: text('contact'),
+    cause: text('cause'),
+    personResponsible: text('person_responsible'),
+    remedial: text('remedial'),
+    boardFirstAt: timestamp('board_first_at', { withTimezone: true }),
+    boardDetailedAt: timestamp('board_detailed_at', { withTimezone: true }),
+    boardReference: text('board_reference'),
+    /** A longer period for the detailed report, allowed by the Board on a written request. */
+    boardExtendedTo: timestamp('board_extended_to', { withTimezone: true }),
+    principalsAt: timestamp('principals_at', { withTimezone: true }),
+    principalsHow: text('principals_how'),
+    certInAt: timestamp('cert_in_at', { withTimezone: true }),
+    processorId: uuid('processor_id').references(() => processor.id, { onDelete: 'set null' }),
+    departmentId: uuid('department_id').references(() => department.id, { onDelete: 'set null' }),
+    /** PA numbers of the RoPA activities affected. */
+    activityRefs: integer('activity_refs')
+      .array()
+      .notNull()
+      .default(sql`'{}'::integer[]`),
+    status: text('status').$type<BreachStatus>().notNull().default('open'),
+    containedAt: timestamp('contained_at', { withTimezone: true }),
+    closedAt: timestamp('closed_at', { withTimezone: true }),
+    closeReason: text('close_reason'),
+    createdBy: uuid('created_by'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [unique('breach_tenant_code').on(table.tenantId, table.code)],
+)
+
+/** What was recorded about a breach, and when, oldest first. */
+export const breachEvent = pgTable(
+  'breach_event',
+  {
+    id: bigserial('id', { mode: 'number' }).primaryKey(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenant.id, { onDelete: 'cascade' }),
+    breachId: uuid('breach_id')
+      .notNull()
+      .references(() => breach.id, { onDelete: 'cascade' }),
+    at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
+    actorUserId: uuid('actor_user_id'),
+    kind: text('kind').notNull(),
+    /** When the thing recorded took place (an intimation's time), if not now. */
+    happenedAt: timestamp('happened_at', { withTimezone: true }),
+    note: text('note'),
+  },
+  (table) => [index('breach_event_breach').on(table.breachId)],
+)
+
+export const RIGHTS_KINDS = [
+  'access',
+  'correction',
+  'erasure',
+  'grievance',
+  'nomination',
+  'withdrawal',
+] as const
+export type RightsKind = (typeof RIGHTS_KINDS)[number]
+export const RIGHTS_STATUSES = [
+  'received',
+  'in_progress',
+  'fulfilled',
+  'refused',
+  'withdrawn',
+] as const
+export type RightsStatus = (typeof RIGHTS_STATUSES)[number]
+
+/**
+ * A request from a Data Principal (ss.11-14, or withdrawal of consent under s.6(4)). The
+ * requester is recorded by the client's own reference, not by identity; a contact is held only
+ * when the person sent the request through the client's public page.
+ */
+export const rightsRequest = pgTable(
+  'rights_request',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenant.id, { onDelete: 'cascade' }),
+    code: text('code').notNull(),
+    kind: text('kind').$type<RightsKind>().notNull(),
+    receivedOn: date('received_on', { mode: 'string' }).notNull(),
+    dueOn: date('due_on', { mode: 'string' }).notNull(),
+    channel: text('channel'),
+    requesterRef: text('requester_ref').notNull(),
+    principalType: text('principal_type'),
+    details: text('details'),
+    identityVerified: boolean('identity_verified').notNull().default(false),
+    status: text('status').$type<RightsStatus>().notNull().default('received'),
+    outcome: text('outcome'),
+    closedOn: date('closed_on', { mode: 'string' }),
+    departmentId: uuid('department_id').references(() => department.id, { onDelete: 'set null' }),
+    handler: text('handler'),
+    /** "recorded" by the audit team, or "public" when it came through the client's public page. */
+    source: text('source').notNull().default('recorded'),
+    contact: text('contact'),
+    createdBy: uuid('created_by'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    unique('rights_request_tenant_code').on(table.tenantId, table.code),
+    index('rights_request_due').on(table.tenantId, table.dueOn),
+  ],
+)
+
+export const DPIA_STATUSES = ['draft', 'completed'] as const
+export type DpiaStatus = (typeof DPIA_STATUSES)[number]
+export const DPIA_OUTCOMES = ['proceed', 'proceed_with_measures', 'do_not_proceed'] as const
+export type DpiaOutcome = (typeof DPIA_OUTCOMES)[number]
+
+/**
+ * A Data Protection Impact Assessment of one RoPA activity, in the shape s.10(2)(c)(i) gives:
+ * the rights of the Data Principals, the purpose, and the assessment and management of the risk
+ * to those rights. Its risks are in dpia_risk.
+ */
+export const dpia = pgTable(
+  'dpia',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenant.id, { onDelete: 'cascade' }),
+    code: text('code').notNull(),
+    activityId: uuid('activity_id')
+      .notNull()
+      .references(() => processingActivity.id, { onDelete: 'cascade' }),
+    status: text('status').$type<DpiaStatus>().notNull().default('draft'),
+    description: text('description'),
+    purpose: text('purpose'),
+    rightsAffected: text('rights_affected'),
+    necessity: text('necessity'),
+    consulted: text('consulted'),
+    outcome: text('outcome').$type<DpiaOutcome>(),
+    outcomeNote: text('outcome_note'),
+    preparedBy: text('prepared_by'),
+    completedOn: date('completed_on', { mode: 'string' }),
+    nextReviewOn: date('next_review_on', { mode: 'string' }),
+    createdBy: uuid('created_by'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedBy: uuid('updated_by'),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    unique('dpia_tenant_code').on(table.tenantId, table.code),
+    uniqueIndex('dpia_activity').on(table.activityId),
+  ],
+)
+
+/** One risk to Data Principals in a DPIA, rated before and after the measures that manage it. */
+export const dpiaRisk = pgTable(
+  'dpia_risk',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenant.id, { onDelete: 'cascade' }),
+    dpiaId: uuid('dpia_id')
+      .notNull()
+      .references(() => dpia.id, { onDelete: 'cascade' }),
+    seq: integer('seq').notNull().default(0),
+    risk: text('risk').notNull(),
+    likelihood: integer('likelihood').notNull(),
+    impact: integer('impact').notNull(),
+    measures: text('measures'),
+    residualLikelihood: integer('residual_likelihood').notNull(),
+    residualImpact: integer('residual_impact').notNull(),
+  },
+  (table) => [
+    index('dpia_risk_dpia').on(table.dpiaId),
+    check(
+      'dpia_risk_range',
+      sql`${table.likelihood} between 1 and 5 and ${table.impact} between 1 and 5 and ${table.residualLikelihood} between 1 and 5 and ${table.residualImpact} between 1 and 5`,
+    ),
   ],
 )

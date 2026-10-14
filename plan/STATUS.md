@@ -27,7 +27,7 @@ Gate: **passing**
 | C20 | Personal data inventory, data mapping and record of processing (self-audit edition) | R2 | TESTS PASSING | lead_auditor pending, legal_sme pending |
 | C21 | Process-focused record of processing with Excel export and import (self-audit edition) | R2 | TESTS PASSING | lead_auditor pending, legal_sme pending |
 | C22 | Assurance: quality check, expiry and sign-off | R3 | TESTS PASSING | lead_auditor pending |
-| C23 | Registers: processors, breaches, rights requests and DPIAs | R3 | PLANNED | legal_sme pending |
+| C23 | Registers: processors, breaches, rights requests and DPIAs | R3 | TESTS PASSING | legal_sme pending |
 | C24 | Maturity targets and visuals | R3 | PLANNED | lead_auditor pending |
 | C25 | Reports and outputs | R3 | PLANNED | lead_auditor pending |
 | C26 | Document pack | R3 | PLANNED | legal_sme pending |
@@ -178,5 +178,16 @@ Gate: **passing**
 | TC-C22.3-01 | C22.3 | A cycle goes to a named approver with a deadline, locks its answers and completes only on that approver’s decision | in review and locked; another person refused; approved completes; changes asked reopens | literal | PASS |
 | TC-C22.3-02 | C22.3 | Signing off with open errors needs an acknowledgement, and the sign-off keeps the issue counts and posture of that moment | refused without the acknowledgement; counts and posture stored | literal | PASS |
 | TC-C22.4-01 | C22.4 | The quality check, sign-off and expiry screens work on a copy of the live data at 1440 and 390 px, light and dark | no overlap or console errors; a cycle is submitted, sent back and approved | manual | PASS |
+| TC-C23.1-01 | C23.1 | Processors named in the RoPA become register entries once, and each shows the activities and personal data it receives | one entry per processor, other spellings matched; activities, data and highest level as worked | literal | PASS |
+| TC-C23.1-02 | C23.1 | The contract state follows its dates: none, in force, ending soon, ended | equal to the worked cases; no contract and ended contracts counted in attention | literal | PASS |
+| TC-C23.1-03 | C23.1 | Only the audit team changes the register, and each client sees only its own | denied to client roles; 0 rows across clients | literal | PASS |
+| TC-C23.2-01 | C23.2 | The clocks run from awareness: 72 hours for the detailed report to the Board (or the longer period allowed) and 6 hours for CERT-In on a cyber incident | deadlines, time left and overdue equal to the worked cases | literal | PASS |
+| TC-C23.2-02 | C23.2 | Recording each intimation writes the timeline, and a breach closes only with its intimations or a recorded reason | timeline in order; closing refused, then allowed | literal | PASS |
+| TC-C23.2-03 | C23.2 | The draft notices carry every item Rule 7 lists, filled from the record | all R7(1) items for Data Principals; all R7(2)(a) and R7(2)(b) items for the Board | literal | PASS |
+| TC-C23.3-01 | C23.3 | A request’s due date comes from the client’s response period, a grievance never beyond 90 days, and it is overdue after that date | equal to the worked dates; overdue counted in attention | literal | PASS |
+| TC-C23.3-02 | C23.3 | A request moves from received to fulfilled, refused with a reason or withdrawn, and a closed request stays closed | allowed moves saved; a refusal without a reason and a move after closing refused | literal | PASS |
+| TC-C23.4-01 | C23.4 | A DPIA belongs to one activity, starts from its RoPA answers and rates risk before and after its measures | one per activity; prefilled; ratings = likelihood x impact in the firm’s bands | literal | PASS |
+| TC-C23.4-02 | C23.4 | Activities with the most sensitive data, children’s data or transfers abroad are suggested for a DPIA, and a review date is reported when due | suggested as worked; due reviews counted in attention | literal | PASS |
+| TC-C23.5-01 | C23.5 | The processor, breach, rights and DPIA screens work on a copy of the live data at 1440 and 390 px, light and dark | no overlap or console errors; each record is added, changed and closed | manual | PASS |
 
-49 further tests are planned in later sub-phases.
+38 further tests are planned in later sub-phases.

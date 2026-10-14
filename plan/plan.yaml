@@ -1092,7 +1092,7 @@ phases:
     subphases:
       - id: C23.1
         title: 'Processor register built from the RoPA, with contract dates'
-        state: planned
+        state: active
         tests:
           - id: TC-C23.1-01
             title: 'Processors named in the RoPA become register entries once, and each shows the activities and personal data it receives'
@@ -1108,7 +1108,7 @@ phases:
             source: literal
       - id: C23.2
         title: 'Breach register with the intimation clocks'
-        state: planned
+        state: active
         tests:
           - id: TC-C23.2-01
             title: 'The clocks run from awareness: 72 hours for the detailed report to the Board (or the longer period allowed) and 6 hours for CERT-In on a cyber incident'
@@ -1124,7 +1124,7 @@ phases:
             source: literal
       - id: C23.3
         title: 'Rights and grievance register'
-        state: planned
+        state: active
         tests:
           - id: TC-C23.3-01
             title: 'A request’s due date comes from the client’s response period, a grievance never beyond 90 days, and it is overdue after that date'
@@ -1136,7 +1136,7 @@ phases:
             source: literal
       - id: C23.4
         title: 'DPIA record on a RoPA activity'
-        state: planned
+        state: active
         tests:
           - id: TC-C23.4-01
             title: 'A DPIA belongs to one activity, starts from its RoPA answers and rates risk before and after its measures'
@@ -1148,7 +1148,7 @@ phases:
             source: literal
       - id: C23.5
         title: 'Screens: the four registers'
-        state: planned
+        state: active
         tests:
           - id: TC-C23.5-01
             title: 'The processor, breach, rights and DPIA screens work on a copy of the live data at 1440 and 390 px, light and dark'

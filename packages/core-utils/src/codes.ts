@@ -16,6 +16,9 @@ export type CodePrefix =
   | 'REM'
   | 'ASM'
   | 'RSK'
+  | 'BRE'
+  | 'DPR'
+  | 'DPIA'
 
 const SEGMENT = /^[A-Z0-9]+$/
 

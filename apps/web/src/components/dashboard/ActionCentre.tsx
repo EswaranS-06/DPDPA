@@ -12,7 +12,10 @@ import {
   FileClock,
   FileSearch,
   FileUp,
+  FileX,
+  Inbox,
   ListTodo,
+  ShieldAlert,
   Scale,
   Stamp,
   TriangleAlert,
@@ -44,6 +47,41 @@ const assessmentHref = (item: AttentionItem, query: string) =>
 
 /** How each kind of work reads, what its button says and where it goes. */
 export const ATTENTION: Record<AttentionKind, Presentation> = {
+  breach_clocks: {
+    icon: ShieldAlert,
+    tone: 'danger',
+    says: (n) => `${n} ${plural(n, 'breach has', 'breaches have')} an intimation still to make`,
+    cta: 'Open breaches',
+    href: (item) => `/clients/${item.clientCode}/breaches`,
+  },
+  rights_overdue: {
+    icon: Inbox,
+    tone: 'danger',
+    says: (n) => `${n} rights ${plural(n, 'request is', 'requests are')} overdue`,
+    cta: 'Open overdue requests',
+    href: (item) => `/clients/${item.clientCode}/rights?show=overdue`,
+  },
+  processor_contracts_missing: {
+    icon: FileX,
+    tone: 'warning',
+    says: (n) => `${n} ${plural(n, 'processor has', 'processors have')} no contract in force`,
+    cta: 'Open processors',
+    href: (item) => `/clients/${item.clientCode}/processors`,
+  },
+  processor_contracts_ending: {
+    icon: CalendarClock,
+    tone: 'info',
+    says: (n) => `${n} processor ${plural(n, 'contract ends', 'contracts end')} within 60 days`,
+    cta: 'Open processors',
+    href: (item) => `/clients/${item.clientCode}/processors`,
+  },
+  dpia_reviews_due: {
+    icon: FileSearch,
+    tone: 'info',
+    says: (n) => `${n} ${plural(n, 'DPIA is', 'DPIAs are')} due for review`,
+    cta: 'Open DPIAs',
+    href: (item) => `/clients/${item.clientCode}/dpia`,
+  },
   signoffs_to_decide: {
     icon: Stamp,
     tone: 'pending',
@@ -163,6 +201,10 @@ const DUE_WORD: Partial<Record<AttentionKind, string>> = {
   evidence_expired: 'earliest ended',
   evidence_expiring: 'first on',
   signoffs_to_decide: 'decide by',
+  breach_clocks: 'next deadline',
+  rights_overdue: 'oldest due',
+  processor_contracts_ending: 'first on',
+  dpia_reviews_due: 'first on',
 }
 
 const Row = ({ item, showClient }: { item: AttentionItem; showClient: boolean }) => {

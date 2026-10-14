@@ -1,0 +1,28 @@
+id: TC-C23.5-01
+result: pass
+by: claude (for EswaranS-06)
+date: '2026-10-13'
+evidence: >-
+  Preview build of the working tree (127.0.0.1:53510) on a migrated copy of the live self
+  database, client MMA0011111 (26 RoPA activities; two of them given processors in the copy).
+  Processors: the page said "The RoPA names 3 processors that are not in the register", "Add all
+  3" listed them with the activities and the most sensitive data each receives, and after a
+  contract with dates and two terms was recorded the entry showed "Contract ending soon", its
+  terms ticked against their provisions and its activity. Breaches: a breach recorded with the
+  time of awareness five hours earlier showed the four intimations with their provisions,
+  "67 hours left" for the detailed report and "1 hour left" for CERT-In; the first intimation was
+  recorded with its time and reference and appeared on the timeline; the three draft notices
+  listed Rule 7's items with "Not recorded yet" where the record was empty; closing was refused
+  until the outstanding intimations or a reason were given. Rights requests: a grievance received
+  95 days earlier fell due at 90 days, a refusal with no reason was refused, and fulfilling it
+  closed it "95 days after it was received". DPIAs: all 26 activities were listed with why each
+  should have one; a DPIA started from PA-001 with its RoPA answers, was refused completion
+  without the rights affected, a risk and an outcome, and then completed with its risk rated
+  High 16 before and Medium 6 after the measures and its review due a year on. "Needs your
+  attention" showed the breach and the ending contract. The four sections are in the sidebar.
+  Checked at 1440 and 390 px and in the dark theme; no horizontal overflow and no console or
+  page errors.
+notes: >-
+  Fixed during the check: confirmations that vanished with the element holding them (adding
+  from the RoPA, completing a DPIA) now show on the page; the intimation list and the DPIA risk
+  rows were laid out again; clock times under four days are given in hours.

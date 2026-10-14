@@ -28,6 +28,8 @@ export const CAPABILITY_LABEL: Record<Capability, string> = {
   'action.verify': 'verify and close remediation actions',
   'report.view': 'view reports',
   'report.export': 'download workbooks and reports',
+  'register.manage': 'change the processor register and DPIAs',
+  'incident.manage': 'record breaches and rights requests',
   'audit.view': 'view the audit log',
   'kb.view': 'open the knowledge base',
   'kb.edit': 'edit the knowledge base draft',

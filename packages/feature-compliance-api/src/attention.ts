@@ -5,7 +5,9 @@ import {
   assessment,
   assessmentItem,
   assessmentSignoff,
+  breach,
   count,
+  dpia,
   eq,
   evidence,
   evidenceRequest,
@@ -20,7 +22,9 @@ import {
   notExists,
   notInArray,
   or,
+  processor,
   remediationAction,
+  rightsRequest,
   risk,
   sql,
   type ActionStatus,
@@ -29,9 +33,11 @@ import {
   type SQL,
   type Transaction,
 } from '@duatf/platform-db'
+import { breachClocks, nextDeadline } from './breaches'
 import { listClients } from './clients'
 import { inUserScope, type ServiceContext } from './context'
 import { EXPIRING_DAYS } from './evidence'
+import { CONTRACT_ENDING_DAYS } from './processors'
 import { listBands } from './risks'
 
 /**
@@ -39,8 +45,11 @@ import { listBands } from './risks'
  * hold the capability to do it, and department owners see only their own departments.
  */
 export const ATTENTION_KINDS = [
+  'breach_clocks',
   'signoffs_to_decide',
   'overdue_actions',
+  'rights_overdue',
+  'processor_contracts_missing',
   'acceptances_lapsed',
   'evidence_expired',
   'answers_to_check',
@@ -51,6 +60,8 @@ export const ATTENTION_KINDS = [
   'findings_without_actions',
   'unanswered',
   'actions_under_way',
+  'processor_contracts_ending',
+  'dpia_reviews_due',
   'evidence_expiring',
   'my_actions',
   'my_requests',
@@ -145,6 +156,17 @@ export const attentionFor = async (
       const answer = reachOf(principal, 'assessment.answer', client.id)
       if (can(principal, 'assessment.review', { clientId: client.id })) {
         add('answers_to_check', await itemsByCycle(tx, client.id, 'all', 'to_check'))
+      }
+      if (can(principal, 'incident.manage', { clientId: client.id })) {
+        add('breach_clocks', [await breachClocksDue(tx, client.id)])
+        add('rights_overdue', [await rightsOverdue(tx, client.id, today)])
+      }
+      if (can(principal, 'register.manage', { clientId: client.id })) {
+        add('processor_contracts_missing', [await contractsMissing(tx, client.id, today)])
+        add('processor_contracts_ending', [
+          await contractsEnding(tx, client.id, today, addCalendarDays(today, CONTRACT_ENDING_DAYS)),
+        ])
+        add('dpia_reviews_due', [await dpiaReviewsDue(tx, client.id, today)])
       }
       if (can(principal, 'assessment.signoff', { clientId: client.id })) {
         add('signoffs_to_decide', await signoffsToDecide(tx, client.id, principal.userId))
@@ -243,6 +265,86 @@ const evidenceToReview = async (tx: Transaction, clientId: string) => {
     .from(evidence)
     .where(and(eq(evidence.tenantId, clientId), eq(evidence.status, 'pending_review')))
   return { n: row?.n ?? 0 }
+}
+
+/** Open breaches with an intimation still to make, and the earliest deadline among them. */
+const breachClocksDue = async (tx: Transaction, clientId: string) => {
+  const rows = await tx
+    .select()
+    .from(breach)
+    .where(and(eq(breach.tenantId, clientId), ne(breach.status, 'closed')))
+  const now = new Date()
+  const waiting = rows
+    .map((row) => breachClocks(row, now))
+    .filter((clocks) =>
+      clocks.some((clock) => clock.state === 'running' || clock.state === 'overdue'),
+    )
+  const deadlines = waiting
+    .map((clocks) => nextDeadline(clocks))
+    .filter((deadline) => deadline !== null)
+    .sort((a, b) => a.getTime() - b.getTime())
+  return { n: waiting.length, due: deadlines[0] ? isoDate(deadlines[0]) : null }
+}
+
+/** Open rights requests past their due date. */
+const rightsOverdue = async (tx: Transaction, clientId: string, today: string) => {
+  const [row] = await tx
+    .select({ n: count(), due: min(rightsRequest.dueOn) })
+    .from(rightsRequest)
+    .where(
+      and(
+        eq(rightsRequest.tenantId, clientId),
+        inArray(rightsRequest.status, ['received', 'in_progress']),
+        lt(rightsRequest.dueOn, today),
+      ),
+    )
+  return { n: row?.n ?? 0, due: row?.due ?? null }
+}
+
+/** Processors in use with no contract, or whose contract has ended. */
+const contractsMissing = async (tx: Transaction, clientId: string, today: string) => {
+  const [row] = await tx
+    .select({ n: count() })
+    .from(processor)
+    .where(
+      and(
+        eq(processor.tenantId, clientId),
+        eq(processor.active, true),
+        or(
+          eq(processor.contract, 'no'),
+          and(eq(processor.contract, 'yes'), lt(processor.contractEnd, today)),
+        ),
+      ),
+    )
+  return { n: row?.n ?? 0 }
+}
+
+/** Processors in use whose contract ends between two days. */
+const contractsEnding = async (tx: Transaction, clientId: string, from: string, to: string) => {
+  const [row] = await tx
+    .select({ n: count(), due: min(processor.contractEnd) })
+    .from(processor)
+    .where(
+      and(
+        eq(processor.tenantId, clientId),
+        eq(processor.active, true),
+        eq(processor.contract, 'yes'),
+        gte(processor.contractEnd, from),
+        lte(processor.contractEnd, to),
+      ),
+    )
+  return { n: row?.n ?? 0, due: row?.due ?? null }
+}
+
+/** Completed DPIAs whose review date has come. */
+const dpiaReviewsDue = async (tx: Transaction, clientId: string, today: string) => {
+  const [row] = await tx
+    .select({ n: count(), due: min(dpia.nextReviewOn) })
+    .from(dpia)
+    .where(
+      and(eq(dpia.tenantId, clientId), eq(dpia.status, 'completed'), lte(dpia.nextReviewOn, today)),
+    )
+  return { n: row?.n ?? 0, due: row?.due ?? null }
 }
 
 /** Cycles sent to this person for sign-off and not decided yet. */

@@ -30,6 +30,8 @@ const GOLDEN: Record<Capability, string> = {
   'action.verify': '.YY...',
   'report.view': 'YYYYYY',
   'report.export': 'YYYY.Y',
+  'register.manage': '.YY...',
+  'incident.manage': '.YYY..',
   'audit.view': 'YY....',
   'kb.view': 'YYYYYY',
   'kb.edit': 'YY....',

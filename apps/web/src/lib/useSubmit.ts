@@ -13,7 +13,9 @@ export const useSubmit = (action: Action) => {
   const [state, dispatch, pending] = useActionState(action, IDLE)
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    const data = new FormData(event.currentTarget)
+    // The button that was pressed is part of the submission (its name and value).
+    const submitter = (event.nativeEvent as SubmitEvent).submitter
+    const data = new FormData(event.currentTarget, submitter)
     startTransition(() => dispatch(data))
   }
   return { state, onSubmit, pending }

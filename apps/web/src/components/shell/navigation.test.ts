@@ -43,6 +43,7 @@ describe('navigation', () => {
     ).toEqual([
       ['Compliance', ['Overview', 'Departments', 'Data mapping', 'Assessments', 'Evidence']],
       ['Risk and remediation', ['Findings', 'Risk register', 'Remediation']],
+      ['Privacy operations', ['Processors', 'Breaches', 'Rights requests', 'DPIAs']],
       ['Reporting', ['Reports']],
       ['Organisation', ['People', 'Control owners']],
     ])
@@ -97,6 +98,19 @@ describe('navigation', () => {
       'AMMA',
       'Departments',
       'Add department',
+    ])
+    expect(labels('/clients/AMMA/breaches/BRE-AMMA-001')).toEqual([
+      'Clients',
+      'AMMA',
+      'Breaches',
+      'BRE-AMMA-001',
+    ])
+    expect(labels('/clients/AMMA/assessments/ASM-AMMA-001/quality')).toEqual([
+      'Clients',
+      'AMMA',
+      'Assessments',
+      'ASM-AMMA-001',
+      'Quality check',
     ])
     expect(labels('/account/password')).toEqual(['Account', 'Change password'])
     expect(

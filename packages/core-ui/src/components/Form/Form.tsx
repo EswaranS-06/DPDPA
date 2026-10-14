@@ -46,7 +46,8 @@ const Wrapper = ({
 )
 
 type TextFieldProps = Common & {
-  type?: 'text' | 'email' | 'tel' | 'url' | 'number' | 'date' | 'search' | 'password'
+  type?:
+    'text' | 'email' | 'tel' | 'url' | 'number' | 'date' | 'datetime-local' | 'search' | 'password'
   defaultValue?: string | number | null
   placeholder?: string
   autoComplete?: string

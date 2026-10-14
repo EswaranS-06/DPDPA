@@ -80,6 +80,10 @@ export const CAPABILITIES = {
     'client_dpo',
     'client_viewer',
   ]),
+  // The processor register and DPIAs are the audit team's records (ADR-0009).
+  'register.manage': define('client', ['lead_auditor', 'auditor']),
+  // Breaches and rights requests can also be recorded by the client's privacy lead.
+  'incident.manage': define('client', ['lead_auditor', 'auditor', 'client_dpo']),
   'audit.view': define('client', ['firm_admin', 'lead_auditor']),
   'kb.view': define('firm', [
     'firm_admin',
