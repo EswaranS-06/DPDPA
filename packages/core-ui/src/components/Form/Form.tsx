@@ -53,6 +53,7 @@ type TextFieldProps = Common & {
   autoComplete?: string
   maxLength?: number
   min?: number | string
+  step?: number | string
   inputMode?: 'text' | 'numeric' | 'email' | 'tel' | 'url'
 }
 
@@ -63,6 +64,7 @@ export const TextField = ({
   autoComplete,
   maxLength,
   min,
+  step,
   inputMode,
   ...common
 }: TextFieldProps) => (
@@ -76,6 +78,7 @@ export const TextField = ({
       autoComplete={autoComplete}
       maxLength={maxLength}
       min={min}
+      step={step}
       inputMode={inputMode}
       required={common.required}
       aria-invalid={common.error ? true : undefined}

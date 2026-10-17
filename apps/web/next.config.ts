@@ -20,11 +20,12 @@ const config: NextConfig = {
     '@duatf/feature-framework-library',
     '@duatf/feature-framework-library-api',
     '@duatf/platform-db',
+    '@duatf/platform-documents',
     '@duatf/platform-identity',
     '@duatf/platform-storage',
     '@duatf/platform-trpc',
   ],
-  serverExternalPackages: ['postgres', 'openid-client', 'minio', 'exceljs'],
+  serverExternalPackages: ['postgres', 'openid-client', 'minio', 'exceljs', '@resvg/resvg-js'],
   // Evidence files up to 20 MB are sent through server actions (and the proxy in front of them).
   experimental: {
     serverActions: { bodySizeLimit: '21mb' },

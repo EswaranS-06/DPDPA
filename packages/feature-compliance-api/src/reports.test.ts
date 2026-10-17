@@ -51,6 +51,8 @@ describe('Excel exports', () => {
       'Risk register',
       'Findings',
       'Remediation',
+      'Roadmap',
+      'Crosswalk',
       'Answers',
     ])
     expect(book.worksheets.map((sheet) => sheet.name)).toEqual([...WORKBOOK_SHEETS.client])

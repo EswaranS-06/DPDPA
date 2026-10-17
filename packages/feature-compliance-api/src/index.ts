@@ -313,6 +313,31 @@ export {
 } from './insights'
 export { executiveReport, EXECUTIVE_SECTIONS, type ExecutiveReport } from './reports'
 export {
+  ROADMAP_PHASES,
+  PHASE_INFO,
+  suggestedPhase,
+  isRoadmapPhase,
+  type RoadmapPhase,
+} from './phases'
+export { roadmap, type Roadmap, type RoadmapRow } from './roadmap'
+export {
+  standardsCrosswalk,
+  groupByStandard,
+  STANDARDS,
+  type StandardKey,
+  type StandardsCrosswalk,
+  type CrosswalkReference,
+} from './crosswalk'
+export {
+  buildGapReport,
+  buildBoardMemo,
+  buildAssessmentStatement,
+  postureSentence,
+  GAP_REPORT_SECTIONS,
+  MEMO_SECTIONS,
+  NOT_A_CERTIFICATE,
+} from './deliverables'
+export {
   buildComplianceWorkbook,
   buildPortfolioWorkbook,
   buildDepartmentWorkbook,

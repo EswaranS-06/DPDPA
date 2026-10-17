@@ -9,6 +9,7 @@ import {
   integer,
   pgTable,
   primaryKey,
+  real,
   text,
   timestamp,
   unique,
@@ -514,6 +515,10 @@ export const remediationAction = pgTable(
     departmentId: uuid('department_id').references(() => department.id, { onDelete: 'set null' }),
     dueDate: date('due_date', { mode: 'string' }),
     status: text('status').$type<ActionStatus>().notNull().default('open'),
+    /** The roadmap phase: 1 now, 2 next, 3 later; empty while the risk rating's suggestion stands. */
+    phase: integer('phase'),
+    /** The effort the action needs, in days (half days allowed). */
+    effortDays: real('effort_days'),
     createdBy: uuid('created_by'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
@@ -524,6 +529,7 @@ export const remediationAction = pgTable(
   (table) => [
     unique('remediation_action_tenant_code').on(table.tenantId, table.code),
     index('remediation_action_finding').on(table.findingId),
+    check('remediation_action_phase', sql`${table.phase} between 1 and 3`),
   ],
 )
 

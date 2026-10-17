@@ -1230,7 +1230,7 @@ phases:
     subphases:
       - id: C25.1
         title: 'Roadmap: phase and effort on remediation actions'
-        state: planned
+        state: active
         tests:
           - id: TC-C25.1-01
             title: 'An action’s suggested phase follows its risk rating, and its phase and effort are saved'
@@ -1238,7 +1238,7 @@ phases:
             source: literal
       - id: C25.2
         title: 'Word documents: gap-assessment report, board memo and assessment statement'
-        state: planned
+        state: active
         tests:
           - id: TC-C25.2-01
             title: 'The gap-assessment report is a valid Word file with its sections, the assessment’s figures and its charts as pictures'
@@ -1250,7 +1250,7 @@ phases:
             source: literal
       - id: C25.3
         title: 'ISO 27001, ISO 27701 and NIST CSF crosswalk of the gaps'
-        state: planned
+        state: active
         tests:
           - id: TC-C25.3-01
             title: 'Every open gap appears under each standard reference of its controls'
@@ -1258,7 +1258,7 @@ phases:
             source: oracle
       - id: C25.4
         title: 'Roadmap as an Excel sheet and a printable page'
-        state: planned
+        state: active
         tests:
           - id: TC-C25.4-01
             title: 'The roadmap lists the open actions by phase with owner, due date, effort and rating'
@@ -1274,7 +1274,7 @@ phases:
             source: oracle
       - id: C25.5
         title: 'Screens: the reports page and the downloads'
-        state: planned
+        state: active
         tests:
           - id: TC-C25.5-01
             title: 'Each new report downloads from the reports page on a copy of the live data and opens in Word or Excel'

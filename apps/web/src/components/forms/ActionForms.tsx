@@ -21,6 +21,8 @@ type PlanFormProps = {
   departments: SelectOption[]
   initial: Record<string, string>
   submitLabel: string
+  /** The phase the finding's risk rating suggests, shown when none is chosen. */
+  suggested?: string
 }
 
 /** Title, owner, department and due date of a remediation action. */
@@ -30,6 +32,7 @@ export const ActionPlanForm = ({
   departments,
   initial,
   submitLabel,
+  suggested,
 }: PlanFormProps) => {
   const [state, formAction] = useActionState(action, IDLE)
   const value = (name: string) => state.values?.[name] ?? initial[name] ?? ''
@@ -69,6 +72,32 @@ export const ActionPlanForm = ({
           type="date"
           defaultValue={value('dueDate')}
           error={error('dueDate')}
+        />
+      </div>
+      <div className={styles.inline}>
+        <SelectField
+          label="Roadmap phase"
+          name="phase"
+          placeholder={
+            suggested ? `As the risk suggests: ${suggested}` : 'As the risk rating suggests'
+          }
+          options={[
+            { value: '1', label: 'Now, within 3 months' },
+            { value: '2', label: 'Next, 3 to 6 months' },
+            { value: '3', label: 'Later, 6 to 12 months' },
+          ]}
+          defaultValue={value('phase')}
+          error={error('phase')}
+        />
+        <TextField
+          label="Effort in days"
+          name="effortDays"
+          type="number"
+          step="0.5"
+          min="0.5"
+          defaultValue={value('effortDays')}
+          error={error('effortDays')}
+          hint="Half days allowed, such as 1.5."
         />
       </div>
       <TextAreaField

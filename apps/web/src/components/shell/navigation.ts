@@ -104,6 +104,8 @@ const SEGMENT_LABEL: Record<string, string> = {
   risks: 'Risk register',
   actions: 'Remediation',
   reports: 'Reports',
+  roadmap: 'Roadmap',
+  crosswalk: 'Standards crosswalk',
   insights: 'Insights',
   departments: 'Departments',
   'data-mapping': 'Data mapping',

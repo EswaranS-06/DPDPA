@@ -37,6 +37,8 @@ import {
   CLIENT_STATUS_LABEL,
   COMPLIANCE_LABEL,
 } from './labels'
+import { standardsCrosswalk } from './crosswalk'
+import { roadmap } from './roadmap'
 import { clientHeader } from './reports'
 import { describeResponse } from './responses'
 import { heatmap, listRisks, type Band, type RiskRow } from './risks'
@@ -60,10 +62,43 @@ export const RISK_REGISTER_COLUMNS = [
   'Last updated',
 ] as const
 
+/** Columns of the roadmap sheet, one row per unfinished action. */
+export const ROADMAP_COLUMNS = [
+  'Phase',
+  'Action ID',
+  'Action',
+  'Finding',
+  'Owner',
+  'Due',
+  'Effort (days)',
+  'Risk rating',
+  'Status',
+  'Phase from',
+] as const
+
+/** Columns of the crosswalk sheet, one row per open gap under each standard reference. */
+export const CROSSWALK_COLUMNS = [
+  'Standard',
+  'Reference',
+  'Controls',
+  'Finding',
+  'Title',
+  'Type',
+] as const
+
 /** Sheets of each workbook, in order. */
 export const WORKBOOK_SHEETS = {
   overall: ['Overall dashboard', 'Compliance by domain', 'Clients', 'Open risks', 'Open actions'],
-  client: ['Dashboard', 'Departments', 'Risk register', 'Findings', 'Remediation', 'Answers'],
+  client: [
+    'Dashboard',
+    'Departments',
+    'Risk register',
+    'Findings',
+    'Remediation',
+    'Roadmap',
+    'Crosswalk',
+    'Answers',
+  ],
   department: ['Department dashboard', 'Answers', 'Findings', 'Remediation', 'Evidence'],
 } as const
 
@@ -320,15 +355,18 @@ export const buildComplianceWorkbook = async (
   clientId: string,
 ): Promise<{ fileName: string; content: Buffer }> => {
   authorize(ctx.principal, 'report.export', { clientId })
-  const [risks, findings, actions, figures, breakdown, latest, clientRow] = await Promise.all([
-    listRisks(ctx, clientId),
-    listFindings(ctx, clientId),
-    listActions(ctx, clientId),
-    clientFigures(ctx, clientId),
-    departmentBreakdown(ctx, clientId),
-    latestAssessmentOf(ctx, clientId),
-    inClient(ctx, clientId, (tx) => clientHeader(tx, clientId)),
-  ])
+  const [risks, findings, actions, figures, breakdown, latest, clientRow, plan, crosswalk] =
+    await Promise.all([
+      listRisks(ctx, clientId),
+      listFindings(ctx, clientId),
+      listActions(ctx, clientId),
+      clientFigures(ctx, clientId),
+      departmentBreakdown(ctx, clientId),
+      latestAssessmentOf(ctx, clientId),
+      inClient(ctx, clientId, (tx) => clientHeader(tx, clientId)),
+      roadmap(ctx, clientId),
+      standardsCrosswalk(ctx, clientId),
+    ])
   const detail = latest ? await getAssessment(ctx, clientId, latest.code) : null
   const { bands } = figures
 
@@ -451,6 +489,44 @@ export const buildComplianceWorkbook = async (
   )
   addTableSheet(workbook, 'Findings', FINDING_COLUMNS, findingRows(findings), FINDING_WIDTHS)
   addTableSheet(workbook, 'Remediation', ACTION_COLUMNS, actionRows(actions), ACTION_WIDTHS)
+  addTableSheet(
+    workbook,
+    'Roadmap',
+    ROADMAP_COLUMNS,
+    plan.phases.flatMap((phase) =>
+      phase.rows.map((row) => [
+        phase.label,
+        row.code,
+        row.title,
+        row.findingCode,
+        row.ownerName,
+        row.dueDate,
+        row.effortDays,
+        row.band?.name ?? null,
+        ACTION_STATUS_LABEL[row.status],
+        row.phaseSet ? 'Set on the action' : 'Suggested by the risk rating',
+      ]),
+    ),
+    [10, 18, 40, 18, 22, 12, 10, 12, 16, 26],
+  )
+  addTableSheet(
+    workbook,
+    'Crosswalk',
+    CROSSWALK_COLUMNS,
+    crosswalk.standards.flatMap((standard) =>
+      standard.references.flatMap((reference) =>
+        reference.gaps.map((gap) => [
+          standard.label,
+          reference.reference,
+          reference.controls.join(', '),
+          gap.code,
+          gap.title,
+          gap.gapType === 'gap' ? 'Gap' : 'Potential gap',
+        ]),
+      ),
+    ),
+    [30, 14, 28, 18, 50, 14],
+  )
   if (latest) {
     addTableSheet(
       workbook,

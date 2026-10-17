@@ -192,13 +192,18 @@ export const gapsByCommencement = async (ctx: ServiceContext, clientId: string) 
 }
 
 /** How much of the cycle's scored answers rest on accepted evidence, and of the findings on actions. */
-export const coverage = async (ctx: ServiceContext, clientId: string) => {
+export const coverage = async (ctx: ServiceContext, clientId: string, assessmentCode?: string) => {
   authorize(ctx.principal, 'assessment.view', { clientId })
   return inClient(ctx, clientId, async (tx) => {
     const [cycle] = await tx
       .select({ id: assessment.id, code: assessment.code, title: assessment.title })
       .from(assessment)
-      .where(eq(assessment.tenantId, clientId))
+      .where(
+        and(
+          eq(assessment.tenantId, clientId),
+          assessmentCode ? eq(assessment.code, assessmentCode.toUpperCase()) : undefined,
+        ),
+      )
       .orderBy(desc(assessment.createdAt))
       .limit(1)
     const scored = cycle

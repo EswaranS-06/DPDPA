@@ -17,6 +17,8 @@ import {
   listEvidence,
   nextSteps,
   NotFoundError,
+  PHASE_INFO,
+  isRoadmapPhase,
 } from '@duatf/feature-compliance-api'
 import { ACTION_STATUSES } from '@duatf/platform-db'
 import { ClockAlert, FileCheck, FilePlus, Pencil } from 'lucide-react'
@@ -133,6 +135,19 @@ export default async function Page({ params }: Props) {
               items={[
                 { label: 'Owner', value: item.ownerName ?? 'Not assigned yet' },
                 { label: 'Department', value: item.departmentName },
+                {
+                  label: 'Roadmap phase',
+                  value: isRoadmapPhase(item.phase)
+                    ? `${PHASE_INFO[item.phase].label}, ${PHASE_INFO[item.phase].window}`
+                    : `${PHASE_INFO[item.suggestedPhase].label}, ${PHASE_INFO[item.suggestedPhase].window} (suggested by the risk rating)`,
+                },
+                {
+                  label: 'Effort',
+                  value:
+                    item.effortDays === null
+                      ? 'Not estimated'
+                      : `${item.effortDays} day${item.effortDays === 1 ? '' : 's'}`,
+                },
                 ...(item.description
                   ? [{ label: 'Plan', value: item.description, wide: true }]
                   : []),
@@ -214,7 +229,10 @@ export default async function Page({ params }: Props) {
                   ownerUserId: item.ownerUserId ?? '',
                   departmentId: item.departmentId ?? '',
                   dueDate: item.dueDate ?? '',
+                  phase: item.phase === null ? '' : String(item.phase),
+                  effortDays: item.effortDays === null ? '' : String(item.effortDays),
                 }}
+                suggested={PHASE_INFO[item.suggestedPhase].label}
               />
             </Disclosure>
           ) : null}

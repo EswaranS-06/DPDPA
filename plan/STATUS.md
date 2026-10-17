@@ -29,7 +29,7 @@ Gate: **passing**
 | C22 | Assurance: quality check, expiry and sign-off | R3 | TESTS PASSING | lead_auditor pending |
 | C23 | Registers: processors, breaches, rights requests and DPIAs | R3 | TESTS PASSING | legal_sme pending |
 | C24 | Maturity targets and visuals | R3 | TESTS PASSING | lead_auditor pending |
-| C25 | Reports and outputs | R3 | PLANNED | lead_auditor pending |
+| C25 | Reports and outputs | R3 | TESTS PASSING | lead_auditor pending |
 | C26 | Document pack from the DPDP template library | R3 | PLANNED | legal_sme pending |
 | C27 | Management: reminders, board, calendar, import and the public request page | R3 | PLANNED | lead_auditor pending |
 | C12 | Hardening | R3 | PLANNED | security pending |
@@ -199,5 +199,11 @@ Gate: **passing**
 | TC-C24.3-03 | C24.3 | The personal data map figures come from the RoPA: categories, elements, activities, highest level and the counters | equal to the worked RoPA | literal | PASS |
 | TC-C24.3-04 | C24.3 | The commencement timeline gives the days to each phase date and the obligations each phase brings | dates and counts equal to the knowledge base | oracle | PASS |
 | TC-C24.4-01 | C24.4 | Every chart renders with a table view and hover details at 1440 and 390 px, light and dark, and its colours pass the palette check | no overlap or console errors; palette check passes on both surfaces | manual | PASS |
+| TC-C25.1-01 | C25.1 | An action’s suggested phase follows its risk rating, and its phase and effort are saved | suggestions as worked; saved values returned; out-of-range values refused | literal | PASS |
+| TC-C25.2-01 | C25.2 | The gap-assessment report is a valid Word file with its sections, the assessment’s figures and its charts as pictures | opens as a .docx; every section heading; figures equal to the assessment; chart images present | literal | PASS |
+| TC-C25.2-02 | C25.2 | The board memo and the assessment statement hold what they promise and never call the result a certificate or a verdict of compliance | memo: posture with its working, key findings, penalty items, decisions; statement: scope, period, release, result, sign-off | literal | PASS |
+| TC-C25.3-01 | C25.3 | Every open gap appears under each standard reference of its controls | equal to the references of the knowledge base controls | oracle | PASS |
+| TC-C25.4-01 | C25.4 | The roadmap lists the open actions by phase with owner, due date, effort and rating | rows and phase totals equal to the worked actions | literal | PASS |
+| TC-C25.5-01 | C25.5 | Each new report downloads from the reports page on a copy of the live data and opens in Word or Excel | files open without repair prompts; pictures and tables in place | manual | PASS |
 
-35 further tests are planned in later sub-phases.
+29 further tests are planned in later sub-phases.

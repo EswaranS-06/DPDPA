@@ -2,6 +2,7 @@ import { authorize, can, type Capability } from '@duatf/core-access'
 import { isoDate, sequenceScope } from '@duatf/core-utils'
 import {
   actionEvent,
+  type ActionStatus,
   and,
   appUser,
   asc,
@@ -13,19 +14,21 @@ import {
   eq,
   evidence,
   evidenceLink,
+  type Executor,
   finding,
   inArray,
   nextCode,
   notInArray,
   remediationAction,
+  risk,
   tenant,
-  type ActionStatus,
-  type Executor,
   type Transaction,
 } from '@duatf/platform-db'
 import { z } from 'zod'
 import { createAssessment } from './assessments'
 import { checkAssignable } from './assignments'
+import { suggestedPhase } from './phases'
+import { listBands } from './risks'
 import { audit, inClient, type ServiceContext } from './context'
 import { closeRemediatedFinding } from './findings'
 import {
@@ -82,6 +85,24 @@ const actionSchema = z.object({
   ownerUserId: z.preprocess(blankToUndefined, z.uuid('Choose an owner.').optional()),
   departmentId: z.preprocess(blankToUndefined, z.uuid('Choose a department.').optional()),
   dueDate: optionalDate(),
+  phase: z.preprocess(
+    blankToUndefined,
+    z.coerce
+      .number({ error: 'Choose now, next or later.' })
+      .int('Choose now, next or later.')
+      .min(1, 'Choose now, next or later.')
+      .max(3, 'Choose now, next or later.')
+      .optional(),
+  ),
+  effortDays: z.preprocess(
+    blankToUndefined,
+    z.coerce
+      .number({ error: 'Enter the effort in days, such as 1.5.' })
+      .min(0.5, 'At least half a day.')
+      .max(365, 'At most 365 days; split a larger piece of work into several actions.')
+      .multipleOf(0.5, 'In half days, such as 1.5.')
+      .optional(),
+  ),
 })
 
 /**
@@ -172,6 +193,8 @@ export const createAction = async (
         // The finding's department unless another is chosen.
         departmentId: input.departmentId ?? found.departmentId,
         dueDate: input.dueDate ?? null,
+        phase: input.phase ?? null,
+        effortDays: input.effortDays ?? null,
         status,
         createdBy: ctx.principal.userId,
       })
@@ -218,6 +241,8 @@ export const updateActionPlan = async (
         ownerUserId: input.ownerUserId ?? null,
         departmentId: input.departmentId ?? null,
         dueDate: input.dueDate ?? null,
+        phase: input.phase ?? null,
+        effortDays: input.effortDays ?? null,
         status,
         updatedAt: new Date(),
       })
@@ -523,6 +548,17 @@ export const getAction = async (ctx: ServiceContext, clientId: string, code: str
         ),
       )
     if (!row) throw new NotFoundError(`Action ${code}`)
+    // The phase the finding's risk suggests, shown beside the one set (if any).
+    const rated = await tx
+      .select({ score: risk.score, gapType: finding.gapType })
+      .from(finding)
+      .leftJoin(risk, eq(risk.findingId, finding.id))
+      .where(eq(finding.id, row.action.findingId))
+    const top = rated.reduce<number | null>(
+      (best, item) => (item.score === null ? best : Math.max(best ?? 0, item.score)),
+      null,
+    )
+    const suggested = suggestedPhase(top, await listBands(ctx.db), rated[0]?.gapType ?? 'gap')
     const events = await tx
       .select({ event: actionEvent, actorName: appUser.displayName })
       .from(actionEvent)
@@ -543,6 +579,7 @@ export const getAction = async (ctx: ServiceContext, clientId: string, code: str
       .orderBy(asc(evidence.code))
     return {
       ...row.action,
+      suggestedPhase: suggested,
       findingCode: row.findingCode,
       findingTitle: row.findingTitle,
       recommendation: row.recommendation,

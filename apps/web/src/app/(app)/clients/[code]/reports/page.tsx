@@ -1,7 +1,7 @@
 import { can } from '@duatf/core-access'
 import { buttonClass, Chip, DataTable, EmptyState, PageHeader, Panel } from '@duatf/core-ui'
 import { listAssessments, listDepartments } from '@duatf/feature-compliance-api'
-import { Download, FileSpreadsheet, FileText, Printer } from 'lucide-react'
+import { Download, FileSpreadsheet, FileText, Printer, Route, Waypoints } from 'lucide-react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { AssessmentStatusChip } from '@/components/assessment/AssessmentBits'
@@ -102,8 +102,8 @@ export default async function Page({ params }: { params: Promise<{ code: string 
             <p className={`${styles.flush} ${styles.sectionIntro}`}>
               Opens on a dashboard: headline figures, compliance by domain and by department, risks
               by rating, a risk heatmap and remediation by status. Then the department figures, the
-              risk register, all findings, remediation actions and the answers of the latest
-              assessment.
+              risk register, all findings, remediation actions, the roadmap, the standards
+              crosswalk and the answers of the latest assessment.
             </p>
             <div>
               <a href={`${base}/workbook`} className={buttonClass()} rel="nofollow">
@@ -113,6 +113,103 @@ export default async function Page({ params }: { params: Promise<{ code: string 
             </div>
           </Panel>
         ) : null}
+      </div>
+
+      {canExport && assessments.length ? (
+        <Panel
+          title="Word deliverables"
+          titleId="word-title"
+          padding="flush"
+          actions={
+            <Chip icon={FileText} tone="neutral">
+              Word
+            </Chip>
+          }
+        >
+          <p className={local.intro}>
+            Built from the records of each assessment, ready to edit: the gap-assessment report
+            with its charts, a two-page memo for the Board and a one-page assessment statement
+            with the sign-off. None of them calls the result a certificate.
+          </p>
+          <DataTable
+            plain
+            rows={assessments}
+            rowKey={(row) => row.id}
+            columns={[
+              {
+                key: 'assessment',
+                header: 'Assessment',
+                render: (row) => (
+                  <span className={styles.personCell}>
+                    <strong>{row.title}</strong>
+                    <span className={`code ${styles.muted}`}>{row.code}</span>
+                  </span>
+                ),
+              },
+              ...(
+                [
+                  ['gap-report', 'Gap-assessment report'],
+                  ['board-memo', 'Board memo'],
+                  ['statement', 'Assessment statement'],
+                ] as const
+              ).map(([path, label]) => ({
+                key: path,
+                header: label,
+                label,
+                render: (row: (typeof assessments)[number]) => (
+                  <a href={`${base}/${path}/${row.code}`} rel="nofollow" className={styles.iconLink}>
+                    <Download size={14} aria-hidden="true" />
+                    Download<span className="visually-hidden"> the {label.toLowerCase()} of {row.code}</span>
+                  </a>
+                ),
+              })),
+            ]}
+          />
+        </Panel>
+      ) : null}
+
+      <div className={local.catalogue}>
+        <Panel
+          title="Remediation roadmap"
+          titleId="roadmap-title"
+          actions={
+            <Chip icon={Route} tone="neutral">
+              Page and Excel
+            </Chip>
+          }
+        >
+          <p className={`${styles.flush} ${styles.sectionIntro}`}>
+            Every unfinished action in a phase, now, next or later, with its owner, due date,
+            effort and risk rating. Print it from the page; it is also a sheet of the compliance
+            workbook.
+          </p>
+          <div>
+            <Link href={`${base}/roadmap`} className={buttonClass('secondary')}>
+              <Printer size={16} aria-hidden="true" />
+              Open the roadmap
+            </Link>
+          </div>
+        </Panel>
+        <Panel
+          title="Standards crosswalk"
+          titleId="crosswalk-title"
+          actions={
+            <Chip icon={Waypoints} tone="neutral">
+              Page and Excel
+            </Chip>
+          }
+        >
+          <p className={`${styles.flush} ${styles.sectionIntro}`}>
+            The open gaps under each ISO/IEC 27001, ISO/IEC 27701 and NIST CSF reference of their
+            controls.
+          </p>
+          <div>
+            <Link href={`${base}/crosswalk`} className={buttonClass('secondary')}>
+              <Printer size={16} aria-hidden="true" />
+              Open the crosswalk
+            </Link>
+          </div>
+        </Panel>
       </div>
 
       {canExport && departments.length ? (
