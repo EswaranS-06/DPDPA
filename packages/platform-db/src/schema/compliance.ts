@@ -1006,3 +1006,80 @@ export const clientMaturityTarget = pgTable(
     check('client_maturity_target_range', sql`${table.target} between 0 and 4`),
   ],
 )
+
+/**
+ * A client's answers for the document pack (ADR-0010), in the template library's own names:
+ * its flags, its single values, its tables and per-document values. DUATF's records fill the
+ * rest; an answer saved here wins over them.
+ */
+export const clientDocumentProfile = pgTable('client_document_profile', {
+  tenantId: uuid('tenant_id')
+    .primaryKey()
+    .references(() => tenant.id, { onDelete: 'cascade' }),
+  flags: jsonb('flags').$type<Record<string, boolean | string>>().notNull().default({}),
+  values: jsonb('values').$type<Record<string, string>>().notNull().default({}),
+  collections: jsonb('collections')
+    .$type<Record<string, Record<string, string>[]>>()
+    .notNull()
+    .default({}),
+  docFlags: jsonb('doc_flags')
+    .$type<Record<string, Record<string, boolean | string>>>()
+    .notNull()
+    .default({}),
+  docValues: jsonb('doc_values')
+    .$type<Record<string, Record<string, string>>>()
+    .notNull()
+    .default({}),
+  updatedBy: uuid('updated_by'),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
+/**
+ * An Administrator's mark that one version of a template file (by its SHA-256) has had legal
+ * review. Firm-wide: the templates are the firm's, not a client's.
+ */
+export const documentTemplateReview = pgTable(
+  'document_template_review',
+  {
+    templateId: text('template_id').notNull(),
+    sha256: text('sha256').notNull(),
+    reviewedBy: uuid('reviewed_by').notNull(),
+    reviewedAt: timestamp('reviewed_at', { withTimezone: true }).notNull().defaultNow(),
+    note: text('note'),
+  },
+  (table) => [primaryKey({ columns: [table.templateId, table.sha256] })],
+)
+
+/** The consultant's statutory checklist (Part B of the library's checklist) for one document. */
+export const documentChecklist = pgTable(
+  'document_checklist',
+  {
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenant.id, { onDelete: 'cascade' }),
+    templateId: text('template_id').notNull(),
+    items: jsonb('items').$type<string[]>().notNull().default([]),
+    signedBy: uuid('signed_by'),
+    signedAt: timestamp('signed_at', { withTimezone: true }),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [primaryKey({ columns: [table.tenantId, table.templateId] })],
+)
+
+/** Each download of a library document or of the pack: who, which, in what format, which version. */
+export const documentExport = pgTable(
+  'document_export',
+  {
+    id: bigserial('id', { mode: 'number' }).primaryKey(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenant.id, { onDelete: 'cascade' }),
+    templateId: text('template_id').notNull(),
+    recordRef: text('record_ref'),
+    format: text('format').notNull(),
+    templateSha: text('template_sha'),
+    userId: uuid('user_id'),
+    at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('document_export_tenant').on(table.tenantId, table.at)],
+)

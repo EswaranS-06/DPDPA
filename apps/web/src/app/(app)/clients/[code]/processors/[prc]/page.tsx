@@ -249,6 +249,20 @@ export default async function Page({ params }: Props) {
           </Disclosure>
         </>
       ) : null}
+      <Panel title="Documents from this record" titleId="record-documents">
+        <ul className={styles.documentLinks}>
+          <li>
+            <Link href={`/clients/${client.code}/documents/V01?record=${item.code}`}>
+              <span className="code">V01</span> Data processing agreement
+            </Link>
+          </li>
+          <li>
+            <Link href={`/clients/${client.code}/documents/V03?record=${item.code}`}>
+              <span className="code">V03</span> Vendor due-diligence questionnaire
+            </Link>
+          </li>
+        </ul>
+      </Panel>
     </>
   )
 }

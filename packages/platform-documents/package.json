@@ -10,10 +10,12 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "@duatf/core-config": "workspace:*",
     "@duatf/core-utils": "workspace:*",
     "@resvg/resvg-js": "catalog:",
     "docx": "catalog:",
-    "jszip": "catalog:"
+    "jszip": "catalog:",
+    "marked": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",

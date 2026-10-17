@@ -4,6 +4,7 @@ import {
   ClipboardList,
   FileCheck,
   FileSearch,
+  FileStack,
   FileText,
   Gauge,
   Handshake,
@@ -47,4 +48,5 @@ export const NAV_ICON: Record<NavIcon, LucideIcon> = {
   rights: Inbox,
   dpia: FileSearch,
   insights: Radar,
+  documents: FileStack,
 }

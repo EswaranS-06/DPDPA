@@ -1,0 +1,41 @@
+.checks {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+}
+
+.checks li {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+}
+
+.checks svg {
+  flex: none;
+  margin-top: 0.15rem;
+}
+
+.block svg {
+  color: var(--color-danger-text);
+}
+
+.warn svg {
+  color: var(--color-warning-text);
+}
+
+.ok {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.ok svg {
+  color: var(--color-success-text);
+}

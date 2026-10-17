@@ -224,6 +224,15 @@ export default async function Page({ params, searchParams }: Props) {
           </Disclosure>
         </>
       ) : null}
+      <Panel title="Documents from this record" titleId="record-documents">
+        <ul className={styles.documentLinks}>
+          <li>
+            <Link href={`/clients/${client.code}/documents/G05?record=${item.code}`}>
+              <span className="code">G05</span> DPIA in the library’s template
+            </Link>
+          </li>
+        </ul>
+      </Panel>
     </>
   )
 }

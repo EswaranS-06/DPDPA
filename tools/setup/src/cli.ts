@@ -33,6 +33,7 @@ const { values, positionals } = parseArgs({
     out: { type: 'string' },
     lines: { type: 'string' },
     purge: { type: 'boolean', default: false },
+    'dry-run': { type: 'boolean', default: false },
     yes: { type: 'boolean', default: false },
     help: { type: 'boolean', short: 'h', default: false },
   },
@@ -53,6 +54,7 @@ const HELP = `DUATF self-audit: pnpm duatf <command> [options]
   start | stop | restart | status
   logs        [web|api] [--lines N]
   backup      Dump the database to backups/ (--out DIR)
+  templates   import <zip> [--dry-run]   bring in a version of the DPDP template library
   doctor      Check versions, services, ports and the apps
 
 Options: --services docker|external  --web-port N  --api-port N  --database NAME
@@ -491,6 +493,18 @@ switch (command) {
   case 'doctor':
     await doDoctor()
     break
+  case 'templates': {
+    const zip = positionals[2]
+    if (positionals[1] !== 'import' || !zip)
+      fail('Usage: pnpm duatf templates import <zip> [--dry-run]')
+    else {
+      tool('packages/platform-documents/src/cli/importLibrary.ts', [
+        zip,
+        ...(values['dry-run'] ? ['--dry-run'] : []),
+      ])
+    }
+    break
+  }
   default:
     console.log(HELP)
     fail(`Unknown command "${command}".`)

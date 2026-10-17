@@ -30,6 +30,7 @@ export default defineConfig([
     'docs/**',
     'reports/**',
     'packages/platform-db/migrations/**',
+    'packages/platform-documents/library/**',
     'apps/web/next-env.d.ts',
   ]),
   js.configs.recommended,

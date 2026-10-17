@@ -1,0 +1,3042 @@
+# DPDP Template Library - Placeholder Registry (auto-generated from templates, core entries curated)
+# type: text | longtext | email | phone | url | address | date | number | duration | list | enum
+# required: true = render fails if empty when the template/block using it is active
+# used_in: template IDs (X03 = shared blocks, inherited by every template that INCLUDEs them)
+version: "1.0"
+
+placeholders:
+  # ---------------- client ----------------
+  Adopting-Entities:
+    group: client
+    type: list
+    description: "Adopting Entities"
+    used_in: [G01]
+  Client-App-Name:
+    group: client
+    type: text
+    description: "Mobile app name (if Has-Mobile-App)"
+    required: false
+    used_in: [N01, N04]
+  Client-Brand-Name:
+    group: client
+    type: text
+    description: "Trading / brand name used in customer communications"
+    default: "=Client-Name"
+    required: true
+    used_in: [B03, C01, C04, N01, N04, N06, R03, R04]
+  Client-Breach-Hotline:
+    group: client
+    type: phone
+    description: "Client Breach Hotline"
+    used_in: [B01, V01]
+  Client-Breach-Notification-Email:
+    group: client
+    type: email
+    description: "Client Breach Notification Email"
+    used_in: [V01, V04]
+  Client-CIN:
+    group: client
+    type: text
+    description: "Corporate Identification Number (21 chars)"
+    required: true
+    used_in: [B02, G06, N01, S01, V01]
+  Client-Legal-Entity-Type:
+    group: client
+    type: enum
+    description: "Private limited company / public limited company / LLP / trust / society / partnership"
+    default: "private limited company"
+    required: true
+    used_in: [V01]
+  Client-Letterhead:
+    group: client
+    type: text
+    description: "Client Letterhead"
+    used_in: [S02]
+  Client-Location-Type:
+    group: client
+    type: text
+    description: "Client Location Type"
+    used_in: [C02]
+  Client-Name:
+    group: client
+    type: text
+    description: "Legal name of the Data Fiduciary (client). Fixed engagement variable."
+    required: true
+    used_in: [B01, B02, B03, C01, C02, C03, C04, G01, G02, G03, G04, G06, N01, N02, N03, N04, N05, N06, R01, R02, R04, S01, S02, S03, V01, V02, V03, V04, V05, shared, validation]
+  Client-Registered-Address:
+    group: client
+    type: address
+    description: "Registered office address"
+    required: true
+    used_in: [B02, G06, N01, N04, S01, V01, V02]
+  Client-Short-Code:
+    group: client
+    type: text
+    description: "Short code used in document IDs, e.g. ACME"
+    required: true
+    used_in: [B04, shared]
+  Client-Signatory-Designation:
+    group: client
+    type: text
+    description: "Client Signatory Designation"
+    used_in: [V01]
+  Client-Signatory-Name:
+    group: client
+    type: text
+    description: "Client Signatory Name"
+    used_in: [V01]
+  Client-Website-URL:
+    group: client
+    type: url
+    description: "Primary website"
+    required: true
+    used_in: [B03, N01, N04]
+  Engagement-Ref:
+    group: client
+    type: text
+    description: "Engagement Ref"
+    used_in: [shared]
+  Fiduciary-Activities:
+    group: client
+    type: text
+    description: "Fiduciary Activities"
+    used_in: [G01]
+  Group-Entities:
+    group: client
+    type: list
+    description: "Group Entities"
+    used_in: [N03]
+  Processor-Activities:
+    group: client
+    type: text
+    description: "Processor Activities"
+    used_in: [G01]
+  Server-name:
+    group: client
+    type: text
+    description: "Preparer / consulting firm name. Internal documents only; never in public notices."
+    required: true
+    used_in: [S03, shared, validation]
+  # ---------------- contacts ----------------
+  DPO-Address:
+    group: contacts
+    type: address
+    description: "DPO Address"
+    used_in: [S02, shared]
+  DPO-Backup:
+    group: contacts
+    type: text
+    description: "DPO Backup"
+    used_in: [B01]
+  DPO-Board-Reporting-Frequency:
+    group: contacts
+    type: duration
+    description: "DPO Board Reporting Frequency"
+    used_in: [S02]
+  DPO-Budget:
+    group: contacts
+    type: text
+    description: "DPO Budget"
+    used_in: [S02]
+  DPO-Designation:
+    group: contacts
+    type: text
+    description: "DPO Designation"
+    used_in: [S02, shared]
+  DPO-Effective-Date:
+    group: contacts
+    type: date
+    description: "DPO Effective Date"
+    used_in: [S02]
+  DPO-Email:
+    group: contacts
+    type: email
+    description: "DPO business email (published, Rule 9)"
+    required: false
+    used_in: [R04, S02, shared]
+  DPO-Letter-Date:
+    group: contacts
+    type: date
+    description: "DPO Letter Date"
+    used_in: [S02]
+  DPO-Name:
+    group: contacts
+    type: text
+    description: "Data Protection Officer (SDF only; must be based in India)"
+    required: false
+    used_in: [B01, B02, G06, R04, S01, S02, S04, shared]
+  DPO-Other-Roles:
+    group: contacts
+    type: text
+    description: "DPO Other Roles"
+    used_in: [S02]
+  DPO-Phone:
+    group: contacts
+    type: phone
+    description: "DPO business phone"
+    required: false
+    used_in: [B01, R04, S02, shared]
+  DPO-Team-Size:
+    group: contacts
+    type: number
+    description: "DPO Team Size"
+    used_in: [S02]
+  DPO-Term-End:
+    group: contacts
+    type: text
+    description: "DPO Term End"
+    used_in: [S02]
+  Grievance-Officer-Address:
+    group: contacts
+    type: address
+    description: "Postal address for grievances"
+    default: "=Client-Registered-Address"
+    required: true
+    used_in: [R01, shared]
+  Grievance-Officer-Designation:
+    group: contacts
+    type: text
+    description: "Grievance Officer Designation"
+    used_in: [shared]
+  Grievance-Officer-Email:
+    group: contacts
+    type: email
+    description: "Grievance Officer email (published)"
+    required: true
+    used_in: [B03, C02, C04, N01, N02, N04, N05, N06, R01, R02, R03, R04, shared]
+  Grievance-Officer-Name:
+    group: contacts
+    type: text
+    description: "Grievance Officer name"
+    required: true
+    used_in: [G06, N02, N04, N05, R01, R03, R04, shared]
+  Grievance-Officer-Phone:
+    group: contacts
+    type: phone
+    description: "Grievance Officer phone"
+    required: true
+    used_in: [N02, R01, R04, shared]
+  Grievance-Working-Hours:
+    group: contacts
+    type: number
+    description: "Grievance Working Hours"
+    used_in: [R01, shared]
+  HR-Privacy-Contact-Email:
+    group: contacts
+    type: email
+    description: "HR Privacy Contact Email"
+    used_in: [N03]
+  Privacy-Contact-Designation:
+    group: contacts
+    type: text
+    description: "Privacy Contact Designation"
+    used_in: [B02, shared]
+  Privacy-Contact-Email:
+    group: contacts
+    type: email
+    description: "Privacy contact email (published, Rule 9)"
+    required: true
+    used_in: [B02, C01, C04, N02, N05, R03, R04, V01, shared]
+  Privacy-Contact-Name:
+    group: contacts
+    type: text
+    description: "Person designated under s.8(9) to answer processing questions (non-SDF)"
+    required: true
+    used_in: [B02, G06, N05, R04, shared]
+  Privacy-Contact-Phone:
+    group: contacts
+    type: phone
+    description: "Privacy Contact Phone"
+    used_in: [B02, R04, shared]
+  Support-Phone:
+    group: contacts
+    type: phone
+    description: "Support Phone"
+    used_in: [C02, N01, N06, R03]
+  # ---------------- urls_channels ----------------
+  App-Consent-Path:
+    group: urls_channels
+    type: text
+    description: "App Consent Path"
+    used_in: [C02, N01, N06]
+  App-Grievance-Path:
+    group: urls_channels
+    type: text
+    description: "App Grievance Path"
+    used_in: [R01]
+  App-Rights-Path:
+    group: urls_channels
+    type: text
+    description: "App Rights Path"
+    used_in: [R02]
+  Consent-Manager-URL:
+    group: urls_channels
+    type: url
+    description: "Consent Manager URL"
+    used_in: [N01]
+  Consent-Preferences-URL:
+    group: urls_channels
+    type: url
+    description: "Preference centre for giving / withdrawing consent"
+    required: true
+    used_in: [C01, C02, C03, C04, N01, N02, N03, N06, R03, R04, shared]
+  Cookie-Notice-Link-Text:
+    group: urls_channels
+    type: text
+    description: "Cookie Notice Link Text"
+    used_in: [N04]
+  Cookie-Notice-URL:
+    group: urls_channels
+    type: url
+    description: "Cookie Notice URL"
+    used_in: [N01]
+  DPB-Complaint-URL:
+    group: urls_channels
+    type: url
+    description: "Data Protection Board of India digital office complaint URL (confirm current URL)"
+    required: true
+    used_in: [C01, C04, N02, N05, R03, R04, shared]
+  Grievance-Portal-URL:
+    group: urls_channels
+    type: url
+    description: "Grievance Portal URL"
+    used_in: [R01]
+  HRMS-Self-Service-Path:
+    group: urls_channels
+    type: text
+    description: "HRMS Self Service Path"
+    used_in: [N03]
+  IVR-Withdraw-Option:
+    group: urls_channels
+    type: text
+    description: "IVR Withdraw Option"
+    used_in: [C02]
+  Login-URL:
+    group: urls_channels
+    type: url
+    description: "Login URL"
+    used_in: [R04]
+  Parent-Dashboard-Path:
+    group: urls_channels
+    type: text
+    description: "Parent Dashboard Path"
+    used_in: [N05]
+  Privacy-Notice-URL:
+    group: urls_channels
+    type: url
+    description: "URL of master privacy notice"
+    required: true
+    used_in: [N02, N04, N06, shared]
+  Rights-Portal-URL:
+    group: urls_channels
+    type: url
+    description: "Rights request portal"
+    required: true
+    used_in: [C01, C04, N01, N02, N06, R01, R02, R04, shared]
+  SMS-Optout-Keyword:
+    group: urls_channels
+    type: text
+    description: "SMS Optout Keyword"
+    used_in: [C02, N01]
+  Short-Notice-URL:
+    group: urls_channels
+    type: url
+    description: "Short Notice URL"
+    used_in: [N06]
+  # ---------------- document_control ----------------
+  Approval-Date:
+    group: document_control
+    type: date
+    description: "Approval Date"
+    used_in: [G01, shared]
+  Approver-Designation:
+    group: document_control
+    type: text
+    description: "Approver Designation"
+    used_in: [G01]
+  Approver-Name:
+    group: document_control
+    type: text
+    description: "Approver Name"
+    used_in: [G01]
+  Approving-Authority:
+    group: document_control
+    type: text
+    description: "Approving Authority"
+    used_in: [G01, shared]
+  Document-Classification:
+    group: document_control
+    type: text
+    description: "Document Classification"
+    used_in: [shared]
+  Document-ID:
+    group: document_control
+    type: text
+    description: "Document ID"
+    used_in: [shared]
+  Document-Owner:
+    group: document_control
+    type: text
+    description: "Document Owner"
+    used_in: [shared]
+  Document-Title:
+    group: document_control
+    type: text
+    description: "Document Title"
+    used_in: [shared]
+  Document-Version:
+    group: document_control
+    type: text
+    description: "Version of rendered document"
+    default: "1.0"
+    required: true
+    used_in: [C01, N01, N02, N03, N05, shared]
+  Effective-Date:
+    group: document_control
+    type: date
+    description: "Effective date of document"
+    required: true
+    used_in: [N01, shared]
+  Last-Updated-Date:
+    group: document_control
+    type: date
+    description: "Last updated date (public notices)"
+    required: true
+    used_in: [N01, R01, shared]
+  Next-Review-Date:
+    group: document_control
+    type: date
+    description: "Next Review Date"
+    used_in: [shared]
+  # ---------------- slas_retention ----------------
+  Access-Review-Remediation-Days:
+    group: slas_retention
+    type: number
+    description: "Access Review Remediation Days"
+    used_in: [G04]
+  Age-Transition-Window:
+    group: slas_retention
+    type: duration
+    description: "Age Transition Window"
+    used_in: [N05]
+  Alert-Triage-SLA:
+    group: slas_retention
+    type: duration
+    description: "Alert Triage SLA"
+    used_in: [G04]
+  Algo-Retention:
+    group: slas_retention
+    type: duration
+    description: "Algo Retention"
+    used_in: [S04]
+  Attendance-Retention:
+    group: slas_retention
+    type: duration
+    description: "Attendance Retention"
+    used_in: [N03]
+  Audit-Evidence-Retention:
+    group: slas_retention
+    type: duration
+    description: "Audit Evidence Retention"
+    used_in: [S03]
+  Audit-Notice-Days:
+    group: slas_retention
+    type: number
+    description: "Audit Notice Days"
+    used_in: [V01, V04]
+  Backup-Retention-Period:
+    group: slas_retention
+    type: duration
+    description: "Backup Retention Period"
+    used_in: [G02]
+  Biometric-Deletion-Period:
+    group: slas_retention
+    type: duration
+    description: "Biometric Deletion Period"
+    used_in: [N03]
+  Board-Initial-Target-Hours:
+    group: slas_retention
+    type: number
+    description: "Board Initial Target Hours"
+    used_in: [B01]
+  Breach-Helpline-Hours:
+    group: slas_retention
+    type: number
+    description: "Breach Helpline Hours"
+    used_in: [B03]
+  Breach-Record-Retention:
+    group: slas_retention
+    type: duration
+    description: "Retention of breach records"
+    default: "8 years"
+    required: true
+    used_in: [B04, G02]
+  Bus-GPS-Retention:
+    group: slas_retention
+    type: duration
+    description: "Bus GPS Retention"
+    used_in: [N05]
+  CCTV-Retention:
+    group: slas_retention
+    type: duration
+    description: "CCTV Retention"
+    used_in: [G06, N03, N05]
+  CM-Ack-SLA:
+    group: slas_retention
+    type: duration
+    description: "CM Ack SLA"
+    used_in: [C03]
+  CM-Breach-Notice-Hours:
+    group: slas_retention
+    type: number
+    description: "CM Breach Notice Hours"
+    used_in: [C03]
+  Candidate-Retention-Unsuccessful:
+    group: slas_retention
+    type: text
+    description: "Candidate Retention Unsuccessful"
+    used_in: [N03]
+  Child-Data-Retention:
+    group: slas_retention
+    type: duration
+    description: "Child Data Retention"
+    used_in: [N05]
+  Consent-Record-Retention:
+    group: slas_retention
+    type: duration
+    description: "Retention of consent artefacts after relationship ends"
+    default: "relationship + 8 years"
+    required: true
+    used_in: [C02, C04, G02]
+  Contact-Update-Days:
+    group: slas_retention
+    type: number
+    description: "Contact Update Days"
+    used_in: [S02]
+  Critical-Patch-Days:
+    group: slas_retention
+    type: number
+    description: "Critical Patch Days"
+    used_in: [V01]
+  DP-Notice-Target-Hours:
+    group: slas_retention
+    type: number
+    description: "DP Notice Target Hours"
+    used_in: [B01]
+  DPA-Retention-Instructions:
+    group: slas_retention
+    type: text
+    description: "DPA Retention Instructions"
+    used_in: [V01]
+  DSA-Breach-Notify-Hours:
+    group: slas_retention
+    type: number
+    description: "DSA Breach Notify Hours"
+    used_in: [V02]
+  DSA-Forward-Days:
+    group: slas_retention
+    type: number
+    description: "DSA Forward Days"
+    used_in: [V02]
+  DSA-Retention:
+    group: slas_retention
+    type: duration
+    description: "DSA Retention"
+    used_in: [V02]
+  DSA-Withdrawal-Effect-SLA:
+    group: slas_retention
+    type: duration
+    description: "DSA Withdrawal Effect SLA"
+    used_in: [V02]
+  DSA-Withdrawal-Notify-SLA:
+    group: slas_retention
+    type: duration
+    description: "DSA Withdrawal Notify SLA"
+    used_in: [V02]
+  Dormant-Account-Days:
+    group: slas_retention
+    type: number
+    description: "Dormant Account Days"
+    used_in: [G04]
+  Employee-Retention-Post-Exit:
+    group: slas_retention
+    type: text
+    description: "Employee Retention Post Exit"
+    used_in: [G06, N03]
+  Erasure-Pre-Notice-Days:
+    group: slas_retention
+    type: number
+    description: "Days before Rule 8 dormancy erasure to send intimation (must be >= 48 hours)"
+    default: "7"
+    required: false
+    used_in: [G02]
+  Extension-Requested-Hours:
+    group: slas_retention
+    type: number
+    description: "Extension Requested Hours"
+    used_in: [B02]
+  Grievance-Ack-Period:
+    group: slas_retention
+    type: duration
+    description: "Acknowledgement time for grievances"
+    default: "2 working days"
+    required: true
+    used_in: [N01, R01]
+  Grievance-Escalation-Period:
+    group: slas_retention
+    type: duration
+    description: "Grievance Escalation Period"
+    used_in: [R01, R04]
+  Grievance-Investigate-Period:
+    group: slas_retention
+    type: duration
+    description: "Grievance Investigate Period"
+    used_in: [R01]
+  Grievance-Resolution-Period:
+    group: slas_retention
+    type: duration
+    description: "Published grievance response period (Rule 14(3): must be <= 90 days)"
+    default: "30 days"
+    required: true
+    used_in: [G01, N01, N02, N06, R01, R02, R03]
+  Grievance-Review-Window:
+    group: slas_retention
+    type: duration
+    description: "Grievance Review Window"
+    used_in: [R04]
+  Grievance-Verify-Period:
+    group: slas_retention
+    type: duration
+    description: "Grievance Verify Period"
+    used_in: [R01]
+  Insurer-Notice-Hours:
+    group: slas_retention
+    type: number
+    description: "Insurer Notice Hours"
+    used_in: [B01]
+  Key-Rotation-Period:
+    group: slas_retention
+    type: duration
+    description: "Key Rotation Period"
+    used_in: [C03]
+  Lead-Inactivity-Period:
+    group: slas_retention
+    type: duration
+    description: "Lead Inactivity Period"
+    used_in: [G02]
+  Leaver-SLA:
+    group: slas_retention
+    type: duration
+    description: "Leaver SLA"
+    used_in: [G04]
+  Mover-SLA:
+    group: slas_retention
+    type: duration
+    description: "Mover SLA"
+    used_in: [G04]
+  Nomination-SLA:
+    group: slas_retention
+    type: duration
+    description: "Nomination SLA"
+    used_in: [R02]
+  PIR-Days:
+    group: slas_retention
+    type: number
+    description: "PIR Days"
+    used_in: [B01]
+  Paper-Consent-Digitisation-Period:
+    group: slas_retention
+    type: duration
+    description: "Paper Consent Digitisation Period"
+    used_in: [C01, C02]
+  Post-Withdrawal-Erasure-Period:
+    group: slas_retention
+    type: duration
+    description: "Post Withdrawal Erasure Period"
+    used_in: [C02, G02]
+  Processor-Breach-Notice-Hours:
+    group: slas_retention
+    type: number
+    description: "Hours within which a processor must report a breach to the client"
+    default: "6"
+    required: true
+    used_in: [B01, V01, V03, V04]
+  Processor-Correction-SLA:
+    group: slas_retention
+    type: duration
+    description: "Processor Correction SLA"
+    used_in: [V01]
+  Processor-Erasure-Certificate-Days:
+    group: slas_retention
+    type: number
+    description: "Processor Erasure Certificate Days"
+    used_in: [G02, V01, V04]
+  Processor-Erasure-Days:
+    group: slas_retention
+    type: number
+    description: "Processor Erasure Days"
+    used_in: [V01, V04]
+  Processor-Forward-Hours:
+    group: slas_retention
+    type: number
+    description: "Processor Forward Hours"
+    used_in: [V01, V04]
+  Processor-Rights-Assist-Days:
+    group: slas_retention
+    type: number
+    description: "Processor Rights Assist Days"
+    used_in: [V01]
+  Processor-Withdrawal-SLA:
+    group: slas_retention
+    type: duration
+    description: "Processor Withdrawal SLA"
+    used_in: [C02, V01, V04]
+  Purpose-Retention:
+    group: slas_retention
+    type: duration
+    description: "Purpose Retention"
+    collection_field_of: [Category-Purposes, Consent-Purposes, Processing-Activities]
+    used_in: [C01, G06, N01, N02]
+  Repeat-Request-Window:
+    group: slas_retention
+    type: duration
+    description: "Repeat Request Window"
+    used_in: [R02]
+  Retention-Period:
+    group: slas_retention
+    type: duration
+    description: "Retention Period"
+    collection_field_of: [Retention-Schedule]
+    used_in: [G02]
+  Rights-Access-SLA:
+    group: slas_retention
+    type: duration
+    description: "Rights Access SLA"
+    used_in: [R02]
+  Rights-Ack-Period:
+    group: slas_retention
+    type: duration
+    description: "Acknowledgement time for rights requests"
+    default: "2 working days"
+    required: true
+    used_in: [N01, R02, R03]
+  Rights-Correction-SLA:
+    group: slas_retention
+    type: duration
+    description: "Rights Correction SLA"
+    used_in: [R02]
+  Rights-Erasure-SLA:
+    group: slas_retention
+    type: duration
+    description: "Rights Erasure SLA"
+    used_in: [R02]
+  Rights-Record-Retention:
+    group: slas_retention
+    type: duration
+    description: "Retention of rights / grievance records"
+    default: "3 years after closure"
+    required: true
+    used_in: [G02, R01, R02]
+  Rights-Response-Period:
+    group: slas_retention
+    type: duration
+    description: "General response time for rights requests"
+    default: "30 days"
+    required: true
+    used_in: [N01, R03]
+  Rights-Verify-Period:
+    group: slas_retention
+    type: duration
+    description: "Rights Verify Period"
+    used_in: [R02]
+  S1-Exec-Hours:
+    group: slas_retention
+    type: number
+    description: "S1 Exec Hours"
+    used_in: [B01]
+  S2-Exec-Hours:
+    group: slas_retention
+    type: number
+    description: "S2 Exec Hours"
+    used_in: [B01]
+  Secret-Rotation-Period:
+    group: slas_retention
+    type: duration
+    description: "Secret Rotation Period"
+    used_in: [G04]
+  Statutory-Retention-Examples:
+    group: slas_retention
+    type: text
+    description: "Statutory Retention Examples"
+    used_in: [N01]
+  Student-Record-Retention:
+    group: slas_retention
+    type: duration
+    description: "Student Record Retention"
+    used_in: [N05]
+  Subprocessor-Notice-Days:
+    group: slas_retention
+    type: number
+    description: "Subprocessor Notice Days"
+    used_in: [V01]
+  Talent-Pool-Retention:
+    group: slas_retention
+    type: duration
+    description: "Talent Pool Retention"
+    used_in: [N03]
+  Training-Induction-Days:
+    group: slas_retention
+    type: number
+    description: "Training Induction Days"
+    used_in: [G01]
+  Travel-Retention:
+    group: slas_retention
+    type: duration
+    description: "Travel Retention"
+    used_in: [N03]
+  Triage-Hours:
+    group: slas_retention
+    type: number
+    description: "Triage Hours"
+    used_in: [B01]
+  VPC-Evidence-Retention:
+    group: slas_retention
+    type: duration
+    description: "VPC Evidence Retention"
+    used_in: [N05]
+  Withdrawal-Confirmation-Period:
+    group: slas_retention
+    type: duration
+    description: "Withdrawal Confirmation Period"
+    used_in: [C02]
+  Withdrawal-Effect-Period:
+    group: slas_retention
+    type: duration
+    description: "Time within which processing stops after consent withdrawal (s.6(6))"
+    default: "48 hours"
+    required: true
+    used_in: [C01, C02, G02, N01, N06]
+  # ---------------- consent ----------------
+  Artefact-ID:
+    group: consent
+    type: text
+    description: "Artefact ID"
+    used_in: [C04]
+  CM-Agreement-Ref:
+    group: consent
+    type: text
+    description: "CM Agreement Ref"
+    used_in: [C03]
+  CM-Channels:
+    group: consent
+    type: list
+    description: "CM Channels"
+    used_in: [C03]
+  CM-Go-Live-Date:
+    group: consent
+    type: date
+    description: "CM Go Live Date"
+    used_in: [C03]
+  CM-Purposes:
+    group: consent
+    type: list
+    description: "CM Purposes"
+    used_in: [C03]
+  CM-Verification-Date:
+    group: consent
+    type: date
+    description: "CM Verification Date"
+    used_in: [C03]
+  Consent-Manager-Name:
+    group: consent
+    type: text
+    description: "Consent Manager Name"
+    used_in: [C01, C02, C03, N01, N06, R01]
+  Consent-Manager-Reg-No:
+    group: consent
+    type: text
+    description: "Consent Manager Reg No"
+    used_in: [C03]
+  Consent-Platform-Owner:
+    group: consent
+    type: text
+    description: "Consent Platform Owner"
+    used_in: [C02]
+  Consent-Purpose-Checklist:
+    group: consent
+    type: text
+    description: "Consent Purpose Checklist"
+    used_in: [R03]
+  Event-Timestamp:
+    group: consent
+    type: date
+    description: "Event Timestamp"
+    used_in: [C04]
+  Event-Type-Label:
+    group: consent
+    type: text
+    description: "Event Type Label"
+    used_in: [C04]
+  Legacy-Data-Summary:
+    group: consent
+    type: longtext
+    description: "Legacy Data Summary"
+    used_in: [N06]
+  Legacy-Purpose-Summary:
+    group: consent
+    type: longtext
+    description: "Legacy Purpose Summary"
+    used_in: [N06]
+  Notice-Language:
+    group: consent
+    type: text
+    description: "Notice Language"
+    used_in: [C04]
+  Notice-Languages:
+    group: consent
+    type: list
+    description: "Eighth Schedule languages offered in addition to English"
+    default: "Hindi"
+    required: true
+    used_in: [C01, N02, N04, N06, R03, shared]
+  Notice-Version:
+    group: consent
+    type: text
+    description: "Notice Version"
+    used_in: [C04]
+  Propagation-Mechanism:
+    group: consent
+    type: text
+    description: "Propagation Mechanism"
+    used_in: [C02]
+  Purpose-1:
+    group: consent
+    type: text
+    description: "Purpose 1"
+    used_in: [C02]
+  Purpose-2:
+    group: consent
+    type: text
+    description: "Purpose 2"
+    used_in: [C02]
+  Purpose-3:
+    group: consent
+    type: text
+    description: "Purpose 3"
+    used_in: [C02]
+  Purpose-Data-Items:
+    group: consent
+    type: list
+    description: "Purpose Data Items"
+    collection_field_of: [Consent-Purposes, Legitimate-Use-Purposes, Processing-Activities]
+    used_in: [C01, G06, N01]
+  Purpose-ID:
+    group: consent
+    type: text
+    description: "Purpose ID"
+    collection_field_of: [Category-Purposes, Child-Purposes, Consent-Purposes, Legitimate-Use-Purposes]
+    used_in: [C01, N01, N02, N05]
+  Purpose-Mandatory:
+    group: consent
+    type: text
+    description: "Purpose Mandatory"
+    collection_field_of: [Consent-Purposes]
+    used_in: [C01]
+  Purpose-Name:
+    group: consent
+    type: text
+    description: "Purpose Name"
+    collection_field_of: [Category-Optional-Consents, Category-Purposes, Child-Purposes, Consent-Purposes, Legacy-Purposes, Legitimate-Use-Purposes, Processing-Activities]
+    used_in: [C01, C02, G06, N01, N02, N05, N06]
+  Purpose-Service-Description:
+    group: consent
+    type: longtext
+    description: "Purpose Service Description"
+    collection_field_of: [Category-Optional-Consents, Category-Purposes, Child-Purposes, Consent-Purposes, Legacy-Purposes, Legitimate-Use-Purposes, Processing-Activities]
+    used_in: [C01, G06, N01, N02, N05, N06]
+  Purpose-Withdrawal-Data-Action:
+    group: consent
+    type: text
+    description: "Purpose Withdrawal Data Action"
+    collection_field_of: [Consent-Purposes]
+    used_in: [C02]
+  Purpose-Withdrawal-Impact:
+    group: consent
+    type: text
+    description: "Purpose Withdrawal Impact"
+    collection_field_of: [Consent-Purposes, Legacy-Purposes]
+    used_in: [C02, N06]
+  Receipt-Data-Items:
+    group: consent
+    type: list
+    description: "Receipt Data Items"
+    used_in: [C04]
+  Receipt-No:
+    group: consent
+    type: text
+    description: "Receipt No"
+    used_in: [C04]
+  Receipt-Purpose-List:
+    group: consent
+    type: list
+    description: "Receipt Purpose List"
+    used_in: [C04]
+  Withdrawal-Effective-Date:
+    group: consent
+    type: date
+    description: "Withdrawal Effective Date"
+    used_in: [R04]
+  Withdrawal-Service-Impact:
+    group: consent
+    type: text
+    description: "Withdrawal Service Impact"
+    used_in: [R04]
+  Withdrawn-Purposes:
+    group: consent
+    type: list
+    description: "Withdrawn Purposes"
+    used_in: [R04]
+  # ---------------- children ----------------
+  Age-Assurance-Touchpoints:
+    group: children
+    type: text
+    description: "Age Assurance Touchpoints"
+    used_in: [G01]
+  Child-Data-Recipients:
+    group: children
+    type: text
+    description: "Child Data Recipients"
+    used_in: [N05]
+  Child-Directed-Sections:
+    group: children
+    type: text
+    description: "Child Directed Sections"
+    used_in: [N04]
+  Child-Name:
+    group: children
+    type: text
+    description: "Child Name"
+    used_in: [B03]
+  Child-Purpose-1-Label:
+    group: children
+    type: text
+    description: "Child Purpose 1 Label"
+    used_in: [N05]
+  Child-Purpose-2-Label:
+    group: children
+    type: text
+    description: "Child Purpose 2 Label"
+    used_in: [N05]
+  Child-Service-Description:
+    group: children
+    type: longtext
+    description: "Child Service Description"
+    used_in: [N05]
+  Children-Exemption-Class:
+    group: children
+    type: enum
+    description: "Echo of Children-Exemption-Class flag value"
+    default: "None"
+    required: false
+    used_in: [G01, N05]
+  Children-Notice-Name:
+    group: children
+    type: text
+    description: "Children Notice Name"
+    used_in: [N01]
+  Children-Service-Statement:
+    group: children
+    type: text
+    description: "Children Service Statement"
+    used_in: [N01]
+  Edtech-App-List:
+    group: children
+    type: list
+    description: "Edtech App List"
+    used_in: [N05]
+  Guardian-Consent-Purposes:
+    group: children
+    type: list
+    description: "Guardian Consent Purposes"
+    used_in: [N05]
+  VPC-Alternative-Method:
+    group: children
+    type: text
+    description: "VPC Alternative Method"
+    used_in: [N05]
+  VPC-Reference:
+    group: children
+    type: text
+    description: "VPC Reference"
+    used_in: [N05]
+  VPC-Timestamp:
+    group: children
+    type: date
+    description: "VPC Timestamp"
+    used_in: [N05]
+  # ---------------- cookies ----------------
+  Cookie-Category:
+    group: cookies
+    type: text
+    description: "Cookie Category"
+    collection_field_of: [Cookies]
+    used_in: [N04]
+  Cookie-Consent-Validity:
+    group: cookies
+    type: duration
+    description: "Cookie Consent Validity"
+    used_in: [N04]
+  Cookie-Cross-Border:
+    group: cookies
+    type: text
+    description: "Cookie Cross Border"
+    collection_field_of: [Cookies]
+    used_in: [N04]
+  Cookie-Duration:
+    group: cookies
+    type: text
+    description: "Cookie Duration"
+    collection_field_of: [Cookies]
+    used_in: [N04]
+  Cookie-Name:
+    group: cookies
+    type: text
+    description: "Cookie Name"
+    collection_field_of: [Cookies]
+    used_in: [N04]
+  Cookie-Provider:
+    group: cookies
+    type: text
+    description: "Cookie Provider"
+    collection_field_of: [Cookies]
+    used_in: [N04]
+  Cookie-Purpose:
+    group: cookies
+    type: text
+    description: "Cookie Purpose"
+    collection_field_of: [Cookies]
+    used_in: [N04]
+  Cookie-Scan-Frequency:
+    group: cookies
+    type: duration
+    description: "Cookie Scan Frequency"
+    used_in: [N04]
+  Optional-Cookie-Benefit-Summary:
+    group: cookies
+    type: longtext
+    description: "Optional Cookie Benefit Summary"
+    used_in: [N04]
+  Optional-Cookie-Category-List:
+    group: cookies
+    type: list
+    description: "Optional Cookie Category List"
+    used_in: [N04]
+  # ---------------- vendor_contracts ----------------
+  Approved-Subprocessors:
+    group: vendor_contracts
+    type: text
+    description: "Approved Subprocessors"
+    used_in: [V04]
+  Arbitration-Seat:
+    group: vendor_contracts
+    type: text
+    description: "Arbitration Seat"
+    used_in: [V01]
+  Audit-Frequency:
+    group: vendor_contracts
+    type: duration
+    description: "Audit Frequency"
+    used_in: [V01]
+  Cross-Border-Countries:
+    group: vendor_contracts
+    type: list
+    description: "Cross Border Countries"
+    used_in: [N01, N02, N03, V04]
+  Cross-Border-Purposes:
+    group: vendor_contracts
+    type: list
+    description: "Cross Border Purposes"
+    used_in: [N01, N02, N03, V04, V05]
+  DDQ-Due-Date:
+    group: vendor_contracts
+    type: date
+    description: "DDQ Due Date"
+    used_in: [V03]
+  DDQ-Refresh-Frequency:
+    group: vendor_contracts
+    type: duration
+    description: "DDQ Refresh Frequency"
+    used_in: [V01]
+  DPA-DP-Categories:
+    group: vendor_contracts
+    type: list
+    description: "DPA DP Categories"
+    used_in: [V01]
+  DPA-Data-Items:
+    group: vendor_contracts
+    type: list
+    description: "DPA Data Items"
+    used_in: [V01]
+  DPA-Date:
+    group: vendor_contracts
+    type: date
+    description: "DPA Date"
+    used_in: [V01]
+  DPA-Liability-Cap:
+    group: vendor_contracts
+    type: text
+    description: "DPA Liability Cap"
+    used_in: [V01, V04]
+  DPA-Locations:
+    group: vendor_contracts
+    type: text
+    description: "DPA Locations"
+    used_in: [V01]
+  DPA-Purposes:
+    group: vendor_contracts
+    type: list
+    description: "DPA Purposes"
+    used_in: [V01]
+  DSA-Consent-Purpose-ID:
+    group: vendor_contracts
+    type: text
+    description: "DSA Consent Purpose ID"
+    used_in: [V02]
+  DSA-DP-Categories:
+    group: vendor_contracts
+    type: list
+    description: "DSA DP Categories"
+    used_in: [V02]
+  DSA-Data-Items:
+    group: vendor_contracts
+    type: list
+    description: "DSA Data Items"
+    used_in: [V02]
+  DSA-Date:
+    group: vendor_contracts
+    type: date
+    description: "DSA Date"
+    used_in: [V02]
+  DSA-Frequency:
+    group: vendor_contracts
+    type: duration
+    description: "DSA Frequency"
+    used_in: [V02]
+  DSA-Legal-Basis:
+    group: vendor_contracts
+    type: text
+    description: "DSA Legal Basis"
+    used_in: [V02]
+  DSA-Purpose:
+    group: vendor_contracts
+    type: text
+    description: "DSA Purpose"
+    used_in: [V02]
+  DSA-Term:
+    group: vendor_contracts
+    type: text
+    description: "DSA Term"
+    used_in: [V02]
+  DSA-Transfer-Mechanism:
+    group: vendor_contracts
+    type: text
+    description: "DSA Transfer Mechanism"
+    used_in: [V02]
+  DSA-Volume:
+    group: vendor_contracts
+    type: text
+    description: "DSA Volume"
+    used_in: [V02]
+  Foreign-Access-Mitigation:
+    group: vendor_contracts
+    type: longtext
+    description: "Foreign Access Mitigation"
+    used_in: [V05]
+  Importer-Country:
+    group: vendor_contracts
+    type: text
+    description: "Importer Country"
+    used_in: [V05]
+  Importer-Name:
+    group: vendor_contracts
+    type: text
+    description: "Importer Name"
+    used_in: [V05]
+  Importer-Role:
+    group: vendor_contracts
+    type: text
+    description: "Importer Role"
+    used_in: [V05]
+  Insurance-Tail-Years:
+    group: vendor_contracts
+    type: number
+    description: "Insurance Tail Years"
+    used_in: [V01]
+  Joint-Processing-Description:
+    group: vendor_contracts
+    type: longtext
+    description: "Joint Processing Description"
+    used_in: [V02]
+  Jurisdiction-City:
+    group: vendor_contracts
+    type: text
+    description: "Jurisdiction City"
+    used_in: [V01, V02]
+  Principal-Agreement-Date:
+    group: vendor_contracts
+    type: date
+    description: "Principal Agreement Date"
+    used_in: [V01, V04]
+  Principal-Agreement-Name:
+    group: vendor_contracts
+    type: text
+    description: "Principal Agreement Name"
+    used_in: [V01, V04]
+  Recipient-Address:
+    group: vendor_contracts
+    type: address
+    description: "Recipient Address"
+    used_in: [V02]
+  Recipient-Category:
+    group: vendor_contracts
+    type: text
+    description: "Recipient Category"
+    collection_field_of: [Recipient-Categories]
+    used_in: [N01]
+  Recipient-Name:
+    group: vendor_contracts
+    type: text
+    description: "Recipient Name"
+    used_in: [V02]
+  Recipient-Purpose:
+    group: vendor_contracts
+    type: text
+    description: "Recipient Purpose"
+    collection_field_of: [Recipient-Categories]
+    used_in: [N01]
+  Recipient-Role:
+    group: vendor_contracts
+    type: text
+    description: "Recipient Role"
+    collection_field_of: [Recipient-Categories]
+    used_in: [N01]
+  Return-Format:
+    group: vendor_contracts
+    type: text
+    description: "Return Format"
+    used_in: [V01]
+  Rider-Clause-No:
+    group: vendor_contracts
+    type: text
+    description: "Rider Clause No"
+    used_in: [V04]
+  Rider-Date:
+    group: vendor_contracts
+    type: date
+    description: "Rider Date"
+    used_in: [V04]
+  Rider-Effective-Date:
+    group: vendor_contracts
+    type: date
+    description: "Rider Effective Date"
+    used_in: [V04]
+  Rule15-Order-Check:
+    group: vendor_contracts
+    type: text
+    description: "Rule15 Order Check"
+    used_in: [V05]
+  Sector-Localisation-Check:
+    group: vendor_contracts
+    type: text
+    description: "Sector Localisation Check"
+    used_in: [V05]
+  Subprocessor-Data:
+    group: vendor_contracts
+    type: text
+    description: "Subprocessor Data"
+    collection_field_of: [Sub-Processors]
+    used_in: [V01]
+  Subprocessor-Location:
+    group: vendor_contracts
+    type: text
+    description: "Subprocessor Location"
+    collection_field_of: [Sub-Processors]
+    used_in: [V01]
+  Subprocessor-Name:
+    group: vendor_contracts
+    type: text
+    description: "Subprocessor Name"
+    collection_field_of: [Sub-Processors]
+    used_in: [V01]
+  Subprocessor-Safeguards:
+    group: vendor_contracts
+    type: text
+    description: "Subprocessor Safeguards"
+    collection_field_of: [Sub-Processors]
+    used_in: [V01]
+  Subprocessor-Service:
+    group: vendor_contracts
+    type: text
+    description: "Subprocessor Service"
+    collection_field_of: [Sub-Processors]
+    used_in: [V01]
+  Transfer-Country:
+    group: vendor_contracts
+    type: text
+    description: "Transfer Country"
+    collection_field_of: [Cross-Border-Transfers]
+    used_in: [V05]
+  Transfer-Data-Items:
+    group: vendor_contracts
+    type: list
+    description: "Transfer Data Items"
+    collection_field_of: [Cross-Border-Transfers]
+    used_in: [V05]
+  Transfer-Importer:
+    group: vendor_contracts
+    type: text
+    description: "Transfer Importer"
+    collection_field_of: [Cross-Border-Transfers]
+    used_in: [V05]
+  Transfer-Mode:
+    group: vendor_contracts
+    type: text
+    description: "Transfer Mode"
+    used_in: [V05]
+  Transfer-Purpose:
+    group: vendor_contracts
+    type: text
+    description: "Transfer Purpose"
+    collection_field_of: [Cross-Border-Transfers]
+    used_in: [V05]
+  Transfer-Ref:
+    group: vendor_contracts
+    type: text
+    description: "Transfer Ref"
+    used_in: [V05]
+  Transfer-Safeguards:
+    group: vendor_contracts
+    type: text
+    description: "Transfer Safeguards"
+    collection_field_of: [Cross-Border-Transfers]
+    used_in: [V05]
+  V05-Ref:
+    group: vendor_contracts
+    type: text
+    description: "V05 Ref"
+    used_in: [V01]
+  Vendor-Address:
+    group: vendor_contracts
+    type: address
+    description: "Vendor Address"
+    used_in: [V01]
+  Vendor-Cyber-Insurance-Amount:
+    group: vendor_contracts
+    type: text
+    description: "Vendor Cyber Insurance Amount"
+    used_in: [V01]
+  Vendor-Entity-Type:
+    group: vendor_contracts
+    type: text
+    description: "Vendor Entity Type"
+    used_in: [V01]
+  Vendor-L4-Access-Description:
+    group: vendor_contracts
+    type: longtext
+    description: "Vendor L4 Access Description"
+    used_in: [V01]
+  Vendor-Name:
+    group: vendor_contracts
+    type: text
+    description: "Vendor Name"
+    used_in: [V01, V03, V04]
+  Vendor-Privacy-Contact:
+    group: vendor_contracts
+    type: email
+    description: "Vendor Privacy Contact"
+    used_in: [V01]
+  Vendor-Required-Certifications:
+    group: vendor_contracts
+    type: text
+    description: "Vendor Required Certifications"
+    used_in: [V01]
+  Vendor-Services:
+    group: vendor_contracts
+    type: text
+    description: "Vendor Services"
+    used_in: [V01, V03]
+  Vendor-Signatory-Designation:
+    group: vendor_contracts
+    type: text
+    description: "Vendor Signatory Designation"
+    used_in: [V01]
+  Vendor-Signatory-Name:
+    group: vendor_contracts
+    type: text
+    description: "Vendor Signatory Name"
+    used_in: [V01]
+  # ---------------- rights ----------------
+  Access-Data-Summary:
+    group: rights
+    type: longtext
+    description: "Access Data Summary"
+    used_in: [R04]
+  Access-Other-Info:
+    group: rights
+    type: text
+    description: "Access Other Info"
+    used_in: [R04]
+  Access-Processing-Summary:
+    group: rights
+    type: longtext
+    description: "Access Processing Summary"
+    used_in: [R04]
+  Access-Recipient-Data:
+    group: rights
+    type: text
+    description: "Access Recipient Data"
+    collection_field_of: [Access-Recipients]
+    used_in: [R04]
+  Access-Recipient-Name:
+    group: rights
+    type: text
+    description: "Access Recipient Name"
+    collection_field_of: [Access-Recipients]
+    used_in: [R04]
+  Access-Recipient-Role:
+    group: rights
+    type: text
+    description: "Access Recipient Role"
+    collection_field_of: [Access-Recipients]
+    used_in: [R04]
+  Correction-Details:
+    group: rights
+    type: text
+    description: "Correction Details"
+    used_in: [R04]
+  DP-Name:
+    group: rights
+    type: text
+    description: "DP Name"
+    used_in: [B03, R04]
+  Erased-Data-Description:
+    group: rights
+    type: longtext
+    description: "Erased Data Description"
+    used_in: [R04]
+  Erasure-Date:
+    group: rights
+    type: date
+    description: "Erasure Date"
+    used_in: [R04]
+  Erasure-Time:
+    group: rights
+    type: text
+    description: "Erasure Time"
+    used_in: [R04]
+  Escalation-Authority:
+    group: rights
+    type: text
+    description: "Escalation Authority"
+    used_in: [R01, R04]
+  Extend-Rights-To-Legitimate-Use:
+    group: rights
+    type: text
+    description: "Extend Rights To Legitimate Use"
+    used_in: [R02]
+  Grievance-Actions:
+    group: rights
+    type: longtext
+    description: "Grievance Actions"
+    used_in: [R04]
+  Grievance-Auto-Escalation-Trigger:
+    group: rights
+    type: text
+    description: "Grievance Auto Escalation Trigger"
+    used_in: [R01]
+  Grievance-Findings:
+    group: rights
+    type: longtext
+    description: "Grievance Findings"
+    used_in: [R04]
+  Grievance-Next-Steps:
+    group: rights
+    type: text
+    description: "Grievance Next Steps"
+    used_in: [R04]
+  Grievance-Summary:
+    group: rights
+    type: longtext
+    description: "Grievance Summary"
+    used_in: [R04]
+  Identifier-Types:
+    group: rights
+    type: list
+    description: "Identifiers Data Principals use to identify themselves (Rule 14(1)(b),(5))"
+    default: "registered mobile number, email address, customer ID"
+    required: true
+    used_in: [N01, N06, R01, R02, R03]
+  Last-Activity-Date:
+    group: rights
+    type: date
+    description: "Last Activity Date"
+    used_in: [R04]
+  Nominee-Name:
+    group: rights
+    type: text
+    description: "Nominee Name"
+    used_in: [R04]
+  Nominee-Relationship:
+    group: rights
+    type: text
+    description: "Nominee Relationship"
+    used_in: [R04]
+  Refusal-Legal-Basis:
+    group: rights
+    type: text
+    description: "Refusal Legal Basis"
+    used_in: [R04]
+  Refusal-Reason:
+    group: rights
+    type: text
+    description: "Refusal Reason"
+    used_in: [R04]
+  Request-Date:
+    group: rights
+    type: date
+    description: "Request Date"
+    used_in: [R04]
+  Request-Type:
+    group: rights
+    type: text
+    description: "Request Type"
+    used_in: [R04]
+  Response-Date:
+    group: rights
+    type: date
+    description: "Response Date"
+    used_in: [R04]
+  Retained-Data-Description:
+    group: rights
+    type: longtext
+    description: "Retained Data Description"
+    used_in: [R04]
+  Rights-Fee-Text:
+    group: rights
+    type: text
+    description: "Rights Fee Text"
+    used_in: [N01]
+  Systems-Search-Checklist:
+    group: rights
+    type: text
+    description: "Systems Search Checklist"
+    used_in: [R02]
+  Ticket-No:
+    group: rights
+    type: text
+    description: "Ticket No"
+    used_in: [R03, R04]
+  Verification-Action:
+    group: rights
+    type: text
+    description: "Verification Action"
+    used_in: [R04]
+  Verification-Deadline:
+    group: rights
+    type: text
+    description: "Verification Deadline"
+    used_in: [R04]
+  What-We-Did-Instead:
+    group: rights
+    type: text
+    description: "What We Did Instead"
+    used_in: [R04]
+  # ---------------- breach ----------------
+  Board-Detailed-Timestamp:
+    group: breach
+    type: date
+    description: "Board Detailed Timestamp"
+    collection_field_of: [Breaches]
+    used_in: [B02, B04]
+  Board-Extension-Ref:
+    group: breach
+    type: text
+    description: "Board Extension Ref"
+    used_in: [B02]
+  Board-Filing-Authority:
+    group: breach
+    type: text
+    description: "Board Filing Authority"
+    used_in: [B01, B02]
+  Board-Filing-Designation:
+    group: breach
+    type: text
+    description: "Board Filing Designation"
+    used_in: [B02]
+  Board-Initial-Ref:
+    group: breach
+    type: text
+    description: "Board Initial Ref"
+    used_in: [B02]
+  Board-Initial-Timestamp:
+    group: breach
+    type: date
+    description: "Board Initial Timestamp"
+    collection_field_of: [Breaches]
+    used_in: [B02, B04]
+  Board-Meeting-Date:
+    group: breach
+    type: date
+    description: "Board Meeting Date"
+    used_in: [S02]
+  Breach-Actor-Findings:
+    group: breach
+    type: longtext
+    description: "Breach Actor Findings"
+    used_in: [B02]
+  Breach-Aware-At:
+    group: breach
+    type: date
+    description: "Breach Aware At"
+    collection_field_of: [Breaches]
+    used_in: [B02, B04]
+  Breach-CERTIN-Ref:
+    group: breach
+    type: text
+    description: "Breach CERTIN Ref"
+    collection_field_of: [Breaches]
+    used_in: [B04]
+  Breach-Child-Count:
+    group: breach
+    type: number
+    description: "Breach Child Count"
+    used_in: [B02]
+  Breach-Contained-At:
+    group: breach
+    type: date
+    description: "Breach Contained At"
+    used_in: [B02]
+  Breach-Containment:
+    group: breach
+    type: text
+    description: "Breach Containment"
+    used_in: [B02]
+  Breach-Counsel:
+    group: breach
+    type: text
+    description: "Breach Counsel"
+    used_in: [B01]
+  Breach-Cross-Border:
+    group: breach
+    type: text
+    description: "Breach Cross Border"
+    used_in: [B02]
+  Breach-DP-Categories:
+    group: breach
+    type: list
+    description: "Breach DP Categories"
+    used_in: [B02]
+  Breach-DP-Consequences:
+    group: breach
+    type: longtext
+    description: "Breach DP Consequences"
+    used_in: [B03]
+  Breach-DP-Contact-Designation:
+    group: breach
+    type: text
+    description: "Breach DP Contact Designation"
+    used_in: [B03]
+  Breach-DP-Contact-Email:
+    group: breach
+    type: email
+    description: "Breach DP Contact Email"
+    used_in: [B03]
+  Breach-DP-Contact-Name:
+    group: breach
+    type: text
+    description: "Breach DP Contact Name"
+    used_in: [B03]
+  Breach-DP-Count:
+    group: breach
+    type: number
+    description: "Breach DP Count"
+    collection_field_of: [Breaches]
+    used_in: [B02, B04]
+  Breach-DP-Data-Items:
+    group: breach
+    type: list
+    description: "Breach DP Data Items"
+    used_in: [B03]
+  Breach-DP-Data-Short:
+    group: breach
+    type: text
+    description: "Breach DP Data Short"
+    used_in: [B03]
+  Breach-DP-Mitigation:
+    group: breach
+    type: longtext
+    description: "Breach DP Mitigation"
+    used_in: [B03]
+  Breach-DP-Notice-Modes:
+    group: breach
+    type: text
+    description: "Breach DP Notice Modes"
+    used_in: [B02]
+  Breach-DP-Notice-Status:
+    group: breach
+    type: text
+    description: "Breach DP Notice Status"
+    used_in: [B02]
+  Breach-DP-Notice-Timestamps:
+    group: breach
+    type: text
+    description: "Breach DP Notice Timestamps"
+    used_in: [B02]
+  Breach-DP-Notified-Count:
+    group: breach
+    type: number
+    description: "Breach DP Notified Count"
+    collection_field_of: [Breaches]
+    used_in: [B02, B04]
+  Breach-DP-Safety-Step-1:
+    group: breach
+    type: text
+    description: "Breach DP Safety Step 1"
+    used_in: [B03]
+  Breach-DP-Safety-Step-2:
+    group: breach
+    type: text
+    description: "Breach DP Safety Step 2"
+    used_in: [B03]
+  Breach-DP-Safety-Step-3:
+    group: breach
+    type: text
+    description: "Breach DP Safety Step 3"
+    used_in: [B03]
+  Breach-DP-Unreachable-Steps:
+    group: breach
+    type: text
+    description: "Breach DP Unreachable Steps"
+    used_in: [B02]
+  Breach-Data-Categories:
+    group: breach
+    type: list
+    description: "Breach Data Categories"
+    collection_field_of: [Breaches]
+    used_in: [B02, B04]
+  Breach-Date-Short:
+    group: breach
+    type: text
+    description: "Breach Date Short"
+    used_in: [B03]
+  Breach-Detailed-Description:
+    group: breach
+    type: longtext
+    description: "Breach Detailed Description"
+    used_in: [B02]
+  Breach-Detected-At:
+    group: breach
+    type: date
+    description: "Breach Detected At"
+    used_in: [B02]
+  Breach-Detected-At-Plain:
+    group: breach
+    type: text
+    description: "Breach Detected At Plain"
+    used_in: [B03]
+  Breach-Helpline:
+    group: breach
+    type: phone
+    description: "Breach Helpline"
+    used_in: [B01, B02, B03]
+  Breach-ID:
+    group: breach
+    type: text
+    description: "Breach ID"
+    collection_field_of: [Breaches]
+    used_in: [B02, B03, B04]
+  Breach-Likely-Impact:
+    group: breach
+    type: text
+    description: "Breach Likely Impact"
+    used_in: [B02]
+  Breach-Location:
+    group: breach
+    type: text
+    description: "Breach Location"
+    used_in: [B02]
+  Breach-Mitigation:
+    group: breach
+    type: longtext
+    description: "Breach Mitigation"
+    used_in: [B02]
+  Breach-Nature:
+    group: breach
+    type: text
+    description: "Breach Nature"
+    collection_field_of: [Breaches]
+    used_in: [B02, B04]
+  Breach-Not-Involved-Data:
+    group: breach
+    type: text
+    description: "Breach Not Involved Data"
+    used_in: [B03]
+  Breach-Occurred-At:
+    group: breach
+    type: date
+    description: "Breach Occurred At"
+    used_in: [B02]
+  Breach-Occurred-At-Plain:
+    group: breach
+    type: text
+    description: "Breach Occurred At Plain"
+    used_in: [B03]
+  Breach-Other-Authorities:
+    group: breach
+    type: text
+    description: "Breach Other Authorities"
+    used_in: [B02]
+  Breach-Plain-Description:
+    group: breach
+    type: longtext
+    description: "Breach Plain Description"
+    used_in: [B03]
+  Breach-Processor-Involved:
+    group: breach
+    type: text
+    description: "Breach Processor Involved"
+    used_in: [B02]
+  Breach-Record-Count:
+    group: breach
+    type: number
+    description: "Breach Record Count"
+    used_in: [B02]
+  Breach-Remediation:
+    group: breach
+    type: longtext
+    description: "Breach Remediation"
+    used_in: [B02]
+  Breach-Root-Cause:
+    group: breach
+    type: longtext
+    description: "Breach Root Cause"
+    collection_field_of: [Breaches]
+    used_in: [B02, B04]
+  Breach-Severity:
+    group: breach
+    type: text
+    description: "Breach Severity"
+    collection_field_of: [Breaches]
+    used_in: [B04]
+  Breach-Signatory-Designation:
+    group: breach
+    type: text
+    description: "Breach Signatory Designation"
+    used_in: [B03]
+  Breach-Signatory-Name:
+    group: breach
+    type: text
+    description: "Breach Signatory Name"
+    used_in: [B03]
+  Breach-Status:
+    group: breach
+    type: text
+    description: "Breach Status"
+    collection_field_of: [Breaches]
+    used_in: [B04]
+  Breach-Support-Instructions:
+    group: breach
+    type: text
+    description: "Breach Support Instructions"
+    used_in: [B03]
+  Breach-Support-Offer:
+    group: breach
+    type: text
+    description: "Breach Support Offer"
+    used_in: [B03]
+  CERTIN-Reporting-Email:
+    group: breach
+    type: email
+    description: "CERTIN Reporting Email"
+    used_in: [B01]
+  Cyber-Insurer:
+    group: breach
+    type: text
+    description: "Cyber Insurer"
+    used_in: [B01]
+  Cyber-Policy-No:
+    group: breach
+    type: text
+    description: "Cyber Policy No"
+    used_in: [B01]
+  Extension-Expected-Date:
+    group: breach
+    type: date
+    description: "Extension Expected Date"
+    used_in: [B02]
+  Extension-Reasons:
+    group: breach
+    type: longtext
+    description: "Extension Reasons"
+    used_in: [B02]
+  Forensics-Vendor:
+    group: breach
+    type: text
+    description: "Forensics Vendor"
+    used_in: [B01]
+  IRT-CS-Lead:
+    group: breach
+    type: text
+    description: "IRT CS Lead"
+    used_in: [B01]
+  IRT-Commander:
+    group: breach
+    type: text
+    description: "IRT Commander"
+    used_in: [B01]
+  IRT-Commander-Backup:
+    group: breach
+    type: text
+    description: "IRT Commander Backup"
+    used_in: [B01]
+  IRT-Commander-Phone:
+    group: breach
+    type: phone
+    description: "IRT Commander Phone"
+    used_in: [B01]
+  IRT-Comms:
+    group: breach
+    type: text
+    description: "IRT Comms"
+    used_in: [B01]
+  IRT-Legal:
+    group: breach
+    type: text
+    description: "IRT Legal"
+    used_in: [B01]
+  IRT-SOC-Lead:
+    group: breach
+    type: text
+    description: "IRT SOC Lead"
+    used_in: [B01]
+  Incident-Reporting-Channel:
+    group: breach
+    type: text
+    description: "Incident Reporting Channel"
+    used_in: [B01, G01]
+  S1-Threshold:
+    group: breach
+    type: number
+    description: "S1 Threshold"
+    used_in: [B01]
+  Tabletop-Frequency:
+    group: breach
+    type: duration
+    description: "Tabletop Frequency"
+    used_in: [B01]
+  # ---------------- governance ----------------
+  Acceptable-Use-Policy-Name:
+    group: governance
+    type: text
+    description: "Acceptable Use Policy Name"
+    used_in: [N03]
+  Backup-Policy-Name:
+    group: governance
+    type: text
+    description: "Backup Policy Name"
+    used_in: [G04]
+  Bulk-Threshold-Records:
+    group: governance
+    type: number
+    description: "Bulk Threshold Records"
+    used_in: [G03, G04, V03]
+  DPIA-Approval-Date:
+    group: governance
+    type: date
+    description: "DPIA Approval Date"
+    used_in: [G05]
+  DPIA-Approver:
+    group: governance
+    type: text
+    description: "DPIA Approver"
+    used_in: [G05]
+  DPIA-Assessor-Name:
+    group: governance
+    type: text
+    description: "DPIA Assessor Name"
+    used_in: [S01]
+  DPIA-Assessor-Org:
+    group: governance
+    type: text
+    description: "DPIA Assessor Org"
+    used_in: [S01]
+  DPIA-Business-Owner:
+    group: governance
+    type: text
+    description: "DPIA Business Owner"
+    used_in: [G05]
+  DPIA-Conditions:
+    group: governance
+    type: longtext
+    description: "DPIA Conditions"
+    used_in: [G05]
+  DPIA-DPO-Opinion:
+    group: governance
+    type: longtext
+    description: "DPIA DPO Opinion"
+    used_in: [G05]
+  DPIA-Go-Live:
+    group: governance
+    type: text
+    description: "DPIA Go Live"
+    used_in: [G05]
+  DPIA-Lead:
+    group: governance
+    type: text
+    description: "DPIA Lead"
+    used_in: [G05]
+  DPIA-Next-Review:
+    group: governance
+    type: text
+    description: "DPIA Next Review"
+    used_in: [G05]
+  DPIA-Project-Name:
+    group: governance
+    type: text
+    description: "DPIA Project Name"
+    used_in: [G05]
+  DPIA-Ref:
+    group: governance
+    type: text
+    description: "DPIA Ref"
+    used_in: [G05, N05]
+  DPIA-Residual-Risk:
+    group: governance
+    type: text
+    description: "DPIA Residual Risk"
+    used_in: [G05]
+  DPIA-RoPA-IDs:
+    group: governance
+    type: text
+    description: "DPIA RoPA IDs"
+    used_in: [G05]
+  DPIA-Scale-Threshold:
+    group: governance
+    type: number
+    description: "DPIA Scale Threshold"
+    used_in: [G05]
+  DPIA-Screened-By:
+    group: governance
+    type: text
+    description: "DPIA Screened By"
+    used_in: [G05]
+  DPIA-Screening-Date:
+    group: governance
+    type: date
+    description: "DPIA Screening Date"
+    used_in: [G05]
+  DPIA-Screening-Outcome:
+    group: governance
+    type: text
+    description: "DPIA Screening Outcome"
+    used_in: [G05]
+  DPIA-Systems:
+    group: governance
+    type: text
+    description: "DPIA Systems"
+    used_in: [G05]
+  Discovery-Scan-Frequency:
+    group: governance
+    type: duration
+    description: "Discovery Scan Frequency"
+    used_in: [G03]
+  IAM-Tool:
+    group: governance
+    type: text
+    description: "IAM Tool"
+    used_in: [G04]
+  Legal-Head-Role:
+    group: governance
+    type: text
+    description: "Legal Head Role"
+    used_in: [G01]
+  Monitoring-Access-Roles:
+    group: governance
+    type: text
+    description: "Monitoring Access Roles"
+    used_in: [N03]
+  Password-Standard:
+    group: governance
+    type: text
+    description: "Password Standard"
+    used_in: [G04]
+  Restore-Test-Frequency:
+    group: governance
+    type: duration
+    description: "Restore Test Frequency"
+    used_in: [G04, V01]
+  Retention-Data-Set:
+    group: governance
+    type: text
+    description: "Retention Data Set"
+    collection_field_of: [Retention-Schedule]
+    used_in: [G02]
+  Retention-Disposal-Method:
+    group: governance
+    type: text
+    description: "Retention Disposal Method"
+    collection_field_of: [Retention-Schedule]
+    used_in: [G02]
+  Retention-End-Date:
+    group: governance
+    type: date
+    description: "Retention End Date"
+    used_in: [R04]
+  Retention-Legal-Basis:
+    group: governance
+    type: text
+    description: "Retention Legal Basis"
+    collection_field_of: [Retention-Schedule]
+    used_in: [G02]
+  Retention-Legal-Reference:
+    group: governance
+    type: text
+    description: "Retention Legal Reference"
+    collection_field_of: [Retention-Schedule]
+    used_in: [G02, R04]
+  Retention-Owner:
+    group: governance
+    type: text
+    description: "Retention Owner"
+    collection_field_of: [Retention-Schedule]
+    used_in: [G02]
+  Retention-Purpose-ID:
+    group: governance
+    type: text
+    description: "Retention Purpose ID"
+    collection_field_of: [Retention-Schedule]
+    used_in: [G02]
+  Retention-Ref:
+    group: governance
+    type: text
+    description: "Retention Ref"
+    collection_field_of: [Retention-Schedule]
+    used_in: [G02]
+  Retention-Trigger:
+    group: governance
+    type: text
+    description: "Retention Trigger"
+    collection_field_of: [Retention-Schedule]
+    used_in: [G02]
+  Risk-Activity:
+    group: governance
+    type: text
+    description: "Risk Activity"
+    collection_field_of: [SDF-DPIA-Risks]
+    used_in: [S01]
+  Risk-Controls:
+    group: governance
+    type: text
+    description: "Risk Controls"
+    collection_field_of: [DPIA-Risks, SDF-DPIA-Risks]
+    used_in: [G05, S01]
+  Risk-Description:
+    group: governance
+    type: longtext
+    description: "Risk Description"
+    collection_field_of: [DPIA-Risks, SDF-DPIA-Risks]
+    used_in: [G05, S01]
+  Risk-Due:
+    group: governance
+    type: text
+    description: "Risk Due"
+    collection_field_of: [DPIA-Risks]
+    used_in: [G05]
+  Risk-I:
+    group: governance
+    type: text
+    description: "Risk I"
+    collection_field_of: [DPIA-Risks]
+    used_in: [G05]
+  Risk-ID:
+    group: governance
+    type: text
+    description: "Risk ID"
+    collection_field_of: [DPIA-Risks, SDF-DPIA-Risks]
+    used_in: [G05, S01]
+  Risk-Inherent:
+    group: governance
+    type: text
+    description: "Risk Inherent"
+    collection_field_of: [DPIA-Risks, SDF-DPIA-Risks]
+    used_in: [G05, S01]
+  Risk-L:
+    group: governance
+    type: text
+    description: "Risk L"
+    collection_field_of: [DPIA-Risks]
+    used_in: [G05]
+  Risk-Owner:
+    group: governance
+    type: text
+    description: "Risk Owner"
+    collection_field_of: [DPIA-Risks]
+    used_in: [G05]
+  Risk-Res-I:
+    group: governance
+    type: text
+    description: "Risk Res I"
+    collection_field_of: [DPIA-Risks]
+    used_in: [G05]
+  Risk-Res-L:
+    group: governance
+    type: text
+    description: "Risk Res L"
+    collection_field_of: [DPIA-Risks]
+    used_in: [G05]
+  Risk-Residual:
+    group: governance
+    type: text
+    description: "Risk Residual"
+    collection_field_of: [DPIA-Risks, SDF-DPIA-Risks]
+    used_in: [G05, S01]
+  Risk-Source:
+    group: governance
+    type: text
+    description: "Risk Source"
+    collection_field_of: [DPIA-Risks]
+    used_in: [G05]
+  Risk-Status:
+    group: governance
+    type: text
+    description: "Risk Status"
+    collection_field_of: [SDF-DPIA-Risks]
+    used_in: [S01]
+  RoPA-Child-Data:
+    group: governance
+    type: text
+    description: "RoPA Child Data"
+    collection_field_of: [Processing-Activities]
+    used_in: [G06]
+  RoPA-Classification:
+    group: governance
+    type: text
+    description: "RoPA Classification"
+    collection_field_of: [Processing-Activities]
+    used_in: [G06]
+  RoPA-Cross-Border:
+    group: governance
+    type: text
+    description: "RoPA Cross Border"
+    collection_field_of: [Processing-Activities]
+    used_in: [G06]
+  RoPA-DP-Categories:
+    group: governance
+    type: list
+    description: "RoPA DP Categories"
+    collection_field_of: [Processing-Activities]
+    used_in: [G06]
+  RoPA-DPIA-Ref:
+    group: governance
+    type: text
+    description: "RoPA DPIA Ref"
+    collection_field_of: [Processing-Activities]
+    used_in: [G06]
+  RoPA-Function:
+    group: governance
+    type: text
+    description: "RoPA Function"
+    collection_field_of: [Processing-Activities]
+    used_in: [G06]
+  RoPA-ID:
+    group: governance
+    type: text
+    description: "RoPA ID"
+    collection_field_of: [Processing-Activities]
+    used_in: [G06]
+  RoPA-Last-Review:
+    group: governance
+    type: text
+    description: "RoPA Last Review"
+    collection_field_of: [Processing-Activities]
+    used_in: [G06]
+  RoPA-Notice-Ref:
+    group: governance
+    type: text
+    description: "RoPA Notice Ref"
+    collection_field_of: [Processing-Activities]
+    used_in: [G06]
+  RoPA-Other-DFs:
+    group: governance
+    type: text
+    description: "RoPA Other DFs"
+    collection_field_of: [Processing-Activities]
+    used_in: [G06]
+  RoPA-Owner:
+    group: governance
+    type: text
+    description: "RoPA Owner"
+    used_in: [G06]
+  RoPA-Process-Owner:
+    group: governance
+    type: text
+    description: "RoPA Process Owner"
+    collection_field_of: [Processing-Activities]
+    used_in: [G06]
+  RoPA-Processors:
+    group: governance
+    type: text
+    description: "RoPA Processors"
+    collection_field_of: [Processing-Activities]
+    used_in: [G06]
+  RoPA-Systems:
+    group: governance
+    type: text
+    description: "RoPA Systems"
+    collection_field_of: [Processing-Activities]
+    used_in: [G06]
+  SIEM-Tool:
+    group: governance
+    type: text
+    description: "SIEM Tool"
+    used_in: [G04]
+  Steering-Committee-Frequency:
+    group: governance
+    type: duration
+    description: "Steering Committee Frequency"
+    used_in: [G01]
+  Steering-Committee-Members:
+    group: governance
+    type: list
+    description: "Steering Committee Members"
+    used_in: [G01]
+  Whistleblower-Policy-Name:
+    group: governance
+    type: text
+    description: "Whistleblower Policy Name"
+    used_in: [G01]
+  # ---------------- sdf_audit ----------------
+  Additional-Standards:
+    group: sdf_audit
+    type: text
+    description: "Additional Standards"
+    used_in: [S01]
+  Algo-Assessment-Date:
+    group: sdf_audit
+    type: date
+    description: "Algo Assessment Date"
+    used_in: [S04]
+  Algo-Assessor:
+    group: sdf_audit
+    type: text
+    description: "Algo Assessor"
+    used_in: [S04]
+  Algo-Child-Data:
+    group: sdf_audit
+    type: text
+    description: "Algo Child Data"
+    used_in: [S04]
+  Algo-Conclusion:
+    group: sdf_audit
+    type: text
+    description: "Algo Conclusion"
+    used_in: [S01]
+  Algo-Conditions:
+    group: sdf_audit
+    type: longtext
+    description: "Algo Conditions"
+    used_in: [S04]
+  Algo-DP-Scope:
+    group: sdf_audit
+    type: text
+    description: "Algo DP Scope"
+    used_in: [S04]
+  Algo-Deploy-Date:
+    group: sdf_audit
+    type: date
+    description: "Algo Deploy Date"
+    used_in: [S04]
+  Algo-Drift-Monitoring:
+    group: sdf_audit
+    type: text
+    description: "Algo Drift Monitoring"
+    used_in: [S04]
+  Algo-Explainability:
+    group: sdf_audit
+    type: text
+    description: "Algo Explainability"
+    used_in: [S04]
+  Algo-Fairness-Tests:
+    group: sdf_audit
+    type: text
+    description: "Algo Fairness Tests"
+    used_in: [S04]
+  Algo-Human-Oversight:
+    group: sdf_audit
+    type: text
+    description: "Algo Human Oversight"
+    used_in: [S04]
+  Algo-Incident-Triggers:
+    group: sdf_audit
+    type: text
+    description: "Algo Incident Triggers"
+    used_in: [S04]
+  Algo-Input-Data:
+    group: sdf_audit
+    type: text
+    description: "Algo Input Data"
+    used_in: [S04]
+  Algo-Next-Review:
+    group: sdf_audit
+    type: text
+    description: "Algo Next Review"
+    used_in: [S04]
+  Algo-Outputs:
+    group: sdf_audit
+    type: text
+    description: "Algo Outputs"
+    used_in: [S04]
+  Algo-Owner:
+    group: sdf_audit
+    type: text
+    description: "Algo Owner"
+    used_in: [S04]
+  Algo-Review-Frequency:
+    group: sdf_audit
+    type: duration
+    description: "Algo Review Frequency"
+    used_in: [S04]
+  Algo-RoPA-IDs:
+    group: sdf_audit
+    type: text
+    description: "Algo RoPA IDs"
+    used_in: [S04]
+  Algo-Rollback-Owner:
+    group: sdf_audit
+    type: text
+    description: "Algo Rollback Owner"
+    used_in: [S04]
+  Algo-Security-Tests:
+    group: sdf_audit
+    type: text
+    description: "Algo Security Tests"
+    used_in: [S04]
+  Algo-System-Name:
+    group: sdf_audit
+    type: text
+    description: "Algo System Name"
+    used_in: [S04]
+  Algo-Training-Data:
+    group: sdf_audit
+    type: text
+    description: "Algo Training Data"
+    used_in: [S04]
+  Algo-Training-Disclosure:
+    group: sdf_audit
+    type: text
+    description: "Algo Training Disclosure"
+    used_in: [S04]
+  Algo-Validation:
+    group: sdf_audit
+    type: text
+    description: "Algo Validation"
+    used_in: [S04]
+  Algo-Vendor:
+    group: sdf_audit
+    type: text
+    description: "Algo Vendor"
+    used_in: [S04]
+  Algo-Version:
+    group: sdf_audit
+    type: text
+    description: "Algo Version"
+    used_in: [S04]
+  Audit-Opinion:
+    group: sdf_audit
+    type: longtext
+    description: "Audit Opinion"
+    used_in: [S03]
+  Audit-Report-Date:
+    group: sdf_audit
+    type: date
+    description: "Audit Report Date"
+    used_in: [S03]
+  Audit-Report-Place:
+    group: sdf_audit
+    type: text
+    description: "Audit Report Place"
+    used_in: [S03]
+  Audit-Standards:
+    group: sdf_audit
+    type: text
+    description: "Audit Standards"
+    used_in: [S03]
+  Auditor-Credentials:
+    group: sdf_audit
+    type: text
+    description: "Auditor Credentials"
+    used_in: [S01, S03]
+  Auditor-Firm:
+    group: sdf_audit
+    type: text
+    description: "Auditor Firm"
+    used_in: [S01, S03]
+  Auditor-Name:
+    group: sdf_audit
+    type: text
+    description: "Auditor Name"
+    used_in: [S01, S03]
+  Authorised-Director:
+    group: sdf_audit
+    type: text
+    description: "Authorised Director"
+    used_in: [S02]
+  Authorised-Director-Designation:
+    group: sdf_audit
+    type: text
+    description: "Authorised Director Designation"
+    used_in: [S02]
+  Company-Secretary-Name:
+    group: sdf_audit
+    type: text
+    description: "Company Secretary Name"
+    used_in: [S02]
+  Employment-Terms-Date:
+    group: sdf_audit
+    type: date
+    description: "Employment Terms Date"
+    used_in: [S02]
+  Finding-Date:
+    group: sdf_audit
+    type: date
+    description: "Finding Date"
+    collection_field_of: [Audit-Findings]
+    used_in: [S03]
+  Finding-Description:
+    group: sdf_audit
+    type: longtext
+    description: "Finding Description"
+    collection_field_of: [Audit-Findings]
+    used_in: [S03]
+  Finding-Mgmt-Response:
+    group: sdf_audit
+    type: text
+    description: "Finding Mgmt Response"
+    collection_field_of: [Audit-Findings]
+    used_in: [S03]
+  Finding-Owner:
+    group: sdf_audit
+    type: text
+    description: "Finding Owner"
+    collection_field_of: [Audit-Findings]
+    used_in: [S03]
+  Finding-Rating:
+    group: sdf_audit
+    type: text
+    description: "Finding Rating"
+    collection_field_of: [Audit-Findings]
+    used_in: [S03]
+  Finding-Recommendation:
+    group: sdf_audit
+    type: text
+    description: "Finding Recommendation"
+    collection_field_of: [Audit-Findings]
+    used_in: [S03]
+  Finding-Ref:
+    group: sdf_audit
+    type: text
+    description: "Finding Ref"
+    collection_field_of: [Audit-Findings]
+    used_in: [S03]
+  Finding-Root-Cause:
+    group: sdf_audit
+    type: longtext
+    description: "Finding Root Cause"
+    collection_field_of: [Audit-Findings]
+    used_in: [S03]
+  Independence-Cooling-Years:
+    group: sdf_audit
+    type: number
+    description: "Independence Cooling Years"
+    used_in: [S03]
+  Localisation-Specified-Data:
+    group: sdf_audit
+    type: text
+    description: "Localisation Specified Data"
+    used_in: [S01]
+  Localisation-Status:
+    group: sdf_audit
+    type: text
+    description: "Localisation Status"
+    used_in: [S01]
+  Obs-Description:
+    group: sdf_audit
+    type: longtext
+    description: "Obs Description"
+    collection_field_of: [SDF-Observations]
+    used_in: [S01]
+  Obs-Impact:
+    group: sdf_audit
+    type: text
+    description: "Obs Impact"
+    collection_field_of: [SDF-Observations]
+    used_in: [S01]
+  Obs-Mgmt-Response:
+    group: sdf_audit
+    type: text
+    description: "Obs Mgmt Response"
+    collection_field_of: [SDF-Observations]
+    used_in: [S01]
+  Obs-Owner:
+    group: sdf_audit
+    type: text
+    description: "Obs Owner"
+    collection_field_of: [SDF-Observations]
+    used_in: [S01]
+  Obs-Provision:
+    group: sdf_audit
+    type: text
+    description: "Obs Provision"
+    collection_field_of: [SDF-Observations]
+    used_in: [S01]
+  Obs-Rating:
+    group: sdf_audit
+    type: text
+    description: "Obs Rating"
+    collection_field_of: [SDF-Observations]
+    used_in: [S01]
+  Obs-Ref:
+    group: sdf_audit
+    type: text
+    description: "Obs Ref"
+    collection_field_of: [SDF-Observations]
+    used_in: [S01]
+  Obs-Target-Date:
+    group: sdf_audit
+    type: date
+    description: "Obs Target Date"
+    collection_field_of: [SDF-Observations]
+    used_in: [S01]
+  Resolution-Certified-Date:
+    group: sdf_audit
+    type: date
+    description: "Resolution Certified Date"
+    used_in: [S02]
+  S04-Ref:
+    group: sdf_audit
+    type: text
+    description: "S04 Ref"
+    used_in: [S01]
+  SDF-Board-Meeting-Date:
+    group: sdf_audit
+    type: date
+    description: "SDF Board Meeting Date"
+    used_in: [S01]
+  SDF-DP-Categories:
+    group: sdf_audit
+    type: list
+    description: "SDF DP Categories"
+    used_in: [S01]
+  SDF-DP-Volume:
+    group: sdf_audit
+    type: text
+    description: "SDF DP Volume"
+    used_in: [S01]
+  SDF-Executive-Summary:
+    group: sdf_audit
+    type: longtext
+    description: "SDF Executive Summary"
+    used_in: [S01]
+  SDF-Limitations:
+    group: sdf_audit
+    type: text
+    description: "SDF Limitations"
+    used_in: [S01]
+  SDF-Notification-Date:
+    group: sdf_audit
+    type: date
+    description: "SDF Notification Date"
+    used_in: [S01]
+  SDF-Notification-Ref:
+    group: sdf_audit
+    type: text
+    description: "SDF Notification Ref"
+    used_in: [B02, G06, S01]
+  SDF-Period-End:
+    group: sdf_audit
+    type: text
+    description: "SDF Period End"
+    used_in: [S01, S03]
+  SDF-Period-Start:
+    group: sdf_audit
+    type: text
+    description: "SDF Period Start"
+    used_in: [S01, S03]
+  SDF-Prior-Observations-Status:
+    group: sdf_audit
+    type: text
+    description: "SDF Prior Observations Status"
+    used_in: [S01]
+  SDF-Report-Date:
+    group: sdf_audit
+    type: date
+    description: "SDF Report Date"
+    used_in: [S01]
+  SDF-Rights-Purposes-Summary:
+    group: sdf_audit
+    type: longtext
+    description: "SDF Rights Purposes Summary"
+    used_in: [S01]
+  SDF-Scope:
+    group: sdf_audit
+    type: text
+    description: "SDF Scope"
+    used_in: [S01, S03]
+  # ---------------- hr ----------------
+  BGV-Vendor-Name:
+    group: hr
+    type: text
+    description: "BGV Vendor Name"
+    used_in: [N03]
+  HR-Communication-Channel:
+    group: hr
+    type: text
+    description: "HR Communication Channel"
+    used_in: [N03]
+  # ---------------- notice_content ----------------
+  Additional-Notice-Names:
+    group: notice_content
+    type: text
+    description: "Additional Notice Names"
+    used_in: [N01]
+  Automated-Processing-Description:
+    group: notice_content
+    type: longtext
+    description: "Automated Processing Description"
+    used_in: [N01]
+  Automated-Processing-Purpose:
+    group: notice_content
+    type: text
+    description: "Automated Processing Purpose"
+    used_in: [N01]
+  Category-ID:
+    group: notice_content
+    type: text
+    description: "Category ID"
+    collection_field_of: [Data-Categories]
+    used_in: [N01]
+  Category-Name:
+    group: notice_content
+    type: text
+    description: "Category Name"
+    collection_field_of: [Data-Categories, Legacy-Data-Categories]
+    used_in: [N01, N06]
+  Category-Recipients:
+    group: notice_content
+    type: text
+    description: "Category Recipients"
+    used_in: [N02]
+  Category-Withdrawal-Method:
+    group: notice_content
+    type: text
+    description: "Category Withdrawal Method"
+    used_in: [N02]
+  Change-Notification-Channels:
+    group: notice_content
+    type: list
+    description: "Change Notification Channels"
+    used_in: [N01]
+  Core-Service-Name:
+    group: notice_content
+    type: text
+    description: "Core Service Name"
+    collection_field_of: [Category-Optional-Consents]
+    used_in: [N02]
+  Customer-Since-Date:
+    group: notice_content
+    type: date
+    description: "Customer Since Date"
+    used_in: [N06]
+  DP-Category-Label:
+    group: notice_content
+    type: text
+    description: "DP Category Label"
+    used_in: [N02]
+  DPB-Breach-Portal:
+    group: notice_content
+    type: url
+    description: "Board digital office breach-intimation channel (confirm current URL)"
+    required: true
+    used_in: [B01, B02]
+  Data-Item:
+    group: notice_content
+    type: text
+    description: "Data Item"
+    collection_field_of: [Category-Data-Items, Child-Data-Items]
+    used_in: [N02, N05]
+  Data-Item-Purpose:
+    group: notice_content
+    type: text
+    description: "Data Item Purpose"
+    collection_field_of: [Category-Data-Items, Child-Data-Items]
+    used_in: [N02, N05]
+  Data-Item-Requirement:
+    group: notice_content
+    type: text
+    description: "Data Item Requirement"
+    collection_field_of: [Category-Data-Items, Child-Data-Items]
+    used_in: [N02, N05]
+  Data-Items:
+    group: notice_content
+    type: list
+    description: "Data Items"
+    collection_field_of: [Data-Categories, Legacy-Data-Categories]
+    used_in: [N01, N06]
+  Data-Principal-First-Name:
+    group: notice_content
+    type: text
+    description: "Data Principal First Name"
+    used_in: [N06]
+  Data-Source:
+    group: notice_content
+    type: text
+    description: "Data Source"
+    collection_field_of: [Data-Categories, Processing-Activities]
+    used_in: [G06, N01]
+  Due-Date:
+    group: notice_content
+    type: date
+    description: "Due Date"
+    used_in: [R03, R04]
+  Hosting-Description:
+    group: notice_content
+    type: longtext
+    description: "Hosting Description"
+    used_in: [N01]
+  Legal-Basis:
+    group: notice_content
+    type: text
+    description: "Legal Basis"
+    collection_field_of: [Category-Purposes, Processing-Activities]
+    used_in: [G06, N02]
+  Legitimate-Use-Clause:
+    group: notice_content
+    type: text
+    description: "Legitimate Use Clause"
+    collection_field_of: [Legitimate-Use-Purposes]
+    used_in: [N01]
+  Link-Expiry:
+    group: notice_content
+    type: text
+    description: "Link Expiry"
+    used_in: [R04]
+  Marketing-Channels:
+    group: notice_content
+    type: list
+    description: "Marketing Channels"
+    used_in: [N01]
+  New-Purpose:
+    group: notice_content
+    type: text
+    description: "New Purpose"
+    used_in: [C01]
+  Partner-Name:
+    group: notice_content
+    type: text
+    description: "Partner Name"
+    used_in: [C01]
+  Partner-Offer:
+    group: notice_content
+    type: text
+    description: "Partner Offer"
+    used_in: [C01]
+  Patient-Name:
+    group: notice_content
+    type: text
+    description: "Patient Name"
+    used_in: [N02]
+  Placeholder:
+    group: notice_content
+    type: text
+    description: "Placeholder"
+    used_in: [validation]
+  Relationship-To-Patient:
+    group: notice_content
+    type: text
+    description: "Relationship To Patient"
+    used_in: [N02]
+  Sector:
+    group: notice_content
+    type: enum
+    description: "Echo of Sector flag value"
+    default: "General"
+    required: true
+    used_in: [B02]
+  Secure-Download-Link:
+    group: notice_content
+    type: url
+    description: "Secure Download Link"
+    used_in: [R04]
+  Security-Certifications:
+    group: notice_content
+    type: text
+    description: "Security Certifications"
+    used_in: [N01]
+  Third-Party-Sources:
+    group: notice_content
+    type: text
+    description: "Third Party Sources"
+    used_in: [N01]
+  Third-Schedule-Entity:
+    group: notice_content
+    type: enum
+    description: "Echo of Third-Schedule-Entity flag value"
+    default: "None"
+    required: false
+    used_in: [G01, G02]
+
+collections:
+  Access-Recipients:
+    fields: [Access-Recipient-Data, Access-Recipient-Name, Access-Recipient-Role]
+  Audit-Findings:
+    fields: [Finding-Date, Finding-Description, Finding-Mgmt-Response, Finding-Owner, Finding-Rating, Finding-Recommendation, Finding-Ref, Finding-Root-Cause]
+  Breaches:
+    fields: [Board-Detailed-Timestamp, Board-Initial-Timestamp, Breach-Aware-At, Breach-CERTIN-Ref, Breach-DP-Count, Breach-DP-Notified-Count, Breach-Data-Categories, Breach-ID, Breach-Nature, Breach-Root-Cause, Breach-Severity, Breach-Status]
+  Category-Data-Items:
+    fields: [Data-Item, Data-Item-Purpose, Data-Item-Requirement]
+  Category-Optional-Consents:
+    fields: [Core-Service-Name, Purpose-Name, Purpose-Service-Description]
+  Category-Purposes:
+    fields: [Legal-Basis, Purpose-ID, Purpose-Name, Purpose-Retention, Purpose-Service-Description]
+  Child-Data-Items:
+    fields: [Data-Item, Data-Item-Purpose, Data-Item-Requirement]
+  Child-Purposes:
+    fields: [Purpose-ID, Purpose-Name, Purpose-Service-Description]
+  Consent-Purposes:
+    fields: [Purpose-Data-Items, Purpose-ID, Purpose-Mandatory, Purpose-Name, Purpose-Retention, Purpose-Service-Description, Purpose-Withdrawal-Data-Action, Purpose-Withdrawal-Impact]
+  Cookies:
+    fields: [Cookie-Category, Cookie-Cross-Border, Cookie-Duration, Cookie-Name, Cookie-Provider, Cookie-Purpose]
+  Cross-Border-Transfers:
+    fields: [Transfer-Country, Transfer-Data-Items, Transfer-Importer, Transfer-Purpose, Transfer-Safeguards]
+  DPIA-Risks:
+    fields: [Risk-Controls, Risk-Description, Risk-Due, Risk-I, Risk-ID, Risk-Inherent, Risk-L, Risk-Owner, Risk-Res-I, Risk-Res-L, Risk-Residual, Risk-Source]
+  Data-Categories:
+    fields: [Category-ID, Category-Name, Data-Items, Data-Source]
+  Legacy-Data-Categories:
+    fields: [Category-Name, Data-Items]
+  Legacy-Purposes:
+    fields: [Purpose-Name, Purpose-Service-Description, Purpose-Withdrawal-Impact]
+  Legitimate-Use-Purposes:
+    fields: [Legitimate-Use-Clause, Purpose-Data-Items, Purpose-ID, Purpose-Name, Purpose-Service-Description]
+  Processing-Activities:
+    fields: [Data-Source, Legal-Basis, Purpose-Data-Items, Purpose-Name, Purpose-Retention, Purpose-Service-Description, RoPA-Child-Data, RoPA-Classification, RoPA-Cross-Border, RoPA-DP-Categories, RoPA-DPIA-Ref, RoPA-Function, RoPA-ID, RoPA-Last-Review, RoPA-Notice-Ref, RoPA-Other-DFs, RoPA-Process-Owner, RoPA-Processors, RoPA-Systems]
+  Recipient-Categories:
+    fields: [Recipient-Category, Recipient-Purpose, Recipient-Role]
+  Retention-Schedule:
+    fields: [Retention-Data-Set, Retention-Disposal-Method, Retention-Legal-Basis, Retention-Legal-Reference, Retention-Owner, Retention-Period, Retention-Purpose-ID, Retention-Ref, Retention-Trigger]
+  SDF-DPIA-Risks:
+    fields: [Risk-Activity, Risk-Controls, Risk-Description, Risk-ID, Risk-Inherent, Risk-Residual, Risk-Status]
+  SDF-Observations:
+    fields: [Obs-Description, Obs-Impact, Obs-Mgmt-Response, Obs-Owner, Obs-Provision, Obs-Rating, Obs-Ref, Obs-Target-Date]
+  Sub-Processors:
+    fields: [Subprocessor-Data, Subprocessor-Location, Subprocessor-Name, Subprocessor-Safeguards, Subprocessor-Service]

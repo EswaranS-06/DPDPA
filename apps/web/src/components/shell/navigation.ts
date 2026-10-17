@@ -23,6 +23,7 @@ export type NavIcon =
   | 'rights'
   | 'dpia'
   | 'insights'
+  | 'documents'
 
 export type NavLink = { href: string; label: string; icon: NavIcon; exact?: boolean }
 export type NavGroup = { label: string | null; links: NavLink[] }
@@ -71,6 +72,7 @@ export const clientSections = (code: string): NavGroup[] => {
       links: [
         { href: `${base}/insights`, label: 'Insights', icon: 'insights' },
         { href: `${base}/reports`, label: 'Reports', icon: 'reports' },
+        { href: `${base}/documents`, label: 'Documents', icon: 'documents' },
       ],
     },
     {
@@ -107,6 +109,9 @@ const SEGMENT_LABEL: Record<string, string> = {
   roadmap: 'Roadmap',
   crosswalk: 'Standards crosswalk',
   insights: 'Insights',
+  documents: 'Documents',
+  profile: 'Answers and details',
+  clauses: 'Clause pack',
   departments: 'Departments',
   'data-mapping': 'Data mapping',
   catalogue: 'Process catalogue',

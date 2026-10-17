@@ -1,0 +1,25 @@
+id: TC-C26.9-01
+result: pass
+by: claude (for EswaranS-06)
+date: '2026-10-17'
+evidence: >-
+  Preview build of the working tree (127.0.0.1:53510) on a migrated copy of the live self
+  database, client Mallard, with the template library imported from Templater-DPDP.zip by
+  `pnpm duatf templates import` (49 files, every SHA-256 equal to the manifest on the server too).
+  Documents listed all 33 templates under the library's categories, 19 needed by Mallard's
+  answers, each with its blanks to fill or "Per record" and "Awaiting legal review"; the Studio's
+  Part C points for counsel were listed. Answers and details: setting Uses-Cookies to No was saved
+  and kept, and a contact (the Grievance Officer) was saved. N01 rendered the library's wording with
+  the client's values and its 40 blanks highlighted; the drafting notes showed on request. R01's
+  statutory checklist refused sign-off with 5 of 6 items open. From breach BRE-MALLARD-001 its page
+  offered B02 and B03; B02 opened filled from the record (breach ID, the time of the first
+  intimation). The clause pack built clause 14 from the NDA/MSA preset. Downloads: N01, B02 and the
+  clause as Word, the pack as a ZIP (18 Word files: the needed documents that are not built per
+  record) and the registers workbook (the library's seven registers); every download appeared in
+  Recent downloads. All 22 Word files and the workbook were opened in Microsoft Word and Excel on a
+  workstation, read-only with repair turned off, without an error. Checked at 1440 and 390 px, light
+  and dark; no horizontal overflow and no console or page errors.
+notes: >-
+  No template is marked legally reviewed yet: that is an Administrator's mark after counsel has
+  read each template, and every Word file says "Draft: awaiting legal review" in its page header
+  until then. The library's wording was not changed.

@@ -84,6 +84,10 @@ export const CAPABILITIES = {
   'register.manage': define('client', ['lead_auditor', 'auditor']),
   // Breaches and rights requests can also be recorded by the client's privacy lead.
   'incident.manage': define('client', ['lead_auditor', 'auditor', 'client_dpo']),
+  // The document pack is the audit team's deliverable; legal review of the templates is the
+  // Administrator's mark (ADR-0010).
+  'document.manage': define('client', ['lead_auditor', 'auditor']),
+  'template.review': define('firm', ['firm_admin']),
   'audit.view': define('client', ['firm_admin', 'lead_auditor']),
   'kb.view': define('firm', [
     'firm_admin',

@@ -30,7 +30,7 @@ Gate: **passing**
 | C23 | Registers: processors, breaches, rights requests and DPIAs | R3 | TESTS PASSING | legal_sme pending |
 | C24 | Maturity targets and visuals | R3 | TESTS PASSING | lead_auditor pending |
 | C25 | Reports and outputs | R3 | TESTS PASSING | lead_auditor pending |
-| C26 | Document pack from the DPDP template library | R3 | PLANNED | legal_sme pending |
+| C26 | Document pack from the DPDP template library | R3 | TESTS PASSING | legal_sme pending |
 | C27 | Management: reminders, board, calendar, import and the public request page | R3 | PLANNED | lead_auditor pending |
 | C12 | Hardening | R3 | PLANNED | security pending |
 | C13 | Pilots and production | R3 | PLANNED | leadership pending |
@@ -204,6 +204,17 @@ Gate: **passing**
 | TC-C25.2-02 | C25.2 | The board memo and the assessment statement hold what they promise and never call the result a certificate or a verdict of compliance | memo: posture with its working, key findings, penalty items, decisions; statement: scope, period, release, result, sign-off | literal | PASS |
 | TC-C25.3-01 | C25.3 | Every open gap appears under each standard reference of its controls | equal to the references of the knowledge base controls | oracle | PASS |
 | TC-C25.4-01 | C25.4 | The roadmap lists the open actions by phase with owner, due date, effort and rating | rows and phase totals equal to the worked actions | literal | PASS |
+| TC-C25.6-01 | C25.6 | The registers workbook has the library’s seven registers with their columns exactly as the library lays them out, filled from DUATF’s records where it holds the data | sheet and column names equal to registers/*.csv; rows equal to the worked registers | oracle | PASS |
 | TC-C25.5-01 | C25.5 | Each new report downloads from the reports page on a copy of the live data and opens in Word or Excel | files open without repair prompts; pictures and tables in place | manual | PASS |
+| TC-C26.1-01 | C26.1 | Every template, common and register file is byte-identical to the library copy, and an import of a new library version lists what changed | SHA-256 equal for every file; the import reports added, changed and removed files | oracle | PASS |
+| TC-C26.2-01 | C26.2 | For all 33 templates and random flags, values and collections, DUATF’s rendering equals the library engine’s | identical Markdown and the same unfilled fields for every case | oracle | PASS |
+| TC-C26.2-02 | C26.2 | Every IF and REPEAT is closed, every INCLUDE resolves and every flag is defined, as the library’s own validator requires | no structural issue in any template | literal | PASS |
+| TC-C26.3-01 | C26.3 | Flags, common details and collections are prefilled from the client profile, the RoPA and the registers, each with its source, and saved answers override them | equal to the worked client; overrides kept | literal | PASS |
+| TC-C26.4-01 | C26.4 | The Board and Data Principal breach intimations built from a breach carry every Rule 7 item, and an access letter lists every processor the data was shared with | every R7(1), R7(2)(a) and R7(2)(b) field filled from the breach; processors per s.11(1)(b) | literal | PASS |
+| TC-C26.5-01 | C26.5 | Each automatic check of the library’s checklist blocks or warns as the checklist says, and the documents recommended follow its applicability matrix | A1 to A15 as worked; recommendations equal to the matrix for the worked flags | literal | PASS |
+| TC-C26.6-01 | C26.6 | Each document is a valid .docx with the rendered text, and the ZIP holds the recommended set | opens as a .docx; paragraphs and table cells equal to the rendering; ZIP entries as recommended | literal | PASS |
+| TC-C26.7-01 | C26.7 | A template is awaiting legal review until an Administrator marks that version reviewed, and again after its file changes; the consultant checklist is saved per document; every export is logged | label as worked; checklist saved; one log row per export | literal | PASS |
+| TC-C26.8-01 | C26.8 | A document as one numbered clause, and a clause pack from the presets, number and word their sections as the library’s clause tool does | identical to the library’s clauses.js for the worked documents | oracle | PASS |
+| TC-C26.9-01 | C26.9 | The document pack works on a copy of the live data at 1440 and 390 px, light and dark, and the Word files open in Word | no overlap or console errors; files open without repair prompts | manual | PASS |
 
-29 further tests are planned in later sub-phases.
+18 further tests are planned in later sub-phases.

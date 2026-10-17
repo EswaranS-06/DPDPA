@@ -331,6 +331,21 @@ export default async function Page({ params }: Props) {
           />
         </Disclosure>
       ) : null}
+      <Panel title="Documents from this record" titleId="record-documents">
+        <ul className={styles.documentLinks}>
+          <li>
+            <Link href={`/clients/${client.code}/documents/B02?record=${item.code}`}>
+              <span className="code">B02</span> Intimation to the Data Protection Board (Rule 7(2))
+            </Link>
+          </li>
+          <li>
+            <Link href={`/clients/${client.code}/documents/B03?record=${item.code}`}>
+              <span className="code">B03</span> Intimation to the affected Data Principals (Rule
+              7(1))
+            </Link>
+          </li>
+        </ul>
+      </Panel>
     </>
   )
 }

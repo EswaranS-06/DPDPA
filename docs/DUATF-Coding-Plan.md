@@ -557,7 +557,7 @@ Built after C21, at ComplyX's request, from a comparison of DUATF with three oth
 
 #### C26: Document pack from the DPDP template library (revised 16 Oct 2026)
 
-Source: the user's template library (`Templater-DPDP.zip`, v1.0 of 15 Oct 2026), kept word for word in `packages/platform-documents/library/` (and for reference outside the repo). It has 37 templates: notices N01 to N06, consent C01 to C04, governance G01 to G06, vendor V01 to V05, rights R01 to R04, breach B01 to B04 and SDF S01 to S04. They come with 584 placeholders and 22 collections in `placeholder-registry.yaml`, 20 applicability flags and 13 document-level flags, six shared blocks, a validation checklist (Part A automatic, Part B consultant, Part C counsel) and seven register layouts. **The templates are used exactly as written. DUATF never rewrites their wording.** This replaces the seven templates DUATF would have drafted itself.
+Source: the user's template library (`Templater-DPDP.zip`, v1.0 of 15 Oct 2026), kept word for word in `packages/platform-documents/library/` (and for reference outside the repo). It has 33 templates: notices N01 to N06, consent C01 to C04, governance G01 to G06, vendor V01 to V05, rights R01 to R04, breach B01 to B04 and SDF S01 to S04. They come with 584 placeholders and 22 collections in `placeholder-registry.yaml`, 20 applicability flags and 13 document-level flags, six shared blocks, a validation checklist (Part A automatic, Part B consultant, Part C counsel) and seven register layouts. **The templates are used exactly as written. DUATF never rewrites their wording.** This replaces the seven templates DUATF would have drafted itself.
 
 | Sub | Build |
 |---|---|
@@ -574,7 +574,7 @@ Source: the user's template library (`Templater-DPDP.zip`, v1.0 of 15 Oct 2026),
 | Test | Expected | Source |
 |---|---|---|
 | TC-C26.1-01 | Every template, common and register file is byte-identical to the library copy | oracle |
-| TC-C26.2-01 | For all 37 templates and random flag, value and collection sets, DUATF's output equals the library engine's output | oracle |
+| TC-C26.2-01 | For all 33 templates and random flag, value and collection sets, DUATF's output equals the library engine's output | oracle |
 | TC-C26.2-02 | Every IF/REPEAT is balanced, every INCLUDE resolves, every flag is known (the library's `validate.py` rules) | literal |
 | TC-C26.3-01 | Flags and values pre-filled from a worked client match the worked answers, each with its source | literal |
 | TC-C26.4-01 | B02/B03 from a worked breach carry every Rule 7(1) and 7(2)(a),(b) item; an R04 access letter lists every processor shared with (s.11(1)(b)) | literal |

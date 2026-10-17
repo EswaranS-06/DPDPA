@@ -1266,7 +1266,7 @@ phases:
             source: literal
       - id: C25.6
         title: 'Registers workbook in the template library’s column layouts'
-        state: planned
+        state: active
         tests:
           - id: TC-C25.6-01
             title: 'The registers workbook has the library’s seven registers with their columns exactly as the library lays them out, filled from DUATF’s records where it holds the data'
@@ -1289,7 +1289,7 @@ phases:
     subphases:
       - id: C26.1
         title: 'The template library, word for word'
-        state: planned
+        state: active
         tests:
           - id: TC-C26.1-01
             title: 'Every template, common and register file is byte-identical to the library copy, and an import of a new library version lists what changed'
@@ -1297,10 +1297,10 @@ phases:
             source: oracle
       - id: C26.2
         title: 'The library’s template grammar'
-        state: planned
+        state: active
         tests:
           - id: TC-C26.2-01
-            title: 'For all 37 templates and random flags, values and collections, DUATF’s rendering equals the library engine’s'
+            title: 'For all 33 templates and random flags, values and collections, DUATF’s rendering equals the library engine’s'
             expected: 'identical Markdown and the same unfilled fields for every case'
             source: oracle
           - id: TC-C26.2-02
@@ -1309,7 +1309,7 @@ phases:
             source: literal
       - id: C26.3
         title: 'The client’s document profile, filled from DUATF’s records'
-        state: planned
+        state: active
         tests:
           - id: TC-C26.3-01
             title: 'Flags, common details and collections are prefilled from the client profile, the RoPA and the registers, each with its source, and saved answers override them'
@@ -1317,7 +1317,7 @@ phases:
             source: literal
       - id: C26.4
         title: 'Documents built from a record'
-        state: planned
+        state: active
         tests:
           - id: TC-C26.4-01
             title: 'The Board and Data Principal breach intimations built from a breach carry every Rule 7 item, and an access letter lists every processor the data was shared with'
@@ -1325,7 +1325,7 @@ phases:
             source: literal
       - id: C26.5
         title: 'Release checks and the recommended documents'
-        state: planned
+        state: active
         tests:
           - id: TC-C26.5-01
             title: 'Each automatic check of the library’s checklist blocks or warns as the checklist says, and the documents recommended follow its applicability matrix'
@@ -1333,7 +1333,7 @@ phases:
             source: literal
       - id: C26.6
         title: 'Word, Markdown, HTML and print outputs, and the pack as a ZIP'
-        state: planned
+        state: active
         tests:
           - id: TC-C26.6-01
             title: 'Each document is a valid .docx with the rendered text, and the ZIP holds the recommended set'
@@ -1341,7 +1341,7 @@ phases:
             source: literal
       - id: C26.7
         title: 'Consultant checklist, legal review status and the export log'
-        state: planned
+        state: active
         tests:
           - id: TC-C26.7-01
             title: 'A template is awaiting legal review until an Administrator marks that version reviewed, and again after its file changes; the consultant checklist is saved per document; every export is logged'
@@ -1349,7 +1349,7 @@ phases:
             source: literal
       - id: C26.8
         title: 'Clause view and clause pack'
-        state: planned
+        state: active
         tests:
           - id: TC-C26.8-01
             title: 'A document as one numbered clause, and a clause pack from the presets, number and word their sections as the library’s clause tool does'
@@ -1357,7 +1357,7 @@ phases:
             source: oracle
       - id: C26.9
         title: 'Screens: the document pack'
-        state: planned
+        state: active
         tests:
           - id: TC-C26.9-01
             title: 'The document pack works on a copy of the live data at 1440 and 390 px, light and dark, and the Word files open in Word'

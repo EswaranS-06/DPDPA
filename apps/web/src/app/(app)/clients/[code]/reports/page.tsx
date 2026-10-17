@@ -212,6 +212,31 @@ export default async function Page({ params }: { params: Promise<{ code: string 
         </Panel>
       </div>
 
+      {canExport ? (
+        <Panel
+          title="Registers workbook"
+          titleId="registers-title"
+          actions={
+            <Chip icon={FileSpreadsheet} tone="neutral">
+              Excel
+            </Chip>
+          }
+        >
+          <p className={`${styles.flush} ${styles.sectionIntro}`}>
+            The seven registers of the DPDP template library, their columns exactly as the library
+            lays them out: RoPA, retention schedule, vendor register, breach register, rights-request
+            log, consent log and cookie register. Filled from DUATF’s records where it holds the
+            data; the other columns are left to fill in.
+          </p>
+          <div>
+            <a href={`${base}/registers`} className={buttonClass('secondary')} rel="nofollow">
+              <Download size={16} aria-hidden="true" />
+              Download the registers
+            </a>
+          </div>
+        </Panel>
+      ) : null}
+
       {canExport && departments.length ? (
         <Panel
           title="Department workbooks"

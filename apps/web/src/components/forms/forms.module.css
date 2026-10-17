@@ -159,3 +159,41 @@
   margin: 0;
   accent-color: var(--color-primary);
 }
+
+/* The document pack: applicability questions in two columns, and the statutory checklist. */
+.questionList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 24rem), 1fr));
+  gap: var(--space-4) var(--space-5);
+}
+
+.question {
+  min-width: 0;
+}
+
+.checkGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.checkGroup legend {
+  padding: 0 var(--space-1);
+  font-weight: 600;
+}
+
+.checkRow {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+  font-size: var(--text-sm);
+  line-height: 1.45;
+}
+
+.checkRow input {
+  margin-top: 0.2rem;
+}

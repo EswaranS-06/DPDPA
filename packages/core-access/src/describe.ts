@@ -30,6 +30,8 @@ export const CAPABILITY_LABEL: Record<Capability, string> = {
   'report.export': 'download workbooks and reports',
   'register.manage': 'change the processor register and DPIAs',
   'incident.manage': 'record breaches and rights requests',
+  'document.manage': 'fill and download the document pack',
+  'template.review': 'mark a document template as legally reviewed',
   'audit.view': 'view the audit log',
   'kb.view': 'open the knowledge base',
   'kb.edit': 'edit the knowledge base draft',

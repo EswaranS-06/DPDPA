@@ -12,3 +12,4 @@ packages/platform-db/migrations/
 apps/web/public/fonts/
 *.md
 infra/
+packages/platform-documents/library/

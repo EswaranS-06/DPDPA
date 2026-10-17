@@ -321,6 +321,32 @@ export {
 } from './phases'
 export { roadmap, type Roadmap, type RoadmapRow } from './roadmap'
 export {
+  documentPack,
+  saveDocumentProfile,
+  clearDocumentAnswers,
+  renderClientDocument,
+  exportClientDocument,
+  exportDocumentPack,
+  exportClause,
+  clauseOf,
+  reviewTemplate,
+  documentChecklistOf,
+  saveDocumentChecklist,
+  listDocumentExports,
+  documentsForRecord,
+  sectorOf,
+  RECORD_DOCUMENTS,
+  DOCUMENT_FORMATS,
+  type DocumentPack,
+  type DocumentFormat,
+  type RecordKind,
+  type RecordRef,
+  type RenderedDocument,
+  type Source,
+} from './documentPack'
+export { PACK_PRESETS } from '@duatf/platform-documents'
+export { buildRegistersWorkbook, REGISTER_SHEETS } from './registersWorkbook'
+export {
   standardsCrosswalk,
   groupByStandard,
   STANDARDS,

@@ -11,6 +11,7 @@ import {
 import { RIGHTS_KINDS } from '@duatf/platform-db'
 import { Globe, Pencil, UserCheck } from 'lucide-react'
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { RightsMoveForm, RightsRequestForm } from '@/components/forms/RegisterForms'
 import { DueChip, RightsStatusChip } from '@/components/registers/RegisterBits'
@@ -160,6 +161,15 @@ export default async function Page({ params }: Props) {
           />
         </Disclosure>
       ) : null}
+      <Panel title="Documents from this record" titleId="record-documents">
+        <ul className={styles.documentLinks}>
+          <li>
+            <Link href={`/clients/${client.code}/documents/R04?record=${item.code}`}>
+              <span className="code">R04</span> Response letters to the requester
+            </Link>
+          </li>
+        </ul>
+      </Panel>
     </>
   )
 }
