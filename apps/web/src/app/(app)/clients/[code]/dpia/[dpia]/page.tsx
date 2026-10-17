@@ -59,7 +59,7 @@ export default async function Page({ params, searchParams }: Props) {
           <span>
             <span className="code">{item.code}</span>, DPIA of{' '}
             <Link
-              href={`/clients/${client.code}/data-mapping/activities/${activity.ref}`}
+              href={`/clients/${client.code}/data-mapping/activities/${activity.refLabel}`}
               className="code"
             >
               {activity.refLabel}

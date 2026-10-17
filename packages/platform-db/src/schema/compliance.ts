@@ -787,6 +787,15 @@ export const breach = pgTable(
     cause: text('cause'),
     personResponsible: text('person_responsible'),
     remedial: text('remedial'),
+    /** Who reported it inside the organisation, and how (the library's B04 register). */
+    reportedBy: text('reported_by'),
+    reportChannel: text('report_channel'),
+    detectedAt: timestamp('detected_at', { withTimezone: true }),
+    recordsAffected: integer('records_affected'),
+    childrenAffected: integer('children_affected'),
+    /** The post-incident review: when it was held and what was learnt. */
+    reviewOn: date('review_on', { mode: 'string' }),
+    lessons: text('lessons'),
     boardFirstAt: timestamp('board_first_at', { withTimezone: true }),
     boardDetailedAt: timestamp('board_detailed_at', { withTimezone: true }),
     boardReference: text('board_reference'),
@@ -834,6 +843,10 @@ export const breachEvent = pgTable(
   (table) => [index('breach_event_breach').on(table.breachId)],
 )
 
+/** Who made a rights request: the Data Principal, a parent or guardian, a nominee or an agent. */
+export const REQUESTER_ROLES = ['self', 'parent', 'guardian', 'nominee', 'agent'] as const
+export type RequesterRole = (typeof REQUESTER_ROLES)[number]
+
 export const RIGHTS_KINDS = [
   'access',
   'correction',
@@ -873,6 +886,12 @@ export const rightsRequest = pgTable(
     principalType: text('principal_type'),
     details: text('details'),
     identityVerified: boolean('identity_verified').notNull().default(false),
+    requesterRole: text('requester_role').$type<RequesterRole>(),
+    verificationMethod: text('verification_method'),
+    verifiedOn: date('verified_on', { mode: 'string' }),
+    acknowledgedOn: date('acknowledged_on', { mode: 'string' }),
+    /** The response letter sent, by its number in the library's R04 (L-01 and so on). */
+    letterRef: text('letter_ref'),
     status: text('status').$type<RightsStatus>().notNull().default('received'),
     outcome: text('outcome'),
     closedOn: date('closed_on', { mode: 'string' }),
@@ -959,5 +978,25 @@ export const dpiaRisk = pgTable(
       'dpia_risk_range',
       sql`${table.likelihood} between 1 and 5 and ${table.impact} between 1 and 5 and ${table.residualLikelihood} between 1 and 5 and ${table.residualImpact} between 1 and 5`,
     ),
+  ],
+)
+
+/**
+ * The maturity level (0 to 4) a client aims for in a domain. A domain with no row uses the
+ * default target, level 3.
+ */
+export const clientMaturityTarget = pgTable(
+  'client_maturity_target',
+  {
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenant.id, { onDelete: 'cascade' }),
+    domainCode: text('domain_code').notNull(),
+    target: integer('target').notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.tenantId, table.domainCode] }),
+    check('client_maturity_target_range', sql`${table.target} between 0 and 4`),
   ],
 )

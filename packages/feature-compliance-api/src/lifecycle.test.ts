@@ -1,5 +1,6 @@
 import {
   and,
+  asc,
   assessment,
   eq,
   finding,
@@ -101,7 +102,8 @@ describe('finding closure', () => {
       tx
         .select({ kind: findingEvent.kind })
         .from(findingEvent)
-        .where(eq(findingEvent.findingId, gap?.id ?? '')),
+        .where(eq(findingEvent.findingId, gap?.id ?? ''))
+        .orderBy(asc(findingEvent.id)),
     )
     expect(kinds.map((row) => row.kind)).toEqual(['opened', 'remediated'])
 

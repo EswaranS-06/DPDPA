@@ -176,7 +176,9 @@ export default async function Page({ params }: Props) {
               <ul className={styles.bullets}>
                 {item.activities.map((activity) => (
                   <li key={activity.ref}>
-                    <Link href={`/clients/${client.code}/data-mapping/activities/${activity.ref}`}>
+                    <Link
+                      href={`/clients/${client.code}/data-mapping/activities/${activity.refLabel}`}
+                    >
                       <span className="code">{activity.refLabel}</span> {activity.name}
                     </Link>{' '}
                     <span className={styles.muted}>{activity.departmentName}</span>

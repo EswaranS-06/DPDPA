@@ -1,4 +1,4 @@
-import { formatIst } from '@duatf/core-utils'
+import { formatDay, formatIst } from '@duatf/core-utils'
 import {
   Callout,
   Chip,
@@ -125,7 +125,29 @@ export default async function Page({ params }: Props) {
                       ? null
                       : `About ${item.affectedPrincipals.toLocaleString('en-IN')}`,
                 },
+                {
+                  label: 'Records affected',
+                  value:
+                    item.recordsAffected === null
+                      ? null
+                      : item.recordsAffected.toLocaleString('en-IN'),
+                },
+                {
+                  label: 'Children among them',
+                  value:
+                    item.childrenAffected === null
+                      ? null
+                      : item.childrenAffected.toLocaleString('en-IN'),
+                },
                 { label: 'Personal data affected', value: item.dataAffected, wide: true },
+                {
+                  label: 'Detected',
+                  value: item.detectedAt ? formatIst(item.detectedAt) : null,
+                },
+                {
+                  label: 'Reported by',
+                  value: [item.reportedBy, item.reportChannel].filter(Boolean).join(', ') || null,
+                },
                 { label: 'Department', value: item.departmentName },
                 {
                   label: 'Processor',
@@ -145,7 +167,7 @@ export default async function Page({ params }: Props) {
                             {item.activities.map((activity) => (
                               <Link
                                 key={activity.ref}
-                                href={`/clients/${client.code}/data-mapping/activities/${activity.ref}`}
+                                href={`/clients/${client.code}/data-mapping/activities/${activity.refLabel}`}
                               >
                                 <span className="code">{activity.refLabel}</span> {activity.name}
                               </Link>
@@ -162,6 +184,13 @@ export default async function Page({ params }: Props) {
                 {
                   label: 'How Data Principals were told',
                   value: item.principalsHow,
+                },
+                {
+                  label: 'Post-incident review',
+                  value: item.reviewOn
+                    ? `${formatDay(item.reviewOn)}${item.lessons ? `: ${item.lessons}` : ''}`
+                    : null,
+                  wide: true,
                 },
               ]}
             />
@@ -281,6 +310,13 @@ export default async function Page({ params }: Props) {
               cause: item.cause ?? '',
               personResponsible: item.personResponsible ?? '',
               remedial: item.remedial ?? '',
+              reportedBy: item.reportedBy ?? '',
+              reportChannel: item.reportChannel ?? '',
+              detectedAt: toLocalInput(item.detectedAt),
+              recordsAffected: item.recordsAffected === null ? '' : String(item.recordsAffected),
+              childrenAffected: item.childrenAffected === null ? '' : String(item.childrenAffected),
+              reviewOn: item.reviewOn ?? '',
+              lessons: item.lessons ?? '',
             }}
             initialNatures={item.natures}
             initialActivities={item.activityRefs.map(String)}

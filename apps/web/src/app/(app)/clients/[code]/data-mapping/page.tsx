@@ -16,16 +16,19 @@ import {
   LEVEL_INFO,
   listActivities,
   NotFoundError,
+  personalDataMap,
   RECORD_OF_PROCESSING_NOTE,
   transferLabel,
   type ActivityList,
   type DataFlowGraph,
   type DataMapRecord,
+  type PersonalDataMap,
 } from '@duatf/feature-compliance-api'
 import { ArrowRight, Download, Globe, ListPlus, Plus, ShieldAlert, Upload } from 'lucide-react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { Treemap } from '@/components/charts/Charts'
 import { DataFlowCanvas } from '@/components/data/DataFlowCanvas'
 import styles from '@/components/data/DataMap.module.css'
 import { LevelChip } from '@/components/data/LevelChip'
@@ -41,7 +44,7 @@ export const metadata: Metadata = { title: 'Data mapping' }
 
 type Props = { params: Promise<{ code: string }>; searchParams: SearchParams }
 
-const VIEWS = ['flow', 'departments', 'ropa', 'elements'] as const
+const VIEWS = ['flow', 'departments', 'ropa', 'elements', 'map'] as const
 type View = (typeof VIEWS)[number]
 
 const list = (items: readonly string[]) =>
@@ -214,6 +217,117 @@ const RopaTable = ({ data, base }: { data: ActivityList; base: string }) => {
   )
 }
 
+const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`
+
+/** The kinds of personal data in the record of processing, sized by how many elements each holds. */
+const PersonalDataView = ({ data, dpia }: { data: PersonalDataMap; dpia: string }) => {
+  const { counters } = data
+  return (
+    <section className={page.section} aria-labelledby="personal-data-heading">
+      <SectionHeader
+        id="personal-data-heading"
+        title="Personal data map"
+        description="From the record of processing: each kind of personal data its activities handle, sized by the number of distinct data elements and toned by the most sensitive level among them."
+      />
+      <StatGrid label="Personal data map figures">
+        <Stat
+          label="Processing activities"
+          value={counters.activities}
+          note={`in ${plural(counters.departments, 'department', 'departments')}`}
+        />
+        <Stat
+          label="Data elements"
+          value={counters.elements}
+          note={`in ${plural(data.categories.length, 'category', 'categories')}`}
+        />
+        <Stat
+          label="Restricted (L4)"
+          value={counters.restricted}
+          note="distinct elements"
+          tone={counters.restricted ? 'danger' : 'default'}
+          icon={counters.restricted ? ShieldAlert : undefined}
+        />
+        <Stat
+          label="Processors named"
+          value={counters.processors}
+          note="distinct names in the RoPA"
+        />
+        <Stat
+          label="Children’s data"
+          value={counters.children}
+          note="activities whose data principals include children"
+          tone={counters.children ? 'warning' : 'default'}
+        />
+        <Stat
+          label="Outside India"
+          value={counters.transfersAbroad}
+          note="activities that transfer data abroad"
+          icon={counters.transfersAbroad ? Globe : undefined}
+        />
+        <Stat label="DPIAs completed" value={counters.dpiasCompleted} href={dpia} />
+      </StatGrid>
+      {data.categories.length ? (
+        <>
+          <Treemap
+            label={`Personal data by category: ${data.categories
+              .map(
+                (row) =>
+                  `${row.title}, ${plural(row.elements, 'element', 'elements')}, highest level ${row.highestLevel}`,
+              )
+              .join('; ')}.`}
+            entries={data.categories.map((row) => ({
+              key: row.code,
+              label: row.title,
+              value: row.elements,
+              level: row.highestLevel,
+              title: `${row.title}: ${plural(row.elements, 'element', 'elements')} in ${plural(row.activities, 'activity', 'activities')}, highest level ${row.highestLevel} ${LEVEL_INFO[row.highestLevel].label}`,
+            }))}
+          />
+          <ul className={styles.levelKey} aria-label="Levels">
+            {(['L1', 'L2', 'L3', 'L4'] as const).map((key) => (
+              <li key={key}>
+                <LevelChip level={key} />
+              </li>
+            ))}
+          </ul>
+          <details className={ropa.flowTable}>
+            <summary>The categories as a table ({data.categories.length})</summary>
+            <div className={ropa.tableWrap}>
+              <table className={ropa.table}>
+                <thead>
+                  <tr>
+                    <th scope="col">Category</th>
+                    <th scope="col">Data elements</th>
+                    <th scope="col">Activities</th>
+                    <th scope="col">Highest level</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.categories.map((row) => (
+                    <tr key={row.code}>
+                      <th scope="row">{row.title}</th>
+                      <td>{row.elements}</td>
+                      <td>{row.activities}</td>
+                      <td>
+                        <LevelChip level={row.highestLevel} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </details>
+        </>
+      ) : (
+        <p className={ropa.muted}>
+          No personal data in the record of processing yet. Add the data elements of each processing
+          activity and the map appears here.
+        </p>
+      )}
+    </section>
+  )
+}
+
 export default async function Page({ params, searchParams }: Props) {
   const client = await loadClient((await params).code)
   const ctx = await serviceContext()
@@ -227,6 +341,7 @@ export default async function Page({ params, searchParams }: Props) {
   const activities =
     view === 'ropa' || view === 'flow' ? await listActivities(ctx, client.id) : null
   const graph = activities && view === 'flow' ? dataFlowOf(activities) : null
+  const personal = view === 'map' ? await personalDataMap(ctx, client.id) : null
   const base = `/clients/${client.code}`
   const mapping = `${base}/data-mapping`
   const canExport = can(ctx.principal, 'report.export', { clientId: client.id })
@@ -328,6 +443,7 @@ export default async function Page({ params, searchParams }: Props) {
             count: elementRows.length,
             current: view === 'elements',
           },
+          { href: `${mapping}?view=map`, label: 'Personal data map', current: view === 'map' },
         ]}
       />
 
@@ -563,6 +679,10 @@ export default async function Page({ params, searchParams }: Props) {
             </EmptyState>
           )}
         </section>
+      ) : null}
+
+      {view === 'map' && personal ? (
+        <PersonalDataView data={personal} dpia={`${base}/dpia`} />
       ) : null}
 
       {view === 'elements' ? (

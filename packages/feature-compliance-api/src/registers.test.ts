@@ -787,3 +787,106 @@ describe('DPIA', () => {
     })
   })
 })
+
+describe('fields the template library asks for', () => {
+  const iso = (hoursAgo: number) => new Date(Date.now() - hoursAgo * 3_600_000).toISOString()
+  const today = isoDate(new Date())
+
+  it('TC-C23.6-01 a breach keeps how and by whom it was reported, when it was detected and contained, the records and children affected and the post-incident review; a rights request keeps the requester’s role, how and when identity was verified, when it was acknowledged and the letter sent', async () => {
+    const { client } = await withRopa('Library fields', [])
+    const breachInput = {
+      title: 'Payroll file emailed outside',
+      description: 'A payroll export was emailed to a personal address.',
+      occurredAt: iso(50),
+      awareAt: iso(40),
+      severity: 'medium',
+      natures: 'accidental_disclosure',
+      affectedPrincipals: '120',
+      reportedBy: 'IT service desk',
+      reportChannel: 'Email to the DPO',
+      detectedAt: iso(45),
+      recordsAffected: '360',
+      childrenAffected: '0',
+      reviewOn: today,
+      lessons: 'Block personal mail domains for payroll exports.',
+    }
+    const created = await recordBreach(world.ctx, client.id, breachInput)
+    await recordBreachStep(world.ctx, client.id, created.id, { step: 'contained', at: iso(30) })
+    const saved = await getBreach(world.ctx, client.id, created.code)
+    expect({
+      reportedBy: saved.reportedBy,
+      reportChannel: saved.reportChannel,
+      detected: saved.detectedAt?.toISOString().slice(0, 16),
+      contained: saved.containedAt?.toISOString().slice(0, 16),
+      recordsAffected: saved.recordsAffected,
+      childrenAffected: saved.childrenAffected,
+      reviewOn: saved.reviewOn,
+      lessons: saved.lessons,
+    }).toEqual({
+      reportedBy: 'IT service desk',
+      reportChannel: 'Email to the DPO',
+      detected: breachInput.detectedAt.slice(0, 16),
+      contained: iso(30).slice(0, 16),
+      recordsAffected: 360,
+      childrenAffected: 0,
+      reviewOn: today,
+      lessons: 'Block personal mail domains for payroll exports.',
+    })
+    // Detection before occurrence, more children than people affected, a future detection.
+    const wrong = await recordBreach(world.ctx, client.id, {
+      ...breachInput,
+      detectedAt: iso(55),
+      childrenAffected: '121',
+    }).catch((error: unknown) => error)
+    expect(Object.keys((wrong as ValidationError).fieldErrors).sort()).toEqual([
+      'childrenAffected',
+      'detectedAt',
+    ])
+    const ahead = await recordBreach(world.ctx, client.id, {
+      ...breachInput,
+      detectedAt: iso(-3),
+    }).catch((error: unknown) => error)
+    expect((ahead as ValidationError).fieldErrors.detectedAt).toMatch(/future/)
+
+    const yesterday = addCalendarDays(today, -1)
+    const request = await recordRightsRequest(world.ctx, client.id, {
+      kind: 'erasure',
+      receivedOn: yesterday,
+      requesterRef: 'TKT-2001',
+      identityVerified: 'true',
+      requesterRole: 'parent',
+      verificationMethod: 'OTP to the registered mobile',
+      verifiedOn: today,
+      acknowledgedOn: yesterday,
+      letterRef: 'L-05',
+    })
+    const kept = await getRightsRequest(world.ctx, client.id, request.code)
+    expect([
+      kept.requesterRole,
+      kept.verificationMethod,
+      kept.verifiedOn,
+      kept.acknowledgedOn,
+      kept.letterRef,
+    ]).toEqual(['parent', 'OTP to the registered mobile', today, yesterday, 'L-05'])
+    const early = await recordRightsRequest(world.ctx, client.id, {
+      kind: 'access',
+      receivedOn: today,
+      requesterRef: 'TKT-2002',
+      requesterRole: 'cousin',
+      acknowledgedOn: yesterday,
+      verifiedOn: addCalendarDays(today, 2),
+    }).catch((error: unknown) => error)
+    expect(Object.keys((early as ValidationError).fieldErrors).sort()).toEqual(['requesterRole'])
+    const order = await recordRightsRequest(world.ctx, client.id, {
+      kind: 'access',
+      receivedOn: today,
+      requesterRef: 'TKT-2003',
+      acknowledgedOn: yesterday,
+      verifiedOn: addCalendarDays(today, 2),
+    }).catch((error: unknown) => error)
+    expect((order as ValidationError).fieldErrors).toEqual({
+      verifiedOn: 'This date is in the future.',
+      acknowledgedOn: 'This is before the request came in.',
+    })
+  })
+})

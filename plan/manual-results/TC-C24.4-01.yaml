@@ -1,0 +1,27 @@
+id: TC-C24.4-01
+result: pass
+by: claude (for EswaranS-06)
+date: '2026-10-17'
+evidence: >-
+  Preview build of the working tree (127.0.0.1:53510) on a migrated copy of the live self
+  database. Insights for Mallard (ASM-MALLARD-001): the radar drew the 11 requirement areas with
+  a scored answer against the dashed target at level 3, with a hover title on each point (for
+  example "D01 Governance & Accountability: ASM-MALLARD-001 1.6") and the mean level 1.2 against
+  3.0 stated under it; the ranked gaps put D10 Breach Management first (level 0 of 3, Schedule
+  item P2, priority 12.0); saving a target of 4 for D01 kept the select at 4 and re-ranked the
+  gaps, and it was set back to 3. Open gaps by Schedule item listed all seven items with their
+  open gaps (P1 23, P7 34, P2 and P3 1 each, P4, P5 and P6 none, muted) under the note that the
+  maximums are ceilings and are not added together; no total appears. Coverage showed 41 of 67
+  scored answers with accepted evidence and 0 of 57 open findings with an action. The
+  obligations-in-force clock and the open gaps by start date (57 from 13 May 2027) were shown.
+  The personal data map of client MMA0011111 (26 activities) showed the counters and 14
+  categories as a treemap toned by level with the level key and a table view. Checked at 1440
+  and 390 px, light and dark; no horizontal overflow and no console or page errors. Contrast of
+  every chart colour on its surface computed in both themes: marks 5.75:1 or more (3:1 needed),
+  chart text 5.19:1 or more (4.5:1 needed).
+notes: >-
+  Fixed during the check: a hydration mismatch from an SVG title with several text pieces (now
+  one string); Schedule items now show even when no gap is open; areas with no scored answer are
+  left off the radar instead of sitting at its centre; the bars no longer repeat the maximum the
+  item already names. The palette validator script of the charting guide was not available, so
+  the WCAG contrast ratios were computed directly.

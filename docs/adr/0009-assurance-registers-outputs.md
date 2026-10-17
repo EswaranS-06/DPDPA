@@ -1,6 +1,6 @@
 # ADR-0009: Assurance, registers, visuals, outputs and management (C22 to C27)
 
-Date: 13 Oct 2026. Status: accepted by the build; ComplyX's legal review of the breach notice wording, the DPIA prompts and every document pack template is pending.
+Date: 13 Oct 2026. Status: accepted by the build; ComplyX's legal review of the breach notice wording, the DPIA prompts and every document pack template is pending. Decision 14, and decision 13 for the document pack, are replaced by ADR-0010: the document pack is built on ComplyX's own template library.
 
 ComplyX compared DUATF with three other compliance tools and asked for the additions it lacked: a quality check before sign-off, expiry alerts, registers for processors, breaches and rights requests, a DPIA record, maturity targets, a Word report with charts, a board memo, a roadmap, an assessment statement, a standards crosswalk, a document pack, five visuals, sign-off, email reminders, a remediation board and calendar, a supported import command and a public page for rights requests. The ideas are built in DUATF's own code and model. They are planned as six phases (C22 to C27) in `docs/DUATF-Coding-Plan.md` and `plan/plan.yaml`.
 

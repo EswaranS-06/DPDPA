@@ -169,6 +169,20 @@
       "when": 1791891093703,
       "tag": "0023_registers",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1792242587571,
+      "tag": "0024_maturity_targets",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1792243957177,
+      "tag": "0025_library_fields",
+      "breakpoints": true
     }
   ]
 }

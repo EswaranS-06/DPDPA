@@ -153,6 +153,7 @@ export {
   dueDateFor,
   RIGHTS_KIND_INFO,
   RIGHTS_STATUS_LABEL,
+  REQUESTER_ROLE_LABEL,
   GRIEVANCE_MAX_DAYS,
   type RightsDetail,
   type RightsFilters,
@@ -285,6 +286,31 @@ export {
   type DepartmentFigureRow,
   type DepartmentDashboard,
 } from './dashboard'
+export {
+  maturityProfile,
+  setMaturityTargets,
+  targetsFromForm,
+  domainLevel,
+  rankGaps,
+  penaltyCrore,
+  MATURITY_LEVELS,
+  MATURITY_MAX,
+  DEFAULT_TARGET,
+  type MaturityProfile,
+  type MaturityRow,
+} from './maturity'
+export {
+  penaltyExposure,
+  gapsByCommencement,
+  coverage,
+  personalDataMap,
+  PENALTY_NOTE,
+  type Coverage,
+  type DataMapCategory,
+  type PenaltyExposure,
+  type PenaltyItem,
+  type PersonalDataMap,
+} from './insights'
 export { executiveReport, EXECUTIVE_SECTIONS, type ExecutiveReport } from './reports'
 export {
   buildComplianceWorkbook,

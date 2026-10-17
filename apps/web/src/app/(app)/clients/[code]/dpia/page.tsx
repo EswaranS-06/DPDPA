@@ -58,7 +58,7 @@ export default async function Page({ params }: { params: Promise<{ code: string 
               render: (row) => (
                 <span className={styles.personCell}>
                   <Link
-                    href={`${base}/data-mapping/activities/${row.ref}`}
+                    href={`${base}/data-mapping/activities/${row.refLabel}`}
                     className={styles.clientName}
                   >
                     {row.name}

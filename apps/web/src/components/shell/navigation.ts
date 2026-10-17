@@ -22,6 +22,7 @@ export type NavIcon =
   | 'breaches'
   | 'rights'
   | 'dpia'
+  | 'insights'
 
 export type NavLink = { href: string; label: string; icon: NavIcon; exact?: boolean }
 export type NavGroup = { label: string | null; links: NavLink[] }
@@ -67,7 +68,10 @@ export const clientSections = (code: string): NavGroup[] => {
     },
     {
       label: 'Reporting',
-      links: [{ href: `${base}/reports`, label: 'Reports', icon: 'reports' }],
+      links: [
+        { href: `${base}/insights`, label: 'Insights', icon: 'insights' },
+        { href: `${base}/reports`, label: 'Reports', icon: 'reports' },
+      ],
     },
     {
       label: 'Organisation',
@@ -100,6 +104,7 @@ const SEGMENT_LABEL: Record<string, string> = {
   risks: 'Risk register',
   actions: 'Remediation',
   reports: 'Reports',
+  insights: 'Insights',
   departments: 'Departments',
   'data-mapping': 'Data mapping',
   catalogue: 'Process catalogue',

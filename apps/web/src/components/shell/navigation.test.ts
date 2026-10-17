@@ -44,7 +44,7 @@ describe('navigation', () => {
       ['Compliance', ['Overview', 'Departments', 'Data mapping', 'Assessments', 'Evidence']],
       ['Risk and remediation', ['Findings', 'Risk register', 'Remediation']],
       ['Privacy operations', ['Processors', 'Breaches', 'Rights requests', 'DPIAs']],
-      ['Reporting', ['Reports']],
+      ['Reporting', ['Insights', 'Reports']],
       ['Organisation', ['People', 'Control owners']],
     ])
     const navigation = navigationFor(person('lead_auditor'), clients)
@@ -112,6 +112,7 @@ describe('navigation', () => {
       'ASM-AMMA-001',
       'Quality check',
     ])
+    expect(labels('/clients/AMMA/insights')).toEqual(['Clients', 'AMMA', 'Insights'])
     expect(labels('/account/password')).toEqual(['Account', 'Change password'])
     expect(
       crumbsFor('/clients/AMMA/reports/executive/ASM-AMMA-001', navigation).map((crumb) => [

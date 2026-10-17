@@ -1,0 +1,256 @@
+/* Charts use the chart tokens: one brand hue for "now", a neutral dashed line for the thing it is
+   compared with, the grid recessive. Text always wears the text tokens, never a series colour. */
+
+.figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.radar {
+  width: 100%;
+  max-width: 26rem;
+  height: auto;
+  overflow: visible;
+}
+
+.ring,
+.ringOuter,
+.spoke {
+  fill: none;
+  stroke: var(--chart-grid);
+  stroke-width: 1;
+}
+
+.ringOuter {
+  stroke: var(--color-border-strong);
+}
+
+.ringLabel {
+  font-size: 9px;
+  fill: var(--color-text-muted);
+}
+
+.axisLabel {
+  font-size: 11px;
+  font-weight: 600;
+  fill: var(--color-text-secondary);
+}
+
+.area {
+  fill: var(--chart-line);
+  fill-opacity: 0.16;
+  stroke: var(--chart-line);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.outline {
+  fill: none;
+  stroke: var(--color-text-secondary);
+  stroke-width: 2;
+  stroke-dasharray: 5 4;
+  stroke-linejoin: round;
+}
+
+.marker {
+  fill: var(--chart-line);
+  stroke: var(--color-surface);
+  stroke-width: 2;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2) var(--space-5);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.swatchArea,
+.swatchOutline {
+  display: inline-block;
+  width: 1.25rem;
+  height: 0.625rem;
+  border-radius: 2px;
+}
+
+.swatchArea {
+  background: color-mix(in srgb, var(--chart-line) 22%, transparent);
+  border: 2px solid var(--chart-line);
+}
+
+.swatchOutline {
+  height: 0;
+  border-top: 2px dashed var(--color-text-secondary);
+  border-radius: 0;
+}
+
+/* Ring: a share of a whole. */
+.ringFigure {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin: 0;
+}
+
+.ringChart {
+  flex: none;
+  width: 7.5rem;
+  height: 7.5rem;
+}
+
+.track {
+  fill: none;
+  stroke: var(--chart-track);
+  stroke-width: 10;
+}
+
+.arc {
+  fill: none;
+  stroke: var(--chart-line);
+  stroke-width: 10;
+  stroke-linecap: round;
+}
+
+.ringValue {
+  font-size: 22px;
+  font-weight: 600;
+  fill: var(--color-text);
+}
+
+.ringSub {
+  font-size: 10px;
+  fill: var(--color-text-muted);
+}
+
+.ringCaption {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.ringCaption strong {
+  display: block;
+  color: var(--color-text);
+}
+
+/* Bars on one scale. */
+.bars {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bars li {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+}
+
+.barLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.barNote {
+  color: var(--color-text-muted);
+}
+
+.barTrack {
+  display: block;
+  height: 0.625rem;
+  background: var(--chart-track);
+  border-radius: 4px;
+}
+
+.bar,
+.barQuiet {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  background: var(--chart-line);
+}
+
+.barQuiet {
+  background: var(--color-neutral-solid);
+}
+
+.quietRow .barLabel > span:first-child,
+.quietRow .barValue {
+  color: var(--color-text-muted);
+}
+
+.barValue {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--color-text);
+}
+
+@media (max-width: 640px) {
+  .bars li {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .barLabel {
+    grid-column: 1 / -1;
+  }
+
+  .ringFigure {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* Treemap: one tone per sensitivity level, the label inside the cell. */
+.treemap {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.cellL1 {
+  fill: var(--color-neutral-bg);
+  stroke: var(--color-neutral-border);
+}
+
+.cellL2 {
+  fill: var(--color-info-bg);
+  stroke: var(--color-info-border);
+}
+
+.cellL3 {
+  fill: var(--color-warning-bg);
+  stroke: var(--color-warning-border);
+}
+
+.cellL4 {
+  fill: var(--color-danger-bg);
+  stroke: var(--color-danger-border);
+}
+
+.cellLabel {
+  font-size: 12px;
+  font-weight: 600;
+  fill: var(--color-text);
+}
+
+.cellValue {
+  font-size: 11px;
+  fill: var(--color-text-secondary);
+}

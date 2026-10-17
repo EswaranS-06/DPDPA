@@ -5,6 +5,7 @@ import {
   listDepartments,
   NotFoundError,
   RIGHTS_KIND_INFO,
+  REQUESTER_ROLE_LABEL,
   RIGHTS_STATUS_LABEL,
 } from '@duatf/feature-compliance-api'
 import { RIGHTS_KINDS } from '@duatf/platform-db'
@@ -88,6 +89,22 @@ export default async function Page({ params }: Props) {
             items={[
               { label: 'What is asked', value: item.details, wide: true },
               { label: 'Kind of Data Principal', value: item.principalType },
+              {
+                label: 'Made by',
+                value: item.requesterRole ? REQUESTER_ROLE_LABEL[item.requesterRole] : null,
+              },
+              {
+                label: 'Identity checked',
+                value:
+                  [item.verificationMethod, item.verifiedOn ? formatDay(item.verifiedOn) : null]
+                    .filter(Boolean)
+                    .join(', ') || null,
+              },
+              {
+                label: 'Acknowledged',
+                value: item.acknowledgedOn ? formatDay(item.acknowledgedOn) : null,
+              },
+              { label: 'Letter sent', value: item.letterRef },
               { label: 'Due', value: formatDay(item.dueOn) },
               { label: 'Department', value: item.departmentName },
               { label: 'Handled by', value: item.handler },
@@ -123,6 +140,11 @@ export default async function Page({ params }: Props) {
               principalType: item.principalType ?? '',
               details: item.details ?? '',
               identityVerified: String(item.identityVerified),
+              requesterRole: item.requesterRole ?? '',
+              verificationMethod: item.verificationMethod ?? '',
+              verifiedOn: item.verifiedOn ?? '',
+              acknowledgedOn: item.acknowledgedOn ?? '',
+              letterRef: item.letterRef ?? '',
               departmentId: item.departmentId ?? '',
               handler: item.handler ?? '',
             }}

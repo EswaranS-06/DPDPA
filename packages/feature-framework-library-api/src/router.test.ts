@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { findRepoRoot, parseEnv, seedEnvSchema, testDatabaseEnvSchema } from '@duatf/core-config'
+import { daysBetween } from '@duatf/core-utils'
 import { createDatabase, type DatabaseHandle } from '@duatf/platform-db'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { createFrameworkLibraryApi, type FrameworkLibraryApi } from './router'
@@ -71,6 +72,29 @@ describe('framework library API (as the app role)', () => {
     expect(bySection.law.map((row) => row.code)).toContain('S06')
     const byWords = await api.search({ query: 'breach' })
     expect(byWords.obligations.length).toBeGreaterThan(0)
+  })
+
+  it('TC-C24.3-04 gives each commencement date with the obligations it brings and the days to it', async () => {
+    const today = '2026-10-17'
+    const byDate = new Map<string, number>()
+    for (const text of obligationNotes) {
+      const date = field(text, 'in_force')
+      byDate.set(date, (byDate.get(date) ?? 0) + 1)
+    }
+    const summary = await api.summary({ asOf: today })
+    expect(
+      Object.fromEntries(summary.milestones.map((row) => [row.date ?? '', row.count])),
+    ).toEqual(Object.fromEntries(byDate))
+    for (const milestone of summary.milestones) {
+      expect(milestone.domains.reduce((sum, row) => sum + row.count, 0)).toBe(milestone.count)
+    }
+    // Days to each date still to come, against plain calendar arithmetic.
+    const future = [...byDate.keys()].filter((date) => date > today)
+    expect(future.length).toBeGreaterThan(0)
+    for (const date of future) {
+      const days = (Date.parse(`${date}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86_400_000
+      expect(daysBetween(today, date), date).toBe(days)
+    }
   })
 
   it('TC-C2.5-05 counts obligations in force on each commencement date', async () => {

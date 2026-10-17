@@ -23,6 +23,7 @@ import { audit, inClient, type ServiceContext } from './context'
 import {
   NotFoundError,
   optionalCount,
+  optionalDate,
   optionalText,
   parseInput,
   requiredText,
@@ -354,6 +355,13 @@ const recordSchema = z.object({
   cause: optionalText(4000),
   personResponsible: optionalText(2000),
   remedial: optionalText(4000),
+  reportedBy: optionalText(160),
+  reportChannel: optionalText(120),
+  detectedAt: optionalInstant(),
+  recordsAffected: optionalCount(),
+  childrenAffected: optionalCount(),
+  reviewOn: optionalDate(),
+  lessons: optionalText(4000),
   processorId: z.preprocess(blankToUndefined, z.uuid().optional()),
   departmentId: z.preprocess(blankToUndefined, z.uuid().optional()),
   activityRefs: z.preprocess(
@@ -370,6 +378,17 @@ const checkRecord = async (tx: Transaction, clientId: string, input: RecordInput
   if (input.awareAt > now) errors.awareAt = 'This time is in the future.'
   if (input.occurredAt && input.occurredAt > input.awareAt) {
     errors.occurredAt = 'A breach cannot occur after the organisation became aware of it.'
+  }
+  if (input.detectedAt && input.detectedAt > now) errors.detectedAt = 'This time is in the future.'
+  if (input.detectedAt && input.occurredAt && input.detectedAt < input.occurredAt) {
+    errors.detectedAt = 'A breach cannot be detected before it occurred.'
+  }
+  if (
+    input.childrenAffected !== undefined &&
+    input.affectedPrincipals !== undefined &&
+    input.childrenAffected > input.affectedPrincipals
+  ) {
+    errors.childrenAffected = 'More children than Data Principals affected.'
   }
   if (input.natures.some((nature) => !NATURE_CODES.includes(nature))) {
     errors.natures = 'Choose from the list.'
@@ -423,6 +442,13 @@ const valuesOf = (input: RecordInput) => ({
   cause: input.cause ?? null,
   personResponsible: input.personResponsible ?? null,
   remedial: input.remedial ?? null,
+  reportedBy: input.reportedBy ?? null,
+  reportChannel: input.reportChannel ?? null,
+  detectedAt: input.detectedAt ?? null,
+  recordsAffected: input.recordsAffected ?? null,
+  childrenAffected: input.childrenAffected ?? null,
+  reviewOn: input.reviewOn ?? null,
+  lessons: input.lessons ?? null,
   processorId: input.processorId ?? null,
   departmentId: input.departmentId ?? null,
   activityRefs: [...new Set(input.activityRefs)].sort((a, b) => a - b),

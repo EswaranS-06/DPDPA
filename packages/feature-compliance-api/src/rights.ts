@@ -7,6 +7,8 @@ import {
   desc,
   eq,
   rightsRequest,
+  REQUESTER_ROLES,
+  type RequesterRole,
   RIGHTS_KINDS,
   type RightsKind,
   type RightsStatus,
@@ -37,6 +39,14 @@ export const RIGHTS_KIND_INFO: Record<RightsKind, { label: string; basis: string
   grievance: { label: 'Grievance', basis: 's.13, R14(3)' },
   nomination: { label: 'Nomination', basis: 's.14' },
   withdrawal: { label: 'Withdrawal of consent', basis: 's.6(4)' },
+}
+
+export const REQUESTER_ROLE_LABEL: Record<RequesterRole, string> = {
+  self: 'The Data Principal',
+  parent: 'A parent of a child',
+  guardian: 'A lawful guardian',
+  nominee: 'A nominee (s.14)',
+  agent: 'An agent with authority',
 }
 
 export const RIGHTS_STATUS_LABEL: Record<RightsStatus, string> = {
@@ -88,6 +98,14 @@ const requestSchema = z.object({
   principalType: optionalText(120),
   details: optionalText(4000),
   identityVerified: z.preprocess(ticked, z.boolean()),
+  requesterRole: z.preprocess(
+    blankToUndefined,
+    z.enum(REQUESTER_ROLES, { error: 'Choose who made the request.' }).optional(),
+  ),
+  verificationMethod: optionalText(200),
+  verifiedOn: optionalDate(),
+  acknowledgedOn: optionalDate(),
+  letterRef: optionalText(20),
   departmentId: z.preprocess(blankToUndefined, z.uuid().optional()),
   handler: optionalText(160),
 })
@@ -102,6 +120,11 @@ const checkRequest = async (
   const today = isoDate(new Date())
   const errors: Record<string, string> = {}
   if (input.receivedOn > today) errors.receivedOn = 'This date is in the future.'
+  for (const field of ['verifiedOn', 'acknowledgedOn'] as const) {
+    const day = input[field]
+    if (day && day > today) errors[field] = 'This date is in the future.'
+    else if (day && day < input.receivedOn) errors[field] = 'This is before the request came in.'
+  }
   const dueOn =
     input.dueOn ?? dueDateFor(input.kind, input.receivedOn, await responseDaysOf(tx, clientId))
   if (dueOn < input.receivedOn) errors.dueOn = 'The due date cannot be before it was received.'
@@ -128,6 +151,11 @@ const valuesOf = (input: RequestInput, dueOn: string) => ({
   principalType: input.principalType ?? null,
   details: input.details ?? null,
   identityVerified: input.identityVerified,
+  requesterRole: input.requesterRole ?? null,
+  verificationMethod: input.verificationMethod ?? null,
+  verifiedOn: input.verifiedOn ?? null,
+  acknowledgedOn: input.acknowledgedOn ?? null,
+  letterRef: input.letterRef ?? null,
   departmentId: input.departmentId ?? null,
   handler: input.handler ?? null,
 })

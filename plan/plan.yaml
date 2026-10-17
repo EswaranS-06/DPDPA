@@ -1155,6 +1155,14 @@ phases:
             expected: 'no overlap or console errors; each record is added, changed and closed'
             source: manual
             kind: manual
+      - id: C23.6
+        title: 'Breach and rights-request fields the template library asks for'
+        state: active
+        tests:
+          - id: TC-C23.6-01
+            title: 'A breach keeps how and by whom it was reported, when it was detected and contained, the records and children affected and the post-incident review; a rights request keeps the requester’s role, how and when identity was verified, when it was acknowledged and the letter sent'
+            expected: 'saved and returned; containment and detection not before occurrence; acknowledgement not before receipt'
+            source: literal
 
   - id: C24
     title: 'Maturity targets and visuals'
@@ -1163,7 +1171,7 @@ phases:
     subphases:
       - id: C24.1
         title: 'Target maturity per domain and ranked gaps'
-        state: planned
+        state: active
         tests:
           - id: TC-C24.1-01
             title: 'A domain’s level is the mean of its maturity answers, or the stated equivalent of its Yes, Partial and No answers'
@@ -1175,7 +1183,7 @@ phases:
             source: literal
       - id: C24.2
         title: 'Chart geometry: radar, ring, bars and treemap'
-        state: planned
+        state: active
         tests:
           - id: TC-C24.2-01
             title: 'Radar points, ring arcs and bar lengths equal the worked figures'
@@ -1187,7 +1195,7 @@ phases:
             source: oracle
       - id: C24.3
         title: 'Figures behind the visuals'
-        state: planned
+        state: active
         tests:
           - id: TC-C24.3-01
             title: 'Penalty exposure lists each Schedule item with its open gaps and its maximum, and never adds the maximums up'
@@ -1206,8 +1214,8 @@ phases:
             expected: 'dates and counts equal to the knowledge base'
             source: oracle
       - id: C24.4
-        title: 'Screens: the visuals on the client overview, assessment and data mapping pages'
-        state: planned
+        title: 'Screens: the Insights page and the personal data map on the data mapping page'
+        state: active
         tests:
           - id: TC-C24.4-01
             title: 'Every chart renders with a table view and hover details at 1440 and 390 px, light and dark, and its colours pass the palette check'
@@ -1256,6 +1264,14 @@ phases:
             title: 'The roadmap lists the open actions by phase with owner, due date, effort and rating'
             expected: 'rows and phase totals equal to the worked actions'
             source: literal
+      - id: C25.6
+        title: 'Registers workbook in the template library’s column layouts'
+        state: planned
+        tests:
+          - id: TC-C25.6-01
+            title: 'The registers workbook has the library’s seven registers with their columns exactly as the library lays them out, filled from DUATF’s records where it holds the data'
+            expected: 'sheet and column names equal to registers/*.csv; rows equal to the worked registers'
+            source: oracle
       - id: C25.5
         title: 'Screens: the reports page and the downloads'
         state: planned
@@ -1267,44 +1283,84 @@ phases:
             kind: manual
 
   - id: C26
-    title: 'Document pack'
+    title: 'Document pack from the DPDP template library'
     release: R3
     reviews: [legal_sme]
     subphases:
       - id: C26.1
-        title: 'Templates and their merge fields'
+        title: 'The template library, word for word'
         state: planned
         tests:
           - id: TC-C26.1-01
-            title: 'Every merge field of every template is known, and no document leaves one unfilled or printed raw'
-            expected: 'no unknown field; no raw field in any output'
-            source: literal
-          - id: TC-C26.1-02
-            title: 'The privacy notice itemises the RoPA’s personal data and purposes and the means to withdraw, use rights and complain; the breach notices list Rule 7’s contents'
-            expected: 'every activity’s data and purpose; the three means; every R7 item'
-            source: literal
+            title: 'Every template, common and register file is byte-identical to the library copy, and an import of a new library version lists what changed'
+            expected: 'SHA-256 equal for every file; the import reports added, changed and removed files'
+            source: oracle
       - id: C26.2
-        title: 'Downloading one document or the whole pack'
+        title: 'The library’s template grammar'
         state: planned
         tests:
           - id: TC-C26.2-01
-            title: 'Each document downloads as Word and all as one ZIP, with the parental consent form only where children’s data is processed'
-            expected: 'valid .docx files; ZIP holds the applicable ones; the download is recorded'
+            title: 'For all 37 templates and random flags, values and collections, DUATF’s rendering equals the library engine’s'
+            expected: 'identical Markdown and the same unfilled fields for every case'
+            source: oracle
+          - id: TC-C26.2-02
+            title: 'Every IF and REPEAT is closed, every INCLUDE resolves and every flag is defined, as the library’s own validator requires'
+            expected: 'no structural issue in any template'
             source: literal
       - id: C26.3
-        title: 'Legal review status of each template'
+        title: 'The client’s document profile, filled from DUATF’s records'
         state: planned
         tests:
           - id: TC-C26.3-01
-            title: 'A template is labelled as awaiting legal review, in the app and on its documents, until an administrator marks that wording reviewed'
-            expected: 'label shown; cleared by an administrator only; back after the wording changes'
+            title: 'Flags, common details and collections are prefilled from the client profile, the RoPA and the registers, each with its source, and saved answers override them'
+            expected: 'equal to the worked client; overrides kept'
             source: literal
       - id: C26.4
-        title: 'Screens: the document pack'
+        title: 'Documents built from a record'
         state: planned
         tests:
           - id: TC-C26.4-01
-            title: 'The document pack page lists the documents with their status, and the downloads open in Word'
+            title: 'The Board and Data Principal breach intimations built from a breach carry every Rule 7 item, and an access letter lists every processor the data was shared with'
+            expected: 'every R7(1), R7(2)(a) and R7(2)(b) field filled from the breach; processors per s.11(1)(b)'
+            source: literal
+      - id: C26.5
+        title: 'Release checks and the recommended documents'
+        state: planned
+        tests:
+          - id: TC-C26.5-01
+            title: 'Each automatic check of the library’s checklist blocks or warns as the checklist says, and the documents recommended follow its applicability matrix'
+            expected: 'A1 to A15 as worked; recommendations equal to the matrix for the worked flags'
+            source: literal
+      - id: C26.6
+        title: 'Word, Markdown, HTML and print outputs, and the pack as a ZIP'
+        state: planned
+        tests:
+          - id: TC-C26.6-01
+            title: 'Each document is a valid .docx with the rendered text, and the ZIP holds the recommended set'
+            expected: 'opens as a .docx; paragraphs and table cells equal to the rendering; ZIP entries as recommended'
+            source: literal
+      - id: C26.7
+        title: 'Consultant checklist, legal review status and the export log'
+        state: planned
+        tests:
+          - id: TC-C26.7-01
+            title: 'A template is awaiting legal review until an Administrator marks that version reviewed, and again after its file changes; the consultant checklist is saved per document; every export is logged'
+            expected: 'label as worked; checklist saved; one log row per export'
+            source: literal
+      - id: C26.8
+        title: 'Clause view and clause pack'
+        state: planned
+        tests:
+          - id: TC-C26.8-01
+            title: 'A document as one numbered clause, and a clause pack from the presets, number and word their sections as the library’s clause tool does'
+            expected: 'identical to the library’s clauses.js for the worked documents'
+            source: oracle
+      - id: C26.9
+        title: 'Screens: the document pack'
+        state: planned
+        tests:
+          - id: TC-C26.9-01
+            title: 'The document pack works on a copy of the live data at 1440 and 390 px, light and dark, and the Word files open in Word'
             expected: 'no overlap or console errors; files open without repair prompts'
             source: manual
             kind: manual
@@ -1353,7 +1409,7 @@ phases:
             source: manual
             kind: manual
       - id: C27.4
-        title: 'Public page that takes rights requests for a client'
+        title: 'Public page that takes rights requests for a client, in the library’s R03 wording'
         state: planned
         tests:
           - id: TC-C27.4-01

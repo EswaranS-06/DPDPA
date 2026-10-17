@@ -498,6 +498,7 @@ Built after C21, at ComplyX's request, from a comparison of DUATF with three oth
 | C23.3 | Rights and grievance register: access, correction, erasure, grievance, nomination and withdrawal of consent, with received and due dates (grievances within the period the client publishes, at most 90 days, R14(3)), status and the action taken |
 | C23.4 | DPIA record on a RoPA activity: the rights affected and the purpose, necessity and proportionality, the risks to Data Principals rated before and after the measures, the outcome and the next review. Required of a Significant Data Fiduciary every 12 months (s.10(2)(c)(i), R13(1)); good practice for others |
 | C23.5 | Screens for the four registers, their place in the navigation and in "Needs your attention" |
+| C23.6 | The breach record keeps how and by whom it was reported, when it was detected and contained, the records and children affected and the post-incident review; the rights request keeps the requester’s role, the identity check and when it was acknowledged. The template library’s breach and rights templates ask for these |
 
 | Test | Expected | Source |
 |---|---|---|
@@ -512,6 +513,7 @@ Built after C21, at ComplyX's request, from a comparison of DUATF with three oth
 | TC-C23.4-01 | A DPIA belongs to one activity, starts from its RoPA answers and rates risk before and after its measures | literal |
 | TC-C23.4-02 | Sensitive activities are suggested for a DPIA; due reviews are reported | literal |
 | TC-C23.5-01 | The screens work on a copy of the live data at 1440 and 390 px, light and dark | manual |
+| TC-C23.6-01 | The new breach and rights-request fields are saved and returned, in a sensible order of dates | literal |
 
 #### C24: Maturity targets and visuals
 | Sub | Build |
@@ -541,6 +543,7 @@ Built after C21, at ComplyX's request, from a comparison of DUATF with three oth
 | C25.3 | Crosswalk of the open gaps to ISO/IEC 27001, ISO/IEC 27701 and NIST CSF, from the references on the knowledge base controls |
 | C25.4 | The roadmap as a sheet of the compliance workbook and as a printable page |
 | C25.5 | The reports page lists every output with its format |
+| C25.6 | A registers workbook with the template library’s seven registers, their columns exactly as the library lays them out, filled from DUATF’s records where it holds the data |
 
 | Test | Expected | Source |
 |---|---|---|
@@ -550,22 +553,37 @@ Built after C21, at ComplyX's request, from a comparison of DUATF with three oth
 | TC-C25.3-01 | Every open gap appears under each standard reference of its controls | oracle |
 | TC-C25.4-01 | The roadmap lists the open actions by phase with owner, due date, effort and rating | literal |
 | TC-C25.5-01 | Each new report downloads on a copy of the live data and opens in Word or Excel | manual |
+| TC-C25.6-01 | Sheet and column names equal the library’s register layouts; rows equal the worked registers | oracle |
 
-#### C26: Document pack
+#### C26: Document pack from the DPDP template library (revised 16 Oct 2026)
+
+Source: the user's template library (`Templater-DPDP.zip`, v1.0 of 15 Oct 2026), kept word for word in `packages/platform-documents/library/` (and for reference outside the repo). It has 37 templates: notices N01 to N06, consent C01 to C04, governance G01 to G06, vendor V01 to V05, rights R01 to R04, breach B01 to B04 and SDF S01 to S04. They come with 584 placeholders and 22 collections in `placeholder-registry.yaml`, 20 applicability flags and 13 document-level flags, six shared blocks, a validation checklist (Part A automatic, Part B consultant, Part C counsel) and seven register layouts. **The templates are used exactly as written. DUATF never rewrites their wording.** This replaces the seven templates DUATF would have drafted itself.
+
 | Sub | Build |
 |---|---|
-| C26.1 | Seven templates with merge fields: privacy notice (s.5, R3), consent request (s.6), grievance and rights procedure (s.8(10), s.13, R14), retention schedule (s.8(7), R8), breach notices to the Board and to Data Principals (s.8(6), R7), parental consent (s.9, R10) and a processor contract checklist (s.8(2)). Filled from the client profile, the RoPA, the processor register and the breach record |
-| C26.2 | Each document as Word, or the whole pack as a ZIP |
-| C26.3 | Every template is labelled "awaiting legal review", in the app and on its documents, until an Administrator marks that wording reviewed. The wording was drafted by the build and needs ComplyX's legal review before a client sees it |
-| C26.4 | The document pack page |
+| C26.1 | **The library, unchanged.** The template, common and register files are copied byte for byte into DUATF. A test compares each file's SHA-256 with the library copy, so any change to the wording fails the gate. `pnpm duatf templates import <zip>` brings in a new version of the library and lists what changed |
+| C26.2 | **The same grammar.** DUATF's renderer follows the library's own order: INCLUDE, then drafting notes, IF/NOT/==/!=, REPEAT, comments, placeholders. Drafting notes are removed, or kept for the consultant view. Dates are written as "13 May 2027", and `Pre-May-2027` is set automatically. Results must match the library's own engine (`ui/engine.js`) |
+| C26.3 | **Filled from DUATF's records.** Each client has a document profile. The 20 applicability questions are pre-answered from what DUATF already knows: SDF status, children's data and transfers abroad from the RoPA, sector, an HR department. Each pre-answer shows where it came from. The "common details" are entered once, and those DUATF holds come from the client profile, DPO and grievance contacts. Collections come from the registers: Processing-Activities and Retention-Schedule from the RoPA, Sub-Processors from the processor register, Data-Categories from the personal data map, DPIA-Risks from the DPIAs. `[Server-name]` is the firm's name. Values can be changed per document |
+| C26.4 | **Documents per record.** B02 (Board) and B03 (Data Principals) are built from a breach record, R04 letters from a rights request, G05 from a DPIA, V01/V03 from a processor and G06 from the RoPA. Each record's page links to its document |
+| C26.5 | **Checks before release.** Part A runs on every render, all 15 checks. Block-release checks (unfilled placeholder, drafting note left in, `[Server-name]` in a public or regulator document, grievance period over 90 days, missing contact block and so on) stop the export. Warnings are listed. The applicability matrix recommends which documents a client needs |
+| C26.6 | **Outputs.** Each document as a real Word file (`.docx`: headings, tables, lists), Markdown, HTML and print/PDF. The whole set as a ZIP. Preview shows blanks highlighted |
+| C26.7 | **Review and record.** The Part B statutory checklist is ticked and signed by the consultant per document. The Part C counsel points are shown on the pack page. A template stays labelled "awaiting legal review" until an Administrator marks that version reviewed, keyed by the file's hash, so a new library version needs a fresh review. The library itself asks counsel to re-check the clauses marked VERIFY. Every export is logged: who, which document, which client, format, template version |
+| C26.8 | **Clause view and clause pack.** Any document as one numbered clause (e.g. 14, 14.1, 14.1.1), with the library's presets: NDA/MSA clause (V04), breach notice only, cross-border (V05), F2F sharing (V02), full DPA as one clause (V01) |
+| C26.9 | The document pack page and the links from the registers |
 
 | Test | Expected | Source |
 |---|---|---|
-| TC-C26.1-01 | Every merge field is known; no document leaves one unfilled or printed raw | literal |
-| TC-C26.1-02 | The notice itemises the RoPA's data and purposes and the three means; the breach notices list Rule 7's contents | literal |
-| TC-C26.2-01 | Each document downloads as Word and all as one ZIP; parental consent only where children's data is processed | literal |
-| TC-C26.3-01 | A template is labelled as awaiting review until an Administrator marks that wording reviewed | literal |
-| TC-C26.4-01 | The document pack page works and its downloads open in Word | manual |
+| TC-C26.1-01 | Every template, common and register file is byte-identical to the library copy | oracle |
+| TC-C26.2-01 | For all 37 templates and random flag, value and collection sets, DUATF's output equals the library engine's output | oracle |
+| TC-C26.2-02 | Every IF/REPEAT is balanced, every INCLUDE resolves, every flag is known (the library's `validate.py` rules) | literal |
+| TC-C26.3-01 | Flags and values pre-filled from a worked client match the worked answers, each with its source | literal |
+| TC-C26.4-01 | B02/B03 from a worked breach carry every Rule 7(1) and 7(2)(a),(b) item; an R04 access letter lists every processor shared with (s.11(1)(b)) | literal |
+| TC-C26.5-01 | Each Part A check blocks or warns exactly as the checklist says, on worked failing cases | literal |
+| TC-C26.6-01 | Each document opens as a valid `.docx` with the same text as the rendered Markdown; the ZIP holds the recommended set | literal |
+| TC-C26.7-01 | A template stays "awaiting legal review" until reviewed, and again after its file changes; exports are logged | literal |
+| TC-C26.8-01 | Clause view renumbers sections and applies replacements as the library's `clauses.js` does | oracle |
+| TC-C26.9-01 | The pack page works on a copy of the live data at 1440 and 390 px, light and dark, and the Word files open in Word | manual |
+
 
 #### C27: Management
 | Sub | Build |

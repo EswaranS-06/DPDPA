@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   ListChecks,
   Network,
+  Radar,
   ShieldAlert,
   ShieldCheck,
   SlidersHorizontal,
@@ -45,4 +46,5 @@ export const NAV_ICON: Record<NavIcon, LucideIcon> = {
   breaches: ShieldAlert,
   rights: Inbox,
   dpia: FileSearch,
+  insights: Radar,
 }

@@ -28,9 +28,9 @@ Gate: **passing**
 | C21 | Process-focused record of processing with Excel export and import (self-audit edition) | R2 | TESTS PASSING | lead_auditor pending, legal_sme pending |
 | C22 | Assurance: quality check, expiry and sign-off | R3 | TESTS PASSING | lead_auditor pending |
 | C23 | Registers: processors, breaches, rights requests and DPIAs | R3 | TESTS PASSING | legal_sme pending |
-| C24 | Maturity targets and visuals | R3 | PLANNED | lead_auditor pending |
+| C24 | Maturity targets and visuals | R3 | TESTS PASSING | lead_auditor pending |
 | C25 | Reports and outputs | R3 | PLANNED | lead_auditor pending |
-| C26 | Document pack | R3 | PLANNED | legal_sme pending |
+| C26 | Document pack from the DPDP template library | R3 | PLANNED | legal_sme pending |
 | C27 | Management: reminders, board, calendar, import and the public request page | R3 | PLANNED | lead_auditor pending |
 | C12 | Hardening | R3 | PLANNED | security pending |
 | C13 | Pilots and production | R3 | PLANNED | leadership pending |
@@ -189,5 +189,15 @@ Gate: **passing**
 | TC-C23.4-01 | C23.4 | A DPIA belongs to one activity, starts from its RoPA answers and rates risk before and after its measures | one per activity; prefilled; ratings = likelihood x impact in the firm’s bands | literal | PASS |
 | TC-C23.4-02 | C23.4 | Activities with the most sensitive data, children’s data or transfers abroad are suggested for a DPIA, and a review date is reported when due | suggested as worked; due reviews counted in attention | literal | PASS |
 | TC-C23.5-01 | C23.5 | The processor, breach, rights and DPIA screens work on a copy of the live data at 1440 and 390 px, light and dark | no overlap or console errors; each record is added, changed and closed | manual | PASS |
+| TC-C23.6-01 | C23.6 | A breach keeps how and by whom it was reported, when it was detected and contained, the records and children affected and the post-incident review; a rights request keeps the requester’s role, how and when identity was verified, when it was acknowledged and the letter sent | saved and returned; containment and detection not before occurrence; acknowledgement not before receipt | literal | PASS |
+| TC-C24.1-01 | C24.1 | A domain’s level is the mean of its maturity answers, or the stated equivalent of its Yes, Partial and No answers | equal to the worked levels | literal | PASS |
+| TC-C24.1-02 | C24.1 | The gap to target is ranked by its size and the domain’s highest penalty item | order and scores equal to the worked case; no negative gap | literal | PASS |
+| TC-C24.2-01 | C24.2 | Radar points, ring arcs and bar lengths equal the worked figures | equal to the worked coordinates | literal | PASS |
+| TC-C24.2-02 | C24.2 | Treemap rectangles fill the frame in proportion to their values without overlapping | areas in proportion; no overlap; inside the frame, for any values | oracle | PASS |
+| TC-C24.3-01 | C24.3 | Penalty exposure lists each Schedule item with its open gaps and its maximum, and never adds the maximums up | items and counts as worked; no total | literal | PASS |
+| TC-C24.3-02 | C24.3 | Coverage counts scored answers with accepted evidence and open findings with an action | equal to the worked counts | literal | PASS |
+| TC-C24.3-03 | C24.3 | The personal data map figures come from the RoPA: categories, elements, activities, highest level and the counters | equal to the worked RoPA | literal | PASS |
+| TC-C24.3-04 | C24.3 | The commencement timeline gives the days to each phase date and the obligations each phase brings | dates and counts equal to the knowledge base | oracle | PASS |
+| TC-C24.4-01 | C24.4 | Every chart renders with a table view and hover details at 1440 and 390 px, light and dark, and its colours pass the palette check | no overlap or console errors; palette check passes on both surfaces | manual | PASS |
 
-38 further tests are planned in later sub-phases.
+35 further tests are planned in later sub-phases.

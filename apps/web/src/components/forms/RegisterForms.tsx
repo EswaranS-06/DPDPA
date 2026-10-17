@@ -438,6 +438,60 @@ export const BreachForm = ({
         defaultValue={value('remedial')}
         error={error('remedial')}
       />
+      <div className={styles.inline}>
+        <TextField
+          label="Reported by"
+          name="reportedBy"
+          defaultValue={value('reportedBy')}
+          error={error('reportedBy')}
+          hint="The person or team who raised it inside the organisation."
+        />
+        <TextField
+          label="How it was reported"
+          name="reportChannel"
+          defaultValue={value('reportChannel')}
+          error={error('reportChannel')}
+          placeholder="Security alert, email to the DPO, call…"
+        />
+        <TextField
+          label="Detected"
+          name="detectedAt"
+          type="datetime-local"
+          defaultValue={value('detectedAt')}
+          error={error('detectedAt')}
+          hint="Indian Standard Time."
+        />
+      </div>
+      <div className={styles.inline}>
+        <TextField
+          label="Records affected"
+          name="recordsAffected"
+          type="number"
+          defaultValue={value('recordsAffected')}
+          error={error('recordsAffected')}
+        />
+        <TextField
+          label="Children among the Data Principals"
+          name="childrenAffected"
+          type="number"
+          defaultValue={value('childrenAffected')}
+          error={error('childrenAffected')}
+        />
+        <TextField
+          label="Post-incident review held on"
+          name="reviewOn"
+          type="date"
+          defaultValue={value('reviewOn')}
+          error={error('reviewOn')}
+        />
+      </div>
+      <TextAreaField
+        label="Lessons from the review"
+        name="lessons"
+        rows={2}
+        defaultValue={value('lessons')}
+        error={error('lessons')}
+      />
       <FormActions>
         <button type="submit" className={buttonClass()} disabled={pending} aria-busy={pending}>
           {pending ? 'Saving…' : submitLabel}
@@ -630,6 +684,51 @@ export const RightsRequestForm = ({
             { value: 'true', label: 'Yes, by the identifier the client asks for' },
           ]}
           defaultValue={value('identityVerified') || 'false'}
+        />
+        <SelectField
+          label="Request made by"
+          name="requesterRole"
+          placeholder="Not recorded"
+          options={[
+            { value: 'self', label: 'The Data Principal' },
+            { value: 'parent', label: 'A parent of a child' },
+            { value: 'guardian', label: 'A lawful guardian' },
+            { value: 'nominee', label: 'A nominee (s.14)' },
+            { value: 'agent', label: 'An agent with authority' },
+          ]}
+          defaultValue={value('requesterRole')}
+          error={error('requesterRole')}
+        />
+      </div>
+      <div className={styles.inline}>
+        <TextField
+          label="How identity was checked"
+          name="verificationMethod"
+          defaultValue={value('verificationMethod')}
+          error={error('verificationMethod')}
+          placeholder="OTP to the registered mobile, account login…"
+        />
+        <TextField
+          label="Identity checked on"
+          name="verifiedOn"
+          type="date"
+          defaultValue={value('verifiedOn')}
+          error={error('verifiedOn')}
+        />
+        <TextField
+          label="Acknowledged on"
+          name="acknowledgedOn"
+          type="date"
+          defaultValue={value('acknowledgedOn')}
+          error={error('acknowledgedOn')}
+        />
+        <TextField
+          label="Letter sent"
+          name="letterRef"
+          defaultValue={value('letterRef')}
+          error={error('letterRef')}
+          placeholder="L-01"
+          hint="The response letter, by its number in the R04 template."
         />
         <SelectField
           label="Department handling it"
